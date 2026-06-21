@@ -112,14 +112,10 @@ App launch
 ## Getting started
 
 1. Clone the repo and open `Photrail.xcodeproj`.
-2. **Add the country boundary dataset** (required for offline country detection):
-   - Download `ne_10m_admin_0_countries.geojson` from
-     [natural-earth-vector](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_admin_0_countries.geojson) (public domain).
-   - Optionally simplify lightly at [mapshaper.org](https://mapshaper.org) (`-simplify 40% keep-shapes`) to shrink it; avoid going below ~30% or border towns get misplaced.
-   - Rename it to **`countries.geojson`** and drag it into the `Photrail/` group (it bundles automatically).
-   - Whenever you swap in a better dataset, bump `AppViewModel.countryDatasetVersion` so existing installs re-resolve.
-3. **Widgets (optional):** the project includes a `PhotrailWidgets` extension. Both the app and the widget target must have the **App Group** `group.com.berend.photrail` enabled (Signing & Capabilities). The shared snapshot is published there after each scan.
-4. Select your team in **Signing & Capabilities** and run on a **physical device** (photo library + geocoding are unreliable in the Simulator).
+2. **Widgets (optional):** the project includes a `PhotrailWidgets` extension. Both the app and the widget target must have the **App Group** `group.com.berend.photrail` enabled (Signing & Capabilities). The shared snapshot is published there after each scan.
+3. Select your team in **Signing & Capabilities** and run on a **physical device** (photo library + geocoding are unreliable in the Simulator).
+
+> The country boundary dataset (`Photrail/countries.geojson`, Natural Earth 1:10m, public domain) is committed to the repo and bundles automatically — no setup needed. If you swap in a different dataset, bump `AppViewModel.countryDatasetVersion` so existing installs re-resolve their countries.
 
 > Run the **`Photrail`** scheme — not `PhotrailWidgets`. Running the widget scheme directly requires an `_XCWidgetKind` environment variable to pick a widget.
 
