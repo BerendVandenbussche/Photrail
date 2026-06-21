@@ -74,10 +74,14 @@ struct StatisticsEngine: Sendable {
                                             photoCount: photos))
         }
 
+        // --- Wonders (location-based; works on all photos, even before geocoding) ---
+        let wonders = WonderDetector().detect(photos: photos)
+
         return TravelStats(
             totalGeotaggedPhotos: geocoded.count,
             countries: countries,
             continents: continents,
+            wonders: wonders,
             allCities: allCities,
             timelineEntries: timeline
         )

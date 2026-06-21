@@ -119,19 +119,60 @@ private struct AccessoryRectangularView: View {
     }
 }
 
+private struct WondersView: View {
+    let stats: WidgetSharedStats
+    let compact: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: compact ? 6 : 8) {
+            HStack(spacing: 5) {
+                Image(systemName: "star.circle.fill")
+                Text("World Wonders")
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white.opacity(0.85))
+
+            Spacer()
+
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("\(stats.sevenWondersSeen)")
+                    .font(.system(size: compact ? 40 : 48, weight: .heavy, design: .rounded))
+                Text("/ 7")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .foregroundStyle(.white)
+
+            if !stats.seenWonderEmojis.isEmpty {
+                Text(stats.seenWonderEmojis.prefix(compact ? 4 : 9).joined(separator: " "))
+                    .font(.system(size: compact ? 16 : 20))
+                    .lineLimit(1)
+            }
+
+            Text("\(stats.totalWondersSeen) landmarks explored")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.6))
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+}
+
 // MARK: - Widget entry view
+
+/// Shared Midnight gradient used by all Photrail widgets.
+private let widgetGradient = LinearGradient(
+    colors: [Color(red: 0.07, green: 0.10, blue: 0.23),
+             Color(red: 0.13, green: 0.18, blue: 0.38)],
+    startPoint: .topLeading, endPoint: .bottomTrailing
+)
 
 struct PhotrailWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
     let entry: StatsEntry
 
-    private var gradient: LinearGradient {
-        LinearGradient(
-            colors: [Color(red: 0.07, green: 0.10, blue: 0.23),
-                     Color(red: 0.13, green: 0.18, blue: 0.38)],
-            startPoint: .topLeading, endPoint: .bottomTrailing
-        )
-    }
+    private var gradient: LinearGradient { widgetGradient }
 
     var body: some View {
         switch family {
@@ -166,6 +207,29 @@ struct PhotrailStatsWidget: Widget {
     }
 }
 
+struct PhotrailWondersEntryView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: StatsEntry
+
+    var body: some View {
+        WondersView(stats: entry.stats, compact: family == .systemSmall)
+            .containerBackground(for: .widget) { widgetGradient }
+    }
+}
+
+struct PhotrailWondersWidget: Widget {
+    let kind = "PhotrailWondersWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: StatsProvider()) { entry in
+            PhotrailWondersEntryView(entry: entry)
+        }
+        .configurationDisplayName("World Wonders")
+        .description("How many of the 7 World Wonders and famous landmarks you've seen.")
+        .supportedFamilies([.systemSmall, .systemMedium])
+    }
+}
+
 // MARK: - Previews
 
 #Preview(as: .systemSmall) {
@@ -176,6 +240,12 @@ struct PhotrailStatsWidget: Widget {
 
 #Preview(as: .systemMedium) {
     PhotrailStatsWidget()
+} timeline: {
+    StatsEntry(date: .now, stats: .placeholder)
+}
+
+#Preview(as: .systemSmall) {
+    PhotrailWondersWidget()
 } timeline: {
     StatsEntry(date: .now, stats: .placeholder)
 }

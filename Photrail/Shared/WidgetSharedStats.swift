@@ -16,6 +16,9 @@ struct WidgetSharedStats: Codable, Equatable {
     var topCountryName: String?
     var topCountryFlag: String?
     var hasVisitedAntarctica: Bool
+    var sevenWondersSeen: Int
+    var totalWondersSeen: Int
+    var seenWonderEmojis: [String]
     var updatedAt: Date
 
     static let placeholder = WidgetSharedStats(
@@ -28,6 +31,9 @@ struct WidgetSharedStats: Codable, Equatable {
         topCountryName: "Japan",
         topCountryFlag: "🇯🇵",
         hasVisitedAntarctica: false,
+        sevenWondersSeen: 3,
+        totalWondersSeen: 9,
+        seenWonderEmojis: ["🗼", "🏛️", "🕌", "🗽", "🌉", "🗻"],
         updatedAt: .now
     )
 
@@ -41,6 +47,9 @@ struct WidgetSharedStats: Codable, Equatable {
         topCountryName: nil,
         topCountryFlag: nil,
         hasVisitedAntarctica: false,
+        sevenWondersSeen: 0,
+        totalWondersSeen: 0,
+        seenWonderEmojis: [],
         updatedAt: .distantPast
     )
 

@@ -12,5 +12,6 @@ import SwiftUI
 struct PhotrailWidgetsBundle: WidgetBundle {
     var body: some Widget {
         PhotrailStatsWidget()
+        PhotrailWondersWidget()
     }
 }

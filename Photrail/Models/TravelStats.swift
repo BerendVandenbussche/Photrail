@@ -4,11 +4,14 @@ struct TravelStats: Sendable {
     var totalGeotaggedPhotos: Int
     var countries: [CountryStat]
     var continents: [ContinentStat]
+    var wonders: [WonderStat]
     var allCities: [CityStat]
     var timelineEntries: [TimelineEntry]
 
     var countryCount: Int { countries.count }
     var cityCount: Int { allCities.count }
+    var wondersSeenCount: Int { wonders.filter { $0.seen }.count }
+    var wondersTotalCount: Int { wonders.count }
 
     var worldPercentage: Double {
         Double(countryCount) / Double(CountryStat.totalCountriesInWorld) * 100
@@ -32,12 +35,15 @@ struct TravelStats: Sendable {
     }
 
     static var empty: TravelStats {
-        TravelStats(totalGeotaggedPhotos: 0, countries: [], continents: [], allCities: [], timelineEntries: [])
+        TravelStats(totalGeotaggedPhotos: 0, countries: [], continents: [], wonders: [],
+                    allCities: [], timelineEntries: [])
     }
 
     /// Compact snapshot for the home-screen widget (published to the App Group).
     func widgetSnapshot(at date: Date = .now) -> WidgetSharedStats {
         let top = mostPhotographedCountry
+        let sevenSeen = wonders.filter { $0.wonder.category == .sevenWonders && $0.seen }.count
+        let seenEmojis = wonders.filter { $0.seen }.map(\.wonder.emoji)
         return WidgetSharedStats(
             countryCount: countryCount,
             cityCount: cityCount,
@@ -48,6 +54,9 @@ struct TravelStats: Sendable {
             topCountryName: top?.name,
             topCountryFlag: top?.flag,
             hasVisitedAntarctica: hasVisitedAntarctica,
+            sevenWondersSeen: sevenSeen,
+            totalWondersSeen: wondersSeenCount,
+            seenWonderEmojis: seenEmojis,
             updatedAt: date
         )
     }
@@ -74,6 +83,14 @@ struct TravelStats: Sendable {
             ],
             continents: Continent.visitable.map { continent in
                 ContinentStat(continent: continent, countries: [], photoCount: 0)
+            },
+            wonders: WonderCatalog.all.enumerated().map { index, wonder in
+                let seen = index % 3 == 0
+                return WonderStat(wonder: wonder,
+                                  photoCount: seen ? (index + 2) : 0,
+                                  firstSeen: seen ? calendar.date(byAdding: .month, value: -index, to: now) : nil,
+                                  lastSeen: seen ? calendar.date(byAdding: .month, value: -index, to: now) : nil,
+                                  representativePhotoID: nil)
             },
             allCities: [],
             timelineEntries: (0..<12).map { i in

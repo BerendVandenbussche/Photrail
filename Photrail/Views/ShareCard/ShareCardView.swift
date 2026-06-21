@@ -44,6 +44,7 @@ struct ShareCardView: View {
         case worldPercentage = "World %"
         case countriesVisited = "Countries"
         case mostVisited = "Top Country"
+        case wonders = "Wonders"
         case yearRecap = "2026 Recap"
     }
 
@@ -202,6 +203,8 @@ struct StatCardPreview: View {
             countriesCard
         case .mostVisited:
             mostVisitedCard
+        case .wonders:
+            wondersCard
         case .yearRecap:
             yearRecapCard
         }
@@ -250,6 +253,28 @@ struct StatCardPreview: View {
             })
         } else {
             AnyView(EmptyView())
+        }
+    }
+
+    private var wondersCard: some View {
+        // Highlight the official 7 wonders seen, plus a row of all seen icons.
+        let sevenSeen = stats.wonders.filter { $0.wonder.category == .sevenWonders && $0.seen }.count
+        let allSeen = stats.wonders.filter { $0.seen }
+        return VStack(spacing: 10) {
+            Text("\(sevenSeen)/7")
+                .font(.system(size: 80, weight: .black, design: .rounded))
+                .foregroundStyle(theme.textColor)
+            Text("World Wonders seen")
+                .font(.title3.weight(.medium))
+                .foregroundStyle(theme.textColor.opacity(0.8))
+            if !allSeen.isEmpty {
+                Text(allSeen.prefix(8).map(\.wonder.emoji).joined(separator: " "))
+                    .font(.system(size: 30))
+                    .padding(.top, 8)
+                Text("\(allSeen.count) landmarks explored")
+                    .font(.subheadline)
+                    .foregroundStyle(theme.textColor.opacity(0.7))
+            }
         }
     }
 

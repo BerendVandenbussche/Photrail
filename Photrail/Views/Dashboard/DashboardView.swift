@@ -4,6 +4,7 @@ struct DashboardView: View {
     @Environment(AppViewModel.self) private var appVM
     @State private var selectedCountry: CountryStat?
     @State private var selectedContinent: ContinentStat?
+    @State private var showWonders = false
     @State private var showShareCard = false
 
     private var stats: TravelStats { appVM.stats }
@@ -62,6 +63,13 @@ struct DashboardView: View {
                             }
                         }
 
+                        // World wonders
+                        if !stats.wonders.isEmpty {
+                            WondersSection(wonders: stats.wonders) {
+                                showWonders = true
+                            }
+                        }
+
                         // Timeline
                         VStack(alignment: .leading, spacing: 10) {
                             SectionHeader(title: "Activity", systemImage: "chart.bar")
@@ -95,6 +103,9 @@ struct DashboardView: View {
             }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country)
+            }
+            .sheet(isPresented: $showWonders) {
+                WondersListView(wonders: stats.wonders)
             }
             .sheet(item: $selectedContinent) { continent in
                 ContinentDetailView(stat: continent)
