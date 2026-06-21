@@ -22,11 +22,34 @@ struct TravelStats: Sendable {
         countries.sorted { $0.lastVisit > $1.lastVisit }.prefix(5).map { $0 }
     }
 
-    var visitedContinentCount: Int { continents.filter { $0.visited }.count }
+    // Headline counts cover the 6 inhabited continents; Antarctica is a separate bonus.
+    var visitedContinentCount: Int {
+        continents.filter { $0.continent != .antarctica && $0.visited }.count
+    }
     var visitableContinentCount: Int { Continent.visitable.count }
+    var hasVisitedAntarctica: Bool {
+        continents.contains { $0.continent == .antarctica && $0.visited }
+    }
 
     static var empty: TravelStats {
         TravelStats(totalGeotaggedPhotos: 0, countries: [], continents: [], allCities: [], timelineEntries: [])
+    }
+
+    /// Compact snapshot for the home-screen widget (published to the App Group).
+    func widgetSnapshot(at date: Date = .now) -> WidgetSharedStats {
+        let top = mostPhotographedCountry
+        return WidgetSharedStats(
+            countryCount: countryCount,
+            cityCount: cityCount,
+            visitedContinents: visitedContinentCount,
+            totalContinents: visitableContinentCount,
+            worldPercentage: worldPercentage,
+            totalPhotos: totalGeotaggedPhotos,
+            topCountryName: top?.name,
+            topCountryFlag: top?.flag,
+            hasVisitedAntarctica: hasVisitedAntarctica,
+            updatedAt: date
+        )
     }
 
     static var mock: TravelStats {

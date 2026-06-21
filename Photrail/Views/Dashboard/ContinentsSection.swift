@@ -4,7 +4,9 @@ struct ContinentsSection: View {
     let continents: [ContinentStat]
     var onSelect: (ContinentStat) -> Void
 
-    private var visitedCount: Int { continents.filter { $0.visited }.count }
+    private var visitedCount: Int {
+        continents.filter { $0.continent != .antarctica && $0.visited }.count
+    }
     private var total: Int { Continent.visitable.count }
 
     var body: some View {
@@ -39,13 +41,22 @@ struct ContinentsSection: View {
 private struct ContinentCard: View {
     let stat: ContinentStat
 
+    private var isBonus: Bool { stat.continent == .antarctica }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(stat.continent.emoji)
                     .font(.system(size: 28))
                 Spacer()
-                if stat.visited {
+                if isBonus {
+                    Text("BONUS")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(.orange))
+                } else if stat.visited {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .font(.footnote)

@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		71680A682FE839DE00AEA79C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 71680A672FE839DE00AEA79C /* WidgetKit.framework */; };
+		71680A6A2FE839DE00AEA79C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 71680A692FE839DE00AEA79C /* SwiftUI.framework */; };
+		71680A792FE839E000AEA79C /* PhotrailWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 71680A652FE839DE00AEA79C /* PhotrailWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		714F13382CA4994F00DBCA0D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,17 +27,62 @@
 			remoteGlobalIDString = 714F13242CA4994D00DBCA0D;
 			remoteInfo = Photrail;
 		};
+		71680A772FE839E000AEA79C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 714F131D2CA4994D00DBCA0D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 71680A642FE839DE00AEA79C;
+			remoteInfo = PhotrailWidgetsExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		71680A7E2FE839E000AEA79C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				71680A792FE839E000AEA79C /* PhotrailWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		714F13252CA4994D00DBCA0D /* Photrail.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Photrail.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		714F13372CA4994F00DBCA0D /* PhotrailTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotrailTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		714F13412CA4994F00DBCA0D /* PhotrailUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotrailUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		71680A652FE839DE00AEA79C /* PhotrailWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PhotrailWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		71680A672FE839DE00AEA79C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		71680A692FE839DE00AEA79C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		71680A822FE83AFA00AEA79C /* PhotrailWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PhotrailWidgetsExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		71680A7A2FE839E000AEA79C /* Exceptions for "PhotrailWidgets" folder in "PhotrailWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 71680A642FE839DE00AEA79C /* PhotrailWidgetsExtension */;
+		};
+		71680A802FE83A2B00AEA79C /* Exceptions for "Photrail" folder in "PhotrailWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/WidgetSharedStats.swift,
+			);
+			target = 71680A642FE839DE00AEA79C /* PhotrailWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		714F13272CA4994D00DBCA0D /* Photrail */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				71680A802FE83A2B00AEA79C /* Exceptions for "Photrail" folder in "PhotrailWidgetsExtension" target */,
+			);
 			path = Photrail;
 			sourceTree = "<group>";
 		};
@@ -43,6 +94,14 @@
 		714F13442CA4994F00DBCA0D /* PhotrailUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = PhotrailUITests;
+			sourceTree = "<group>";
+		};
+		71680A6B2FE839DE00AEA79C /* PhotrailWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				71680A7A2FE839E000AEA79C /* Exceptions for "PhotrailWidgets" folder in "PhotrailWidgetsExtension" target */,
+			);
+			path = PhotrailWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,15 +128,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		71680A622FE839DE00AEA79C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71680A6A2FE839DE00AEA79C /* SwiftUI.framework in Frameworks */,
+				71680A682FE839DE00AEA79C /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		714F131C2CA4994D00DBCA0D = {
 			isa = PBXGroup;
 			children = (
+				71680A822FE83AFA00AEA79C /* PhotrailWidgetsExtension.entitlements */,
 				714F13272CA4994D00DBCA0D /* Photrail */,
 				714F133A2CA4994F00DBCA0D /* PhotrailTests */,
 				714F13442CA4994F00DBCA0D /* PhotrailUITests */,
+				71680A6B2FE839DE00AEA79C /* PhotrailWidgets */,
+				71680A662FE839DE00AEA79C /* Frameworks */,
 				714F13262CA4994D00DBCA0D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +159,18 @@
 				714F13252CA4994D00DBCA0D /* Photrail.app */,
 				714F13372CA4994F00DBCA0D /* PhotrailTests.xctest */,
 				714F13412CA4994F00DBCA0D /* PhotrailUITests.xctest */,
+				71680A652FE839DE00AEA79C /* PhotrailWidgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		71680A662FE839DE00AEA79C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				71680A672FE839DE00AEA79C /* WidgetKit.framework */,
+				71680A692FE839DE00AEA79C /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +183,12 @@
 				714F13212CA4994D00DBCA0D /* Sources */,
 				714F13222CA4994D00DBCA0D /* Frameworks */,
 				714F13232CA4994D00DBCA0D /* Resources */,
+				71680A7E2FE839E000AEA79C /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				71680A782FE839E000AEA79C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				714F13272CA4994D00DBCA0D /* Photrail */,
@@ -163,6 +246,28 @@
 			productReference = 714F13412CA4994F00DBCA0D /* PhotrailUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		71680A642FE839DE00AEA79C /* PhotrailWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 71680A7B2FE839E000AEA79C /* Build configuration list for PBXNativeTarget "PhotrailWidgetsExtension" */;
+			buildPhases = (
+				71680A612FE839DE00AEA79C /* Sources */,
+				71680A622FE839DE00AEA79C /* Frameworks */,
+				71680A632FE839DE00AEA79C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				71680A6B2FE839DE00AEA79C /* PhotrailWidgets */,
+			);
+			name = PhotrailWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = PhotrailWidgetsExtension;
+			productReference = 71680A652FE839DE00AEA79C /* PhotrailWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -170,7 +275,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					714F13242CA4994D00DBCA0D = {
@@ -183,6 +288,9 @@
 					714F13402CA4994F00DBCA0D = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = 714F13242CA4994D00DBCA0D;
+					};
+					71680A642FE839DE00AEA79C = {
+						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
 			};
@@ -203,6 +311,7 @@
 				714F13242CA4994D00DBCA0D /* Photrail */,
 				714F13362CA4994F00DBCA0D /* PhotrailTests */,
 				714F13402CA4994F00DBCA0D /* PhotrailUITests */,
+				71680A642FE839DE00AEA79C /* PhotrailWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +332,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		714F133F2CA4994F00DBCA0D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		71680A632FE839DE00AEA79C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +369,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		71680A612FE839DE00AEA79C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +388,11 @@
 			isa = PBXTargetDependency;
 			target = 714F13242CA4994D00DBCA0D /* Photrail */;
 			targetProxy = 714F13422CA4994F00DBCA0D /* PBXContainerItemProxy */;
+		};
+		71680A782FE839E000AEA79C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 71680A642FE839DE00AEA79C /* PhotrailWidgetsExtension */;
+			targetProxy = 71680A772FE839E000AEA79C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -393,6 +521,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Photrail/Photrail.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Photrail/Preview Content\"";
@@ -418,6 +547,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Photrail/Photrail.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Photrail/Preview Content\"";
@@ -510,6 +640,70 @@
 			};
 			name = Release;
 		};
+		71680A7C2FE839E000AEA79C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PhotrailWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6N377BRGHL;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PhotrailWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PhotrailWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Berend.Photrail.PhotrailWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		71680A7D2FE839E000AEA79C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PhotrailWidgetsExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6N377BRGHL;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PhotrailWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PhotrailWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Berend.Photrail.PhotrailWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -545,6 +739,15 @@
 			buildConfigurations = (
 				714F13522CA4994F00DBCA0D /* Debug */,
 				714F13532CA4994F00DBCA0D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		71680A7B2FE839E000AEA79C /* Build configuration list for PBXNativeTarget "PhotrailWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71680A7C2FE839E000AEA79C /* Debug */,
+				71680A7D2FE839E000AEA79C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

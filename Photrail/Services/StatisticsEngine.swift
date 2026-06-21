@@ -61,10 +61,17 @@ struct StatisticsEngine: Sendable {
             guard let continent = ContinentMapper.continent(for: country.id) else { continue }
             continentMap[continent, default: []].append(country)
         }
-        let continents: [ContinentStat] = Continent.visitable.map { continent in
+        var continents: [ContinentStat] = Continent.visitable.map { continent in
             let cs = continentMap[continent] ?? []
             let photos = cs.reduce(0) { $0 + $1.photoCount }
             return ContinentStat(continent: continent, countries: cs, photoCount: photos)
+        }
+        // Antarctica is a bonus continent: only included when actually visited.
+        if let antarcticaCountries = continentMap[.antarctica], !antarcticaCountries.isEmpty {
+            let photos = antarcticaCountries.reduce(0) { $0 + $1.photoCount }
+            continents.append(ContinentStat(continent: .antarctica,
+                                            countries: antarcticaCountries,
+                                            photoCount: photos))
         }
 
         return TravelStats(

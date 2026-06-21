@@ -2,6 +2,7 @@ import Foundation
 import Photos
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 @MainActor
 @Observable
@@ -159,6 +160,7 @@ final class AppViewModel {
         Task {
             if let stored = try? await store.allPhotos(), !stored.isEmpty {
                 stats = statsEngine.compute(from: stored)
+                publishWidgetStats()
             }
         }
         navState = .dashboard
@@ -249,7 +251,14 @@ final class AppViewModel {
         }
     }
 
+    /// Publish the current stats to the shared App Group container and refresh widgets.
+    private func publishWidgetStats() {
+        WidgetSharedStore.save(stats.widgetSnapshot())
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
     private func completeScan() async {
+        publishWidgetStats()
         withAnimation { scanProgress = .complete }
         try? await Task.sleep(nanoseconds: 3_000_000_000)
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }
