@@ -17,6 +17,9 @@ final class StoredPhoto {
     var isGeocoded: Bool
     /// True once a city lookup has been attempted via CLGeocoder (success or not).
     var cityChecked: Bool
+    /// Whether a real town/city (locality) was found — nil until the city pass runs.
+    /// Distinguishes urban areas from countryside for the personality profile.
+    var localityResolved: Bool?
 
     init(id: String,
          latitude: Double,
@@ -26,7 +29,8 @@ final class StoredPhoto {
          countryCode: String? = nil,
          city: String? = nil,
          isGeocoded: Bool = false,
-         cityChecked: Bool = false) {
+         cityChecked: Bool = false,
+         localityResolved: Bool? = nil) {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude
@@ -36,6 +40,7 @@ final class StoredPhoto {
         self.city = city
         self.isGeocoded = isGeocoded
         self.cityChecked = cityChecked
+        self.localityResolved = localityResolved
     }
 }
 
@@ -49,7 +54,8 @@ extension StoredPhoto {
             country: country,
             countryCode: countryCode,
             city: city,
-            isGeocoded: isGeocoded
+            isGeocoded: isGeocoded,
+            hasLocality: localityResolved
         )
     }
 }

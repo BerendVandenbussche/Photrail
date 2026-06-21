@@ -71,6 +71,7 @@
 		71680A802FE83A2B00AEA79C /* Exceptions for "Photrail" folder in "PhotrailWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Components/LogoView.swift,
 				Shared/WidgetSharedStats.swift,
 			);
 			target = 71680A642FE839DE00AEA79C /* PhotrailWidgetsExtension */;

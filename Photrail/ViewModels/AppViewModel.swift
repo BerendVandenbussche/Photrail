@@ -39,14 +39,24 @@ final class AppViewModel {
     var scanProgress: ScanProgress = .idle
     var stats: TravelStats = .empty
 
+    /// Travel personality profile derived from photo locations (cached).
+    var personalityProfile: TravelPersonalityProfile?
+    private let personalityCacheKey = "travelPersonalityProfile"
+
     /// The user's home country (ISO code), set in Settings. Used for "furthest from home".
     var homeCountryCode: String? {
-        didSet { UserDefaults.standard.set(homeCountryCode, forKey: "homeCountryCode") }
+        didSet {
+            UserDefaults.standard.set(homeCountryCode, forKey: "homeCountryCode")
+            Task { await recomputePersonality() }
+        }
     }
 
     /// Optional home city (CityStat.id) for a more precise origin in large countries.
     var homeCityID: String? {
-        didSet { UserDefaults.standard.set(homeCityID, forKey: "homeCityID") }
+        didSet {
+            UserDefaults.standard.set(homeCityID, forKey: "homeCityID")
+            Task { await recomputePersonality() }
+        }
     }
 
     struct FurthestTrip { let trip: Trip; let distanceKm: Double }
@@ -113,6 +123,8 @@ final class AppViewModel {
     private let scanService = PhotoScanService()
     private let geocodingService = GeocodingService()
     private let offlineGeocoder = OfflineCountryGeocoder()
+    private let offlineCoastline = OfflineCoastline()
+    private let offlinePlaces = OfflinePlaces()
     private let store: PhotoStore
     private let statsEngine = StatisticsEngine()
 
@@ -140,6 +152,10 @@ final class AppViewModel {
         self.store = store
         self.homeCountryCode = UserDefaults.standard.string(forKey: "homeCountryCode")
         self.homeCityID = UserDefaults.standard.string(forKey: "homeCityID")
+        if let data = UserDefaults.standard.data(forKey: personalityCacheKey),
+           let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
+            self.personalityProfile = cached
+        }
     }
 
     /// In-memory instance for SwiftUI previews.
@@ -201,6 +217,55 @@ final class AppViewModel {
     /// Respects Swift Task cancellation — the BGTask expiration handler cancels the Task.
     func runBackgroundScan() async {
         await performScan()
+    }
+
+    /// Build the Year in Travel recap for the given year (defaults to the current year).
+    /// Year-scoped: filters photos to the year and runs the same engines as the dashboard.
+    func makeYearRecap(year: Int = Calendar.current.component(.year, from: Date())) async -> RecapModel {
+        let all = (try? await store.allPhotos()) ?? []
+        let yearPhotos = all.filter {
+            $0.isGeocoded && Calendar.current.component(.year, from: $0.date) == year
+        }
+        guard !yearPhotos.isEmpty else { return .empty(year: year) }
+
+        let yearStats = statsEngine.compute(from: yearPhotos)
+
+        var wonderByPhoto: [String: String] = [:]
+        for wonder in yearStats.wonders {
+            for id in wonder.photoIDs { wonderByPhoto[id] = wonder.wonder.id }
+        }
+        let pointInput = yearPhotos.map { (id: $0.id, latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
+        let coast = await offlineCoastline.distancesKm(pointInput)
+        let cityDist = await offlinePlaces.distancesKm(pointInput)
+        let home = homeCoordinate
+
+        let profile = TravelPersonalityEngine().makeProfile(
+            photos: yearPhotos,
+            wonderIDByPhoto: wonderByPhoto,
+            coastalDistanceByPhoto: coast,
+            cityDistanceByPhoto: cityDist,
+            trips: yearStats.trips,
+            home: home
+        )
+        let distance = Self.totalDistanceKm(trips: yearStats.trips, home: home)
+
+        return RecapModel.make(year: year, stats: yearStats, profile: profile,
+                               photoCount: yearPhotos.count, distanceKm: distance)
+    }
+
+    /// Approximate total distance: round trips from home if set, else hop-to-hop between trips.
+    private static func totalDistanceKm(trips: [Trip], home: GeoPhoto.Coordinate?) -> Double {
+        func loc(_ c: GeoPhoto.Coordinate) -> CLLocation { CLLocation(latitude: c.latitude, longitude: c.longitude) }
+        if let home {
+            let h = loc(home)
+            return trips.reduce(0) { $0 + h.distance(from: loc($1.coordinate)) / 1000 * 2 }
+        }
+        let ordered = trips.sorted { $0.startDate < $1.startDate }
+        var total = 0.0
+        for i in 1..<max(ordered.count, 1) where ordered.count > 1 {
+            total += loc(ordered[i - 1].coordinate).distance(from: loc(ordered[i].coordinate)) / 1000
+        }
+        return total
     }
 
     /// Wipe the cache and rebuild from scratch. Use when photos' locations changed
@@ -395,8 +460,8 @@ final class AppViewModel {
         let total = pending.count
         scanProgress = .geocoding(progress: 0, total: total)
 
-        await geocodingService.cityBatch(pending) { [weak self] done, id, city in
-            try? await store.applyCity(id: id, city: city)
+        await geocodingService.cityBatch(pending) { [weak self] done, id, result in
+            try? await store.applyCity(id: id, city: result.city, hasLocality: result.hasLocality)
             var refreshed: TravelStats?
             if done % 25 == 0 || done == total {
                 refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
@@ -444,8 +509,52 @@ final class AppViewModel {
         WidgetCenter.shared.reloadAllTimelines()
     }
 
+    /// Recompute the travel personality profile off the main actor and cache it.
+    /// Skips work when the library signature is unchanged since the last computation.
+    private func recomputePersonality() async {
+        let photos = (try? await store.allPhotos()) ?? []
+        guard !photos.isEmpty else { return }
+
+        let geocodedCount = photos.lazy.filter { $0.isGeocoded }.count
+        let home = homeCoordinate
+        // Bump the trailing version to force a recompute when scoring logic changes.
+        let signature = "v4-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
+        let signatureKey = "personalitySignature"
+        if personalityProfile != nil,
+           UserDefaults.standard.string(forKey: signatureKey) == signature {
+            return
+        }
+
+        // Build photoID → wonder id from the current wonder stats.
+        var wonderByPhoto: [String: String] = [:]
+        for wonder in stats.wonders {
+            for id in wonder.photoIDs { wonderByPhoto[id] = wonder.wonder.id }
+        }
+        // Per-photo offline signals: distance to coast and to the nearest city.
+        let pointInput = photos.map { (id: $0.id, latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
+        let coastByPhoto = await offlineCoastline.distancesKm(pointInput)
+        let cityByPhoto = await offlinePlaces.distancesKm(pointInput)
+
+        let trips = stats.trips
+        let profile = await Task.detached(priority: .utility) {
+            TravelPersonalityEngine().makeProfile(photos: photos,
+                                                  wonderIDByPhoto: wonderByPhoto,
+                                                  coastalDistanceByPhoto: coastByPhoto,
+                                                  cityDistanceByPhoto: cityByPhoto,
+                                                  trips: trips,
+                                                  home: home)
+        }.value
+
+        personalityProfile = profile
+        if let data = try? JSONEncoder().encode(profile) {
+            UserDefaults.standard.set(data, forKey: personalityCacheKey)
+        }
+        UserDefaults.standard.set(signature, forKey: "personalitySignature")
+    }
+
     private func completeScan() async {
         publishWidgetStats()
+        await recomputePersonality()
         withAnimation { scanProgress = .complete }
         try? await Task.sleep(nanoseconds: 3_000_000_000)
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }

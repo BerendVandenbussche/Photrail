@@ -44,12 +44,13 @@ actor PhotoStore {
     }
 
     /// Write a city result onto its row (marks the city lookup as done either way).
-    func applyCity(id: String, city: String?) throws {
+    func applyCity(id: String, city: String?, hasLocality: Bool) throws {
         var descriptor = FetchDescriptor<StoredPhoto>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
         guard let row = try modelContext.fetch(descriptor).first else { return }
         row.city = city
         row.cityChecked = true
+        row.localityResolved = hasLocality
         try modelContext.save()
     }
 

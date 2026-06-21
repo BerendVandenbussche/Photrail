@@ -11,6 +11,9 @@ struct GeoPhoto: Codable, Identifiable, Sendable {
     var countryCode: String?  // ISO 3166-1 alpha-2, e.g. "IT"
     var city: String?
     var isGeocoded: Bool = false
+    /// Whether a real town/city was resolved (vs. only an administrative area).
+    /// nil = city lookup hasn't run yet. Used by the personality engine.
+    var hasLocality: Bool? = nil
 
     struct Coordinate: Codable, Sendable {
         let latitude: Double

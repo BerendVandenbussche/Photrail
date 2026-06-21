@@ -49,7 +49,7 @@ private struct SmallStatsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 5) {
-                Image(systemName: "globe.europe.africa.fill")
+                LogoMark(color: .white).frame(width: 13, height: 13)
                 Text("Photrail")
                     .font(.system(size: 12, weight: .semibold))
             }
@@ -79,7 +79,7 @@ private struct MediumStatsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
-                Image(systemName: "globe.europe.africa.fill")
+                LogoMark(color: .white).frame(width: 14, height: 14)
                 Text("Photrail")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()

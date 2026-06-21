@@ -28,6 +28,11 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Brand lockup
+            LogoLockup(size: 28)
+                .padding(.top, 24)
+                .padding(.bottom, 8)
+
             // Page indicator
             HStack(spacing: 6) {
                 ForEach(pages.indices, id: \.self) { i in
