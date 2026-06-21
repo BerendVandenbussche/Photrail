@@ -32,8 +32,11 @@ struct DashboardView: View {
 
                     // Most photographed callout
                     if let top = vm.stats.mostPhotographedCountry {
-                        MostVisitedBanner(country: top)
-                            .padding(.horizontal, 20)
+                        Button { selectedCountry = top } label: {
+                            MostVisitedBanner(country: top)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 20)
                     }
 
                     // Countries horizontal scroll

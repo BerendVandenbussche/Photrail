@@ -9,8 +9,10 @@ struct CountriesSection: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(countries) { country in
-                    CountryCard(country: country)
-                        .onTapGesture { onSelect(country) }
+                    Button { onSelect(country) } label: {
+                        CountryCard(country: country)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 20)
@@ -22,7 +24,6 @@ struct CountriesSection: View {
 
 private struct CountryCard: View {
     let country: CountryStat
-    @State private var pressed = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -47,12 +48,7 @@ private struct CountryCard: View {
         .padding(16)
         .frame(width: 140, height: 150)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
-        .scaleEffect(pressed ? 0.96 : 1)
-        .animation(.spring(response: 0.2), value: pressed)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: 10) {
-        } onPressingChanged: { isPressing in
-            pressed = isPressing
-        }
+        .contentShape(RoundedRectangle(cornerRadius: 18))
     }
 }
 
