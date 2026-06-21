@@ -13,7 +13,10 @@ final class StoredPhoto {
     var country: String?
     var countryCode: String?
     var city: String?
+    /// True once the country has been resolved offline (the photo is "geocoded" for stats).
     var isGeocoded: Bool
+    /// True once a city lookup has been attempted via CLGeocoder (success or not).
+    var cityChecked: Bool
 
     init(id: String,
          latitude: Double,
@@ -22,7 +25,8 @@ final class StoredPhoto {
          country: String? = nil,
          countryCode: String? = nil,
          city: String? = nil,
-         isGeocoded: Bool = false) {
+         isGeocoded: Bool = false,
+         cityChecked: Bool = false) {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude
@@ -31,6 +35,7 @@ final class StoredPhoto {
         self.countryCode = countryCode
         self.city = city
         self.isGeocoded = isGeocoded
+        self.cityChecked = cityChecked
     }
 }
 

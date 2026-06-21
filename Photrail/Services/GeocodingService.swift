@@ -1,69 +1,48 @@
 import Foundation
 import CoreLocation
 
-/// Reverse-geocodes coordinates to (country, city) pairs.
-/// Apple's CLGeocoder is rate-limited to roughly 1 request per second.
-/// We batch geocode calls and cache results in memory to stay within the limit.
+/// Reverse-geocodes coordinates to city names via Apple's CLGeocoder.
+/// Countries are resolved offline (see `OfflineCountryGeocoder`); this service is
+/// only used for the optional city enrichment pass, which is rate-limited (~1 req/s).
 actor GeocodingService {
     private let geocoder = CLGeocoder()
-    // In-memory cache keyed by a rounded coordinate string
-    private var cache: [String: GeocodingResult] = [:]
+    // Cache keyed by a rounded coordinate string; value is the resolved city (may be nil).
+    private var cache: [String: String?] = [:]
 
-    struct GeocodingResult: Sendable {
-        var country: String?
-        var countryCode: String?
-        var city: String?
-    }
-
-    func geocode(latitude: Double, longitude: Double) async -> GeocodingResult {
+    /// Reverse geocode a single coordinate to a city/locality.
+    func city(latitude: Double, longitude: Double) async -> String? {
         let key = cacheKey(lat: latitude, lon: longitude)
         if let cached = cache[key] { return cached }
 
         let location = CLLocation(latitude: latitude, longitude: longitude)
-        do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            let placemark = placemarks.first
-            let result = GeocodingResult(
-                country: placemark?.country,
-                countryCode: placemark?.isoCountryCode,
-                city: placemark?.locality ?? placemark?.administrativeArea
-            )
-            cache[key] = result
-            return result
-        } catch {
-            // Return empty on error — the photo is still useful without geocode data
-            let empty = GeocodingResult()
-            cache[key] = empty
-            return empty
-        }
+        let placemark = try? await geocoder.reverseGeocodeLocation(location).first
+        let city = placemark?.locality ?? placemark?.administrativeArea
+        cache[key] = city
+        return city
     }
 
-    /// Geocode a batch of GeoPhotos, inserting a delay between calls to respect rate limits.
-    /// `onResult` is awaited for each completed photo, so the caller can persist each
-    /// result in order before the next lookup begins — progress is never lost.
-    func geocodeBatch(_ photos: [GeoPhoto],
-                      onResult: @Sendable (Int, GeoPhoto) async -> Void) async {
+    /// Geocode a batch of photos to cities. `onResult` is awaited per photo so the
+    /// caller can persist each result before the next lookup. The rate-limit delay
+    /// only applies after an actual network request (cache hits are instant).
+    func cityBatch(_ photos: [GeoPhoto],
+                   onResult: @Sendable (Int, String, String?) async -> Void) async {
         for (index, photo) in photos.enumerated() {
-            var updated = photo
-            if !photo.isGeocoded {
-                let result = await geocode(latitude: photo.coordinate.latitude,
-                                           longitude: photo.coordinate.longitude)
-                updated.country = result.country
-                updated.countryCode = result.countryCode
-                updated.city = result.city
-                updated.isGeocoded = true
-                // Respect CLGeocoder rate limit: ~1 req/sec; stop sleeping if cancelled
+            let key = cacheKey(lat: photo.coordinate.latitude, lon: photo.coordinate.longitude)
+            let wasCached = cache[key] != nil
+
+            let city = await city(latitude: photo.coordinate.latitude,
+                                  longitude: photo.coordinate.longitude)
+            await onResult(index + 1, photo.id, city)
+
+            if !wasCached {
                 guard !Task.isCancelled else { break }
                 try? await Task.sleep(nanoseconds: 1_050_000_000)
             }
-            await onResult(index + 1, updated)
-            // Propagate cancellation so the caller's Task can stop promptly
             if Task.isCancelled { break }
         }
     }
 
     private func cacheKey(lat: Double, lon: Double) -> String {
-        // Round to ~1km precision to maximise cache hits for nearby photos
         String(format: "%.2f,%.2f", lat, lon)
     }
 }

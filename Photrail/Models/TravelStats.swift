@@ -5,6 +5,7 @@ struct TravelStats: Sendable {
     var countries: [CountryStat]
     var continents: [ContinentStat]
     var wonders: [WonderStat]
+    var trips: [Trip]
     var allCities: [CityStat]
     var timelineEntries: [TimelineEntry]
 
@@ -36,7 +37,7 @@ struct TravelStats: Sendable {
 
     static var empty: TravelStats {
         TravelStats(totalGeotaggedPhotos: 0, countries: [], continents: [], wonders: [],
-                    allCities: [], timelineEntries: [])
+                    trips: [], allCities: [], timelineEntries: [])
     }
 
     /// Compact snapshot for the home-screen widget (published to the App Group).
@@ -92,6 +93,7 @@ struct TravelStats: Sendable {
                                   lastSeen: seen ? calendar.date(byAdding: .month, value: -index, to: now) : nil,
                                   representativePhotoID: nil)
             },
+            trips: [],
             allCities: [],
             timelineEntries: (0..<12).map { i in
                 TimelineEntry(

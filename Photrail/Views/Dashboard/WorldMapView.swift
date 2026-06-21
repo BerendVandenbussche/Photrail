@@ -9,18 +9,18 @@ struct WorldMapView: View {
     @State private var selectedCountry: CountryStat? = nil
     @Namespace private var mapScope
 
-    // One representative annotation per country using its most-photographed city coordinate
+    // One representative annotation per country, placed using a coordinate derived
+    // directly from photos so pins appear during the offline country pass (before cities).
     private var annotations: [CountryAnnotation] {
-        countries.compactMap { country in
-            guard let topCity = country.cities.max(by: { $0.photoCount < $1.photoCount }) else { return nil }
-            return CountryAnnotation(
+        countries.map { country in
+            CountryAnnotation(
                 id: country.id,
                 name: country.name,
                 flag: country.flag,
                 photoCount: country.photoCount,
                 coordinate: CLLocationCoordinate2D(
-                    latitude: topCity.representativeCoordinate.latitude,
-                    longitude: topCity.representativeCoordinate.longitude
+                    latitude: country.representativeCoordinate.latitude,
+                    longitude: country.representativeCoordinate.longitude
                 )
             )
         }

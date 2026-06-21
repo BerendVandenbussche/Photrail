@@ -11,7 +11,7 @@ struct ScanBanner: View {
             // Animated spinner / checkmark
             ZStack {
                 switch progress {
-                case .scanning, .geocoding:
+                case .scanning, .resolvingCountries, .geocoding:
                     ProgressView()
                         .progressViewStyle(.circular)
                         .tint(.white)
@@ -67,21 +67,25 @@ struct ScanBanner: View {
 
     private var title: String {
         switch progress {
-        case .scanning:   return "Scanning photo library"
-        case .geocoding:  return "Identifying locations"
-        case .complete:   return "All done"
-        case .failed:     return "Scan failed"
-        case .idle:       return ""
+        case .scanning:           return "Scanning photo library"
+        case .resolvingCountries: return "Finding countries"
+        case .geocoding:          return "Finding cities"
+        case .complete:           return "All done"
+        case .failed:             return "Scan failed"
+        case .idle:               return ""
         }
     }
 
     private var subtitle: String {
         switch progress {
-        case .scanning(let p, let found):
+        case .scanning(_, let found):
             return "\(found) geotagged photos found"
+        case .resolvingCountries(let p, let total):
+            let done = Int(Double(total) * p)
+            return "\(done) of \(total) photos placed"
         case .geocoding(let p, let total):
             let done = Int(Double(total) * p)
-            return "\(done) of \(total) locations resolved"
+            return "\(done) of \(total) cities resolved"
         case .complete:
             return "Your travel map is up to date"
         case .failed(let msg):
@@ -94,6 +98,8 @@ struct ScanBanner: View {
     private var percentage: String? {
         switch progress {
         case .scanning(let p, _) where p > 0:
+            return p.formatted(.percent.precision(.fractionLength(0)))
+        case .resolvingCountries(let p, _):
             return p.formatted(.percent.precision(.fractionLength(0)))
         case .geocoding(let p, _):
             return p.formatted(.percent.precision(.fractionLength(0)))

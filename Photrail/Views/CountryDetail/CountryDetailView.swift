@@ -2,11 +2,13 @@ import SwiftUI
 
 struct CountryDetailView: View {
     let country: CountryStat
+    let trips: [Trip]
     @State private var vm: CountryDetailViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(country: CountryStat) {
+    init(country: CountryStat, trips: [Trip] = []) {
         self.country = country
+        self.trips = trips
         _vm = State(initialValue: CountryDetailViewModel(country: country))
     }
 
@@ -26,6 +28,11 @@ struct CountryDetailView: View {
                     // Stats row
                     statsRow
                         .padding(.horizontal, 20)
+
+                    // Trips
+                    if !trips.isEmpty {
+                        tripsSection
+                    }
 
                     // Cities list
                     if !vm.country.cities.isEmpty {
@@ -71,6 +78,35 @@ struct CountryDetailView: View {
                      label: "Photos", iconColor: .blue)
             StatCard(icon: "mappin.and.ellipse", value: "\(country.cityCount)",
                      label: "Cities", iconColor: .pink)
+        }
+    }
+
+    private var tripsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: trips.count == 1 ? "1 Trip" : "\(trips.count) Trips")
+                .padding(.horizontal, 20)
+
+            ForEach(trips) { trip in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(trip.dateRangeText)
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text("\(trip.photoCount) photos · \(trip.durationText)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    if !trip.cities.isEmpty {
+                        Text(trip.cities.joined(separator: " · "))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 20)
+                if trip.id != trips.last?.id {
+                    Divider().padding(.leading, 20)
+                }
+            }
         }
     }
 

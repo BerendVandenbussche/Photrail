@@ -9,6 +9,11 @@ struct CountryStat: Identifiable, Sendable, Hashable {
     var firstVisit: Date
     var lastVisit: Date
     var photoIDs: [String]  // GeoPhoto.id references for photo grid
+    // A coordinate inside the country (from photos), independent of city geocoding,
+    // so the map can place a pin before cities are resolved.
+    var representativeCoordinate: GeoPhoto.Coordinate = .init(latitude: 0, longitude: 0)
+    // Number of distinct trips taken to this country (separate visits over time).
+    var tripCount: Int = 1
 
     var cityCount: Int { cities.count }
 

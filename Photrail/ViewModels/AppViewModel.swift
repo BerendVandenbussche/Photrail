@@ -3,6 +3,7 @@ import Photos
 import SwiftUI
 import SwiftData
 import WidgetKit
+import CoreLocation
 
 @MainActor
 @Observable
@@ -21,6 +22,7 @@ final class AppViewModel {
     enum ScanProgress: Equatable {
         case idle
         case scanning(progress: Double, found: Int)
+        case resolvingCountries(progress: Double, total: Int)
         case geocoding(progress: Double, total: Int)
         case complete
         case failed(String)
@@ -37,10 +39,68 @@ final class AppViewModel {
     var scanProgress: ScanProgress = .idle
     var stats: TravelStats = .empty
 
+    /// The user's home country (ISO code), set in Settings. Used for "furthest from home".
+    var homeCountryCode: String? {
+        didSet { UserDefaults.standard.set(homeCountryCode, forKey: "homeCountryCode") }
+    }
+
+    /// Optional home city (CityStat.id) for a more precise origin in large countries.
+    var homeCityID: String? {
+        didSet { UserDefaults.standard.set(homeCityID, forKey: "homeCityID") }
+    }
+
+    struct FurthestTrip { let trip: Trip; let distanceKm: Double }
+
+    /// Display name for the configured home (city + country, or just country).
+    var homeDisplayName: String? {
+        if let cityID = homeCityID, let city = stats.allCities.first(where: { $0.id == cityID }) {
+            return "\(city.name), \(city.country)"
+        }
+        if let code = homeCountryCode, let country = stats.countries.first(where: { $0.id == code }) {
+            return country.name
+        }
+        return nil
+    }
+
+    /// Coordinate used as the origin for distance calculations — the home city if set,
+    /// otherwise the home country's representative coordinate.
+    var homeCoordinate: GeoPhoto.Coordinate? {
+        if let cityID = homeCityID, let city = stats.allCities.first(where: { $0.id == cityID }) {
+            return city.representativeCoordinate
+        }
+        if let code = homeCountryCode, let country = stats.countries.first(where: { $0.id == code }) {
+            return country.representativeCoordinate
+        }
+        return nil
+    }
+
+    /// Countries ranked by number of distinct trips (excluding home).
+    var mostVisitedCountries: [CountryStat] {
+        stats.countries
+            .filter { $0.id != homeCountryCode }
+            .sorted { ($0.tripCount, $0.photoCount) > ($1.tripCount, $1.photoCount) }
+    }
+
+    /// The trip furthest from the user's home (nil until home is set).
+    var furthestTrip: FurthestTrip? {
+        guard let home = homeCoordinate else { return nil }
+        let homeLocation = CLLocation(latitude: home.latitude, longitude: home.longitude)
+
+        let best = stats.trips
+            .filter { $0.countryCode != homeCountryCode }
+            .map { trip -> (Trip, Double) in
+                let loc = CLLocation(latitude: trip.coordinate.latitude, longitude: trip.coordinate.longitude)
+                return (trip, homeLocation.distance(from: loc) / 1000)
+            }
+            .max { $0.1 < $1.1 }
+
+        return best.map { FurthestTrip(trip: $0.0, distanceKm: $0.1) }
+    }
+
     /// True whenever a scan is running or queued — used to schedule/cancel BGProcessingTask.
     var isScanNeeded: Bool {
         switch scanProgress {
-        case .scanning, .geocoding: return true
+        case .scanning, .resolvingCountries, .geocoding: return true
         default: return false
         }
     }
@@ -52,10 +112,15 @@ final class AppViewModel {
 
     private let scanService = PhotoScanService()
     private let geocodingService = GeocodingService()
+    private let offlineGeocoder = OfflineCountryGeocoder()
     private let store: PhotoStore
     private let statsEngine = StatisticsEngine()
 
     private let changeTokenKey = "lastChangeToken"
+    private let countryDatasetVersionKey = "countryDatasetVersion"
+    // Bump this whenever the bundled countries.geojson (or resolution logic) changes,
+    // to force a one-time silent re-resolution of all photos' countries on next scan.
+    private static let countryDatasetVersion = 2
 
     // Tracks the active foreground scan task so we can cancel it on background
     private var foregroundScanTask: Task<Void, Never>?
@@ -73,6 +138,8 @@ final class AppViewModel {
 
     init(store: PhotoStore) {
         self.store = store
+        self.homeCountryCode = UserDefaults.standard.string(forKey: "homeCountryCode")
+        self.homeCityID = UserDefaults.standard.string(forKey: "homeCityID")
     }
 
     /// In-memory instance for SwiftUI previews.
@@ -121,6 +188,7 @@ final class AppViewModel {
         case .active:
             // If a scan was interrupted by backgrounding, resume it now.
             if case .scanning = scanProgress { startForegroundScan() }
+            if case .resolvingCountries = scanProgress { startForegroundScan() }
             if case .geocoding = scanProgress { startForegroundScan() }
         default:
             break
@@ -133,6 +201,20 @@ final class AppViewModel {
     /// Respects Swift Task cancellation — the BGTask expiration handler cancels the Task.
     func runBackgroundScan() async {
         await performScan()
+    }
+
+    /// Wipe the cache and rebuild from scratch. Use when photos' locations changed
+    /// after indexing (e.g. you set the location of a downloaded image in Photos),
+    /// which a normal incremental scan won't pick up since the asset id is unchanged.
+    func reindex() {
+        foregroundScanTask?.cancel()
+        foregroundScanTask = nil
+        Task {
+            try? await store.deleteAll()
+            UserDefaults.standard.removeObject(forKey: changeTokenKey)
+            stats = .empty
+            startForegroundScan()
+        }
     }
 
     // MARK: - Permission
@@ -214,48 +296,32 @@ final class AppViewModel {
 
             try Task.checkCancellation()
 
-            // Show whatever is already stored while geocoding continues, and seed the
-            // set of countries already known so new-country detection starts from a clean base.
+            let statsEngine = self.statsEngine   // Sendable; captured so we can compute off-main
+
+            // Phase 2a: if the boundary dataset changed, silently re-resolve countries for
+            // all already-geocoded photos so stale codes from an older dataset are corrected.
+            // Cities are kept as-is.
+            let storedVersion = UserDefaults.standard.integer(forKey: countryDatasetVersionKey)
+            if storedVersion != Self.countryDatasetVersion {
+                let resolved = ((try? await store.allPhotos()) ?? []).filter { $0.isGeocoded }
+                try await resolveCountries(resolved, generation: generation,
+                                           statsEngine: statsEngine, notify: false)
+                UserDefaults.standard.set(Self.countryDatasetVersion, forKey: countryDatasetVersionKey)
+            }
+
+            // Seed the set of countries already known so new-country detection starts clean.
             let stored = (try? await store.allPhotos()) ?? []
             stats = statsEngine.compute(from: stored)
             scanSeenCountryCodes = Set(stored.compactMap { $0.isGeocoded ? $0.countryCode : nil })
 
-            // Phase 2: reverse geocode every row still missing location data.
-            // Each result is written to its own row immediately, so progress is
-            // durable — closing or killing the app resumes exactly where it left off.
-            let needsGeocoding = (try? await store.photosNeedingGeocoding()) ?? []
-            if needsGeocoding.isEmpty {
-                await completeScan()
-                return
-            }
+            // Phase 2b: resolve countries OFFLINE for new photos (instant, no network).
+            let pending = (try? await store.photosNeedingCountry()) ?? []
+            try await resolveCountries(pending, generation: generation,
+                                       statsEngine: statsEngine, notify: true)
 
-            let total = needsGeocoding.count
-            let statsEngine = self.statsEngine   // Sendable; captured so we can compute off-main
-            scanProgress = .geocoding(progress: 0, total: total)
+            // Phase 3: enrich with city names via CLGeocoder (rate-limited, optional).
+            try await resolveCities(generation: generation, statsEngine: statsEngine)
 
-            await geocodingService.geocodeBatch(needsGeocoding) { [weak self] done, photo in
-                // Persist this result before continuing to the next lookup.
-                try? await store.applyGeocode(id: photo.id,
-                                              country: photo.country,
-                                              countryCode: photo.countryCode,
-                                              city: photo.city)
-                // Recompute stats periodically (and on the final photo) off the main actor.
-                var refreshed: TravelStats?
-                if done % 25 == 0 || done == total {
-                    refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
-                }
-                let snapshot = refreshed
-                await MainActor.run {
-                    guard let self, self.scanGeneration == generation else { return }
-                    self.scanProgress = .geocoding(progress: Double(done) / Double(total), total: total)
-                    if let snapshot { self.stats = snapshot }
-                    self.handlePossibleNewCountry(photo)
-                }
-            }
-
-            try Task.checkCancellation()
-
-            stats = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
             await completeScan()
 
         } catch is CancellationError {
@@ -264,6 +330,87 @@ final class AppViewModel {
         } catch {
             scanProgress = .failed(error.localizedDescription)
         }
+    }
+
+    /// Offline country resolution for a set of photos, in chunks so the UI updates
+    /// as we go. `notify` fires new-country notifications (only for genuinely new
+    /// photos — suppressed during a dataset re-resolution of existing photos).
+    private func resolveCountries(_ pending: [GeoPhoto],
+                                  generation: Int,
+                                  statsEngine: StatisticsEngine,
+                                  notify: Bool) async throws {
+        let store = self.store
+        let offline = self.offlineGeocoder
+        guard !pending.isEmpty else { return }
+
+        let total = pending.count
+        scanProgress = .resolvingCountries(progress: 0, total: total)
+
+        var processed = 0
+        for chunk in pending.chunked(into: 500) {
+            try Task.checkCancellation()
+
+            let input = chunk.map { (id: $0.id, latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
+            let matches = await offline.resolve(input)
+
+            // Build persistence rows + ordered list for new-country detection.
+            var rows: [(id: String, country: String?, countryCode: String?)] = []
+            var detected: [GeoPhoto] = []
+            for (index, result) in matches.enumerated() {
+                let (id, match) = result
+                let code = match?.code
+                let name = code.flatMap { Locale.current.localizedString(forRegionCode: $0) } ?? match?.fallbackName
+                rows.append((id: id, country: name, countryCode: code))
+
+                var photo = chunk[index]
+                photo.country = name
+                photo.countryCode = code
+                photo.isGeocoded = true
+                detected.append(photo)
+            }
+
+            try await store.applyCountries(rows)
+
+            processed += chunk.count
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
+            let progress = Double(processed) / Double(total)
+            await MainActor.run {
+                guard self.scanGeneration == generation else { return }
+                self.scanProgress = .resolvingCountries(progress: progress, total: total)
+                self.stats = snapshot
+                if notify { for photo in detected { self.handlePossibleNewCountry(photo) } }
+            }
+        }
+
+        // Core features are done — publish to widgets immediately.
+        publishWidgetStats()
+    }
+
+    /// Phase 3 — optional city enrichment via CLGeocoder (rate-limited).
+    private func resolveCities(generation: Int, statsEngine: StatisticsEngine) async throws {
+        let store = self.store
+        let pending = (try? await store.photosNeedingCity()) ?? []
+        guard !pending.isEmpty else { return }
+
+        let total = pending.count
+        scanProgress = .geocoding(progress: 0, total: total)
+
+        await geocodingService.cityBatch(pending) { [weak self] done, id, city in
+            try? await store.applyCity(id: id, city: city)
+            var refreshed: TravelStats?
+            if done % 25 == 0 || done == total {
+                refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
+            }
+            let snapshot = refreshed
+            await MainActor.run {
+                guard let self, self.scanGeneration == generation else { return }
+                self.scanProgress = .geocoding(progress: Double(done) / Double(total), total: total)
+                if let snapshot { self.stats = snapshot }
+            }
+        }
+
+        try Task.checkCancellation()
+        stats = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
     }
 
     /// Fire a "new country" notification when a photo taken *today* is the first
@@ -302,5 +449,14 @@ final class AppViewModel {
         withAnimation { scanProgress = .complete }
         try? await Task.sleep(nanoseconds: 3_000_000_000)
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }
+    }
+}
+
+private extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        guard size > 0 else { return [self] }
+        return stride(from: 0, to: count, by: size).map {
+            Array(self[$0 ..< Swift.min($0 + size, count)])
+        }
     }
 }

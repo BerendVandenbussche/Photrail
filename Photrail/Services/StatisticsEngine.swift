@@ -15,8 +15,17 @@ struct StatisticsEngine: Sendable {
             }
             countryMap[code]?.add(photo)
         }
+        // --- Trips (streaks of photos within one country) ---
+        let trips = TripDetector().detect(from: geocoded)
+        var tripCounts: [String: Int] = [:]
+        for trip in trips { tripCounts[trip.countryCode, default: 0] += 1 }
+
         let countries = countryMap.values
-            .map { $0.build() }
+            .map { accumulator -> CountryStat in
+                var stat = accumulator.build()
+                stat.tripCount = max(1, tripCounts[stat.id] ?? 1)
+                return stat
+            }
             .sorted { $0.photoCount > $1.photoCount }
 
         // --- Cities ---
@@ -82,6 +91,7 @@ struct StatisticsEngine: Sendable {
             countries: countries,
             continents: continents,
             wonders: wonders,
+            trips: trips,
             allCities: allCities,
             timelineEntries: timeline
         )
@@ -99,12 +109,16 @@ private struct CountryAccumulator {
     var cityMap: [String: CityAccumulator] = [:]
     var firstVisit = Date.distantFuture
     var lastVisit = Date.distantPast
+    var representativeCoordinate = GeoPhoto.Coordinate(latitude: 0, longitude: 0)
 
     mutating func add(_ photo: GeoPhoto) {
         photoCount += 1
         photoIDs.append(photo.id)
         if photo.date < firstVisit { firstVisit = photo.date }
-        if photo.date > lastVisit { lastVisit = photo.date }
+        if photo.date >= lastVisit {
+            lastVisit = photo.date
+            representativeCoordinate = photo.coordinate   // most recent photo's location
+        }
         if let city = photo.city {
             let key = "\(city),\(code)"
             if cityMap[key] == nil {
@@ -119,7 +133,8 @@ private struct CountryAccumulator {
         CountryStat(
             id: code, name: name, flag: flag, photoCount: photoCount,
             cities: cityMap.values.map { $0.build() }.sorted { $0.photoCount > $1.photoCount },
-            firstVisit: firstVisit, lastVisit: lastVisit, photoIDs: photoIDs
+            firstVisit: firstVisit, lastVisit: lastVisit, photoIDs: photoIDs,
+            representativeCoordinate: representativeCoordinate
         )
     }
 }
