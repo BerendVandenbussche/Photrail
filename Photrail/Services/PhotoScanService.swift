@@ -3,35 +3,22 @@ import Photos
 
 /// Scans the photo library for geotagged assets.
 /// Runs on a background actor so the main thread stays free.
-/// Streams progress so the UI can show a real-time scan indicator.
+/// Persistence is handled by `PhotoStore`; this service only extracts GPS metadata.
 actor PhotoScanService {
-    enum ScanState: Sendable {
-        case idle
-        case scanning(progress: Double, found: Int)
-        case complete([GeoPhoto])
-        case failed(Error)
-    }
 
-    private let cache = CacheService()
-
-    /// Returns cached photos immediately if the library hasn't changed,
-    /// otherwise performs a full re-scan.
-    func scanIfNeeded() async throws -> [GeoPhoto] {
-        let currentToken = await fetchChangeTokenString()
-
-        if let meta = try? await cache.loadMeta(),
-           meta.changeToken == currentToken,
-           let cached = try? await cache.loadPhotos(),
-           !cached.isEmpty {
-            return cached
+    /// A stable, comparable representation of the library's current change token.
+    /// Used to skip re-enumerating assets when the library hasn't changed.
+    func currentChangeToken() -> String? {
+        let token = PHPhotoLibrary.shared().currentChangeToken
+        if let data = try? NSKeyedArchiver.archivedData(withRootObject: token,
+                                                        requiringSecureCoding: true) {
+            return data.base64EncodedString()
         }
-
-        return try await fullScan(changeToken: currentToken)
+        return token.description
     }
 
-    // MARK: - Full Scan
-
-    func fullScan(changeToken: String?, progressHandler: (@Sendable (Double, Int) -> Void)? = nil) async throws -> [GeoPhoto] {
+    /// Enumerate the photo library and return every geotagged image as a (un-geocoded) GeoPhoto.
+    func fetchGeotaggedPhotos(progressHandler: (@Sendable (Double, Int) -> Void)? = nil) async throws -> [GeoPhoto] {
         let fetchOptions = PHFetchOptions()
         fetchOptions.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
@@ -44,7 +31,6 @@ actor PhotoScanService {
         var photos: [GeoPhoto] = []
         photos.reserveCapacity(total / 4)  // assume ~25% are geotagged
 
-        // Process in batches to bound memory usage
         let batchSize = 200
         var processed = 0
 
@@ -71,25 +57,9 @@ actor PhotoScanService {
             processed = end
             progressHandler?(Double(processed) / Double(total), photos.count)
 
-            // Yield to avoid blocking the actor for too long
             await Task.yield()
         }
 
-        // Persist the raw GPS data immediately so partial geocoding isn't lost
-        try? await cache.savePhotos(photos)
-        let meta = CacheService.Meta(
-            changeToken: changeToken,
-            lastScanDate: Date(),
-            totalAssetCount: total
-        )
-        try? await cache.saveMeta(meta)
-
         return photos
-    }
-
-    // MARK: - Helpers
-
-    private func fetchChangeTokenString() async -> String? {
-        PHPhotoLibrary.shared().currentChangeToken.description
     }
 }

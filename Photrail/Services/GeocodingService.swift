@@ -39,8 +39,10 @@ actor GeocodingService {
     }
 
     /// Geocode a batch of GeoPhotos, inserting a delay between calls to respect rate limits.
-    func geocodeBatch(_ photos: [GeoPhoto], progressHandler: @Sendable (Int) -> Void) async -> [GeoPhoto] {
-        var results: [GeoPhoto] = []
+    /// `onResult` is awaited for each completed photo, so the caller can persist each
+    /// result in order before the next lookup begins — progress is never lost.
+    func geocodeBatch(_ photos: [GeoPhoto],
+                      onResult: @Sendable (Int, GeoPhoto) async -> Void) async {
         for (index, photo) in photos.enumerated() {
             var updated = photo
             if !photo.isGeocoded {
@@ -50,13 +52,14 @@ actor GeocodingService {
                 updated.countryCode = result.countryCode
                 updated.city = result.city
                 updated.isGeocoded = true
-                // Respect CLGeocoder rate limit: ~1 req/sec
+                // Respect CLGeocoder rate limit: ~1 req/sec; stop sleeping if cancelled
+                guard !Task.isCancelled else { break }
                 try? await Task.sleep(nanoseconds: 1_050_000_000)
             }
-            results.append(updated)
-            progressHandler(index + 1)
+            await onResult(index + 1, updated)
+            // Propagate cancellation so the caller's Task can stop promptly
+            if Task.isCancelled { break }
         }
-        return results
     }
 
     private func cacheKey(lat: Double, lon: Double) -> String {

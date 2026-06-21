@@ -3,6 +3,7 @@ import Foundation
 struct TravelStats: Sendable {
     var totalGeotaggedPhotos: Int
     var countries: [CountryStat]
+    var continents: [ContinentStat]
     var allCities: [CityStat]
     var timelineEntries: [TimelineEntry]
 
@@ -21,8 +22,11 @@ struct TravelStats: Sendable {
         countries.sorted { $0.lastVisit > $1.lastVisit }.prefix(5).map { $0 }
     }
 
+    var visitedContinentCount: Int { continents.filter { $0.visited }.count }
+    var visitableContinentCount: Int { Continent.visitable.count }
+
     static var empty: TravelStats {
-        TravelStats(totalGeotaggedPhotos: 0, countries: [], allCities: [], timelineEntries: [])
+        TravelStats(totalGeotaggedPhotos: 0, countries: [], continents: [], allCities: [], timelineEntries: [])
     }
 
     static var mock: TravelStats {
@@ -45,6 +49,9 @@ struct TravelStats: Sendable {
                             cities: [], firstVisit: calendar.date(byAdding: .year, value: -2, to: now)!,
                             lastVisit: calendar.date(byAdding: .month, value: -3, to: now)!, photoIDs: [])
             ],
+            continents: Continent.visitable.map { continent in
+                ContinentStat(continent: continent, countries: [], photoCount: 0)
+            },
             allCities: [],
             timelineEntries: (0..<12).map { i in
                 TimelineEntry(

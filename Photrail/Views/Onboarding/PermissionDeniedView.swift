@@ -56,5 +56,5 @@ struct PermissionDeniedView: View {
 
 #Preview {
     PermissionDeniedView()
-        .environment(AppViewModel())
+        .environment(AppViewModel.preview)
 }

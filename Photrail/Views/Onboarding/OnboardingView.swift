@@ -150,5 +150,5 @@ private struct OnboardingPageView: View {
 
 #Preview {
     OnboardingView()
-        .environment(AppViewModel())
+        .environment(AppViewModel.preview)
 }

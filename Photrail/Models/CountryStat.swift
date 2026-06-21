@@ -1,6 +1,6 @@
 import Foundation
 
-struct CountryStat: Identifiable, Sendable {
+struct CountryStat: Identifiable, Sendable, Hashable {
     let id: String      // ISO country code
     var name: String
     var flag: String
@@ -11,6 +11,10 @@ struct CountryStat: Identifiable, Sendable {
     var photoIDs: [String]  // GeoPhoto.id references for photo grid
 
     var cityCount: Int { cities.count }
+
+    // Identity is the ISO code — enough for navigation routing.
+    static func == (lhs: CountryStat, rhs: CountryStat) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 struct CityStat: Identifiable, Sendable {

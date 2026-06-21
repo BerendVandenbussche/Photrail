@@ -2,7 +2,7 @@ import Foundation
 
 /// Pure transformation: [GeoPhoto] → TravelStats.
 /// No side effects, fully testable, runs synchronously on whatever actor calls it.
-struct StatisticsEngine {
+struct StatisticsEngine: Sendable {
     func compute(from photos: [GeoPhoto]) -> TravelStats {
         let geocoded = photos.filter { $0.isGeocoded && $0.country != nil }
 
@@ -55,9 +55,22 @@ struct StatisticsEngine {
             }
             .sorted { $0.month < $1.month }
 
+        // --- Continents ---
+        var continentMap: [Continent: [CountryStat]] = [:]
+        for country in countries {
+            guard let continent = ContinentMapper.continent(for: country.id) else { continue }
+            continentMap[continent, default: []].append(country)
+        }
+        let continents: [ContinentStat] = Continent.visitable.map { continent in
+            let cs = continentMap[continent] ?? []
+            let photos = cs.reduce(0) { $0 + $1.photoCount }
+            return ContinentStat(continent: continent, countries: cs, photoCount: photos)
+        }
+
         return TravelStats(
             totalGeotaggedPhotos: geocoded.count,
             countries: countries,
+            continents: continents,
             allCities: allCities,
             timelineEntries: timeline
         )
