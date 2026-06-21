@@ -45,10 +45,13 @@ actor PhotoStore {
         try modelContext.fetch(FetchDescriptor<StoredPhoto>()).map(\.geoPhoto)
     }
 
-    /// Photos that still need reverse geocoding.
+    /// Photos that still need reverse geocoding, oldest first.
+    /// Ascending date order matters for new-country detection: historical photos are
+    /// processed before today's, so a country visited earlier seeds the "seen" set first.
     func photosNeedingGeocoding() throws -> [GeoPhoto] {
         let descriptor = FetchDescriptor<StoredPhoto>(
-            predicate: #Predicate { $0.isGeocoded == false }
+            predicate: #Predicate { $0.isGeocoded == false },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
         )
         return try modelContext.fetch(descriptor).map(\.geoPhoto)
     }

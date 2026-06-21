@@ -61,6 +61,15 @@ final class AppViewModel {
     private var foregroundScanTask: Task<Void, Never>?
     // Incremented on every new scan; progress closures from a cancelled scan bail when mismatched
     private var scanGeneration = 0
+    // Country codes already encountered during the current scan (seeded from the store).
+    private var scanSeenCountryCodes: Set<String> = []
+
+    // Persisted set of countries we've already sent a "new country" notification for.
+    private let notifiedCountryCodesKey = "notifiedCountryCodes"
+    private var notifiedCountryCodes: Set<String> {
+        get { Set(UserDefaults.standard.stringArray(forKey: notifiedCountryCodesKey) ?? []) }
+        set { UserDefaults.standard.set(Array(newValue), forKey: notifiedCountryCodesKey) }
+    }
 
     init(store: PhotoStore) {
         self.store = store
@@ -163,6 +172,8 @@ final class AppViewModel {
                 publishWidgetStats()
             }
         }
+        // Ask for notification permission so we can celebrate new countries while traveling.
+        Task { await NotificationService.requestAuthorization() }
         navState = .dashboard
         startForegroundScan()
     }
@@ -203,8 +214,11 @@ final class AppViewModel {
 
             try Task.checkCancellation()
 
-            // Show whatever is already stored while geocoding continues
-            stats = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
+            // Show whatever is already stored while geocoding continues, and seed the
+            // set of countries already known so new-country detection starts from a clean base.
+            let stored = (try? await store.allPhotos()) ?? []
+            stats = statsEngine.compute(from: stored)
+            scanSeenCountryCodes = Set(stored.compactMap { $0.isGeocoded ? $0.countryCode : nil })
 
             // Phase 2: reverse geocode every row still missing location data.
             // Each result is written to its own row immediately, so progress is
@@ -235,6 +249,7 @@ final class AppViewModel {
                     guard let self, self.scanGeneration == generation else { return }
                     self.scanProgress = .geocoding(progress: Double(done) / Double(total), total: total)
                     if let snapshot { self.stats = snapshot }
+                    self.handlePossibleNewCountry(photo)
                 }
             }
 
@@ -249,6 +264,31 @@ final class AppViewModel {
         } catch {
             scanProgress = .failed(error.localizedDescription)
         }
+    }
+
+    /// Fire a "new country" notification when a photo taken *today* is the first
+    /// we've ever seen in its country. Processing in ascending date order means a
+    /// country visited earlier already seeded `scanSeenCountryCodes`, so only a
+    /// genuinely new-and-current trip triggers a notification (no initial-import spam).
+    private func handlePossibleNewCountry(_ photo: GeoPhoto) {
+        guard photo.isGeocoded,
+              let code = photo.countryCode, !code.isEmpty,
+              let name = photo.country else { return }
+
+        let alreadySeen = scanSeenCountryCodes.contains(code)
+        scanSeenCountryCodes.insert(code)
+
+        guard !alreadySeen,                                  // first sighting in this scan
+              Calendar.current.isDateInToday(photo.date),    // taken today
+              !notifiedCountryCodes.contains(code)           // not already notified
+        else { return }
+
+        var notified = notifiedCountryCodes
+        notified.insert(code)
+        notifiedCountryCodes = notified
+
+        let flag = photo.flagEmoji
+        Task { await NotificationService.notifyNewCountry(code: code, name: name, flag: flag) }
     }
 
     /// Publish the current stats to the shared App Group container and refresh widgets.

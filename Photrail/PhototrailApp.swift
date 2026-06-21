@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import BackgroundTasks
+import UserNotifications
 
 @main
 struct PhotrailApp: App {
@@ -8,6 +9,7 @@ struct PhotrailApp: App {
     // allowing us to capture appVM in the BGTask handler during init().
     private let modelContainer: ModelContainer
     private let appVM: AppViewModel
+    private let notificationDelegate = NotificationDelegate()
 
     init() {
         let container: ModelContainer
@@ -19,6 +21,8 @@ struct PhotrailApp: App {
         self.modelContainer = container
         let vm = AppViewModel(store: PhotoStore(modelContainer: container))
         self.appVM = vm
+
+        UNUserNotificationCenter.current().delegate = notificationDelegate
 
         BackgroundTaskService.registerHandlers { [vm] in
             await vm.runBackgroundScan()
