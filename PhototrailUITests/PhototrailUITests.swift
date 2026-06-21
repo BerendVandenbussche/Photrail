@@ -1,13 +1,13 @@
 //
-//  TravelTraceUITests.swift
-//  TravelTraceUITests
+//  PhotrailUITests.swift
+//  PhotrailUITests
 //
 //  Created by Berend Vandenbussche on 25/09/2024.
 //
 
 import XCTest
 
-final class TravelTraceUITests: XCTestCase {
+final class PhotrailUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

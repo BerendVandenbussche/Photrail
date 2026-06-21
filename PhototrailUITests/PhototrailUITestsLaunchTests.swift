@@ -1,13 +1,13 @@
 //
-//  TravelTraceUITestsLaunchTests.swift
-//  TravelTraceUITests
+//  PhotrailUITestsLaunchTests.swift
+//  PhotrailUITests
 //
 //  Created by Berend Vandenbussche on 25/09/2024.
 //
 
 import XCTest
 
-final class TravelTraceUITestsLaunchTests: XCTestCase {
+final class PhotrailUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
