@@ -15,6 +15,11 @@ struct WonderDetailView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
                     headerSection
+                    LocationMiniMap(latitude: stat.wonder.latitude,
+                                    longitude: stat.wonder.longitude,
+                                    glyph: stat.wonder.emoji,
+                                    spanMeters: 40_000)
+                        .padding(.horizontal, 20)
                     statsRow
                         .padding(.horizontal, 20)
                     photoGridSection

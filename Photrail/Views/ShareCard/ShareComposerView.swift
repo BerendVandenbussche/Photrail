@@ -14,8 +14,6 @@ struct ShareComposerView: View {
     @State private var selectedTrip: Trip?
     @State private var photoItem: PhotosPickerItem?
     @State private var photo: UIImage?
-    @State private var shareImage: UIImage?
-    @State private var showShareSheet = false
 
     init(stats: TravelStats, profile: TravelPersonalityProfile?, trips: [Trip]) {
         self.stats = stats
@@ -57,9 +55,6 @@ struct ShareComposerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
-            }
-            .sheet(isPresented: $showShareSheet) {
-                if let shareImage { ShareSheetViewControllerWrapper(items: [shareImage]) }
             }
             .onChange(of: photoItem) { _, item in
                 Task {
@@ -173,8 +168,9 @@ struct ShareComposerView: View {
 
     private var shareButton: some View {
         Button {
-            shareImage = ShareCardRenderer.image(model: model, background: background, photo: photo)
-            showShareSheet = shareImage != nil
+            if let image = ShareCardRenderer.image(model: model, background: background, photo: photo) {
+                SharePresenter.present([image])
+            }
         } label: {
             Label("Share", systemImage: "square.and.arrow.up")
                 .font(.headline)

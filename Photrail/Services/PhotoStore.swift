@@ -20,7 +20,8 @@ actor PhotoStore {
                 id: photo.id,
                 latitude: photo.coordinate.latitude,
                 longitude: photo.coordinate.longitude,
-                date: photo.date
+                date: photo.date,
+                altitude: photo.altitude
             ))
             inserted += 1
         }

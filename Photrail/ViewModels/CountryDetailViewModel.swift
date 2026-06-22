@@ -17,12 +17,12 @@ final class CountryDetailViewModel {
         isLoadingPhotos = true
         let imageManager = PHCachingImageManager()
         let options = PHImageRequestOptions()
-        options.deliveryMode = .fastFormat
-        options.isNetworkAccessAllowed = false
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true   // fetch full-res from iCloud (optimized storage)
         options.isSynchronous = false
 
         let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
-        let targetSize = CGSize(width: 200, height: 200)
+        let targetSize = CGSize(width: 400, height: 400)
 
         // Pre-cache in one go
         var assets: [PHAsset] = []

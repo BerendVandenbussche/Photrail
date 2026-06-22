@@ -42,11 +42,14 @@ actor PhotoScanService {
                 assets.enumerateObjects(at: IndexSet(integersIn: processed..<end)) { asset, _, _ in
                     guard let location = asset.location,
                           let date = asset.creationDate else { return }
+                    // Altitude is only meaningful with a valid vertical fix.
+                    let altitude = location.verticalAccuracy >= 0 ? location.altitude : nil
                     let photo = GeoPhoto(
                         id: asset.localIdentifier,
                         coordinate: .init(latitude: location.coordinate.latitude,
                                           longitude: location.coordinate.longitude),
-                        date: date
+                        date: date,
+                        altitude: altitude
                     )
                     batchPhotos.append(photo)
                 }

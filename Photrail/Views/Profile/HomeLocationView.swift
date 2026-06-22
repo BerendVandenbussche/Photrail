@@ -1,9 +1,9 @@
 import SwiftUI
 
-struct SettingsView: View {
+/// Sheet for choosing the user's home: a country, then optionally a city.
+struct HomeLocationView: View {
     @Environment(AppViewModel.self) private var appVM
     @Environment(\.dismiss) private var dismiss
-    @State private var showReindexConfirm = false
 
     private var countries: [CountryStat] {
         appVM.stats.countries.sorted { $0.name < $1.name }
@@ -25,19 +25,17 @@ struct SettingsView: View {
                             .font(.subheadline)
                         }
                     } else {
-                        Text("No home set")
-                            .foregroundStyle(.secondary)
+                        Text("No home set").foregroundStyle(.secondary)
                     }
                 } header: {
                     Text("Home")
                 } footer: {
-                    Text("Pick a country, then optionally a city for a more precise origin. Used to calculate which trip took you furthest from home.")
+                    Text("Pick a country, then optionally a city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.")
                 }
 
                 Section("Choose your home country") {
                     if countries.isEmpty {
-                        Text("No countries yet — scan your photos first.")
-                            .foregroundStyle(.secondary)
+                        Text("No countries yet — scan your photos first.").foregroundStyle(.secondary)
                     }
                     ForEach(countries) { country in
                         NavigationLink(value: country) {
@@ -52,43 +50,17 @@ struct SettingsView: View {
                         }
                     }
                 }
-
-                Section {
-                    Button {
-                        showReindexConfirm = true
-                    } label: {
-                        Label("Reindex photo library", systemImage: "arrow.clockwise")
-                    }
-                } footer: {
-                    Text("Rebuilds your travel history from scratch. Use this if you changed the location or date of photos that were already scanned.")
-                }
             }
-            .navigationTitle("Settings")
+            .navigationTitle("Home")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: CountryStat.self) { country in
                 HomeCityPicker(country: country) { dismiss() }
             }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
-            }
-            .confirmationDialog("Reindex photo library?",
-                                isPresented: $showReindexConfirm,
-                                titleVisibility: .visible) {
-                Button("Reindex", role: .destructive) {
-                    appVM.reindex()
-                    dismiss()
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This rescans every photo and refreshes locations. City names will be looked up again, which can take a while for large libraries.")
-            }
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
         }
     }
 }
 
-/// Lets the user pick a city within a country as home, or the whole country.
 private struct HomeCityPicker: View {
     @Environment(AppViewModel.self) private var appVM
     let country: CountryStat
@@ -117,7 +89,6 @@ private struct HomeCityPicker: View {
                     }
                 }
             }
-
             if !cities.isEmpty {
                 Section("Cities") {
                     ForEach(cities) { city in
@@ -141,9 +112,4 @@ private struct HomeCityPicker: View {
         .navigationTitle("\(country.flag) \(country.name)")
         .navigationBarTitleDisplayMode(.inline)
     }
-}
-
-#Preview {
-    SettingsView()
-        .environment(AppViewModel.preview)
 }

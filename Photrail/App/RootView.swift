@@ -15,7 +15,7 @@ struct RootView: View {
                     ))
 
             case .dashboard:
-                DashboardView()
+                MainTabView()
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing).combined(with: .opacity),
                         removal: .opacity

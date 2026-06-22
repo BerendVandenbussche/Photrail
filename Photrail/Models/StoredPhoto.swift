@@ -20,6 +20,8 @@ final class StoredPhoto {
     /// Whether a real town/city (locality) was found — nil until the city pass runs.
     /// Distinguishes urban areas from countryside for the personality profile.
     var localityResolved: Bool?
+    /// GPS altitude in meters (nil if no vertical fix). Drives the Mountain personality.
+    var altitude: Double?
 
     init(id: String,
          latitude: Double,
@@ -30,7 +32,8 @@ final class StoredPhoto {
          city: String? = nil,
          isGeocoded: Bool = false,
          cityChecked: Bool = false,
-         localityResolved: Bool? = nil) {
+         localityResolved: Bool? = nil,
+         altitude: Double? = nil) {
         self.id = id
         self.latitude = latitude
         self.longitude = longitude
@@ -41,6 +44,7 @@ final class StoredPhoto {
         self.isGeocoded = isGeocoded
         self.cityChecked = cityChecked
         self.localityResolved = localityResolved
+        self.altitude = altitude
     }
 }
 
@@ -55,7 +59,8 @@ extension StoredPhoto {
             countryCode: countryCode,
             city: city,
             isGeocoded: isGeocoded,
-            hasLocality: localityResolved
+            hasLocality: localityResolved,
+            altitude: altitude
         )
     }
 }

@@ -6,28 +6,12 @@ struct DashboardView: View {
     @State private var selectedContinent: ContinentStat?
     @State private var showWonders = false
     @State private var showShareCard = false
-    @State private var showSettings = false
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
 
     private var stats: TravelStats { appVM.stats }
     private var scanProgress: AppViewModel.ScanProgress { appVM.scanProgress }
 
-    private var currentYear: Int { Calendar.current.component(.year, from: Date()) }
-
-    /// Years that have any trips, most recent first.
-    private var availableYears: [Int] {
-        var years = Set<Int>()
-        for trip in stats.trips {
-            years.insert(Calendar.current.component(.year, from: trip.startDate))
-            years.insert(Calendar.current.component(.year, from: trip.endDate))
-        }
-        return years.sorted(by: >)
-    }
-
-    private func tripCount(for year: Int) -> Int {
-        stats.trips.filter { Calendar.current.component(.year, from: $0.startDate) == year }.count
-    }
 
     var body: some View {
         NavigationStack {
@@ -70,11 +54,6 @@ struct DashboardView: View {
                                 .padding(.horizontal, 20)
                         }
 
-                        // Travel personality
-                        if let profile = appVM.personalityProfile, profile.isMeaningful {
-                            PersonalitySection(profile: profile)
-                        }
-
                         // Most photographed callout
                         if let top = stats.mostPhotographedCountry {
                             Button { selectedCountry = top } label: {
@@ -92,7 +71,7 @@ struct DashboardView: View {
                             .buttonStyle(.plain)
                             .padding(.horizontal, 20)
                         } else if appVM.homeCountryCode == nil {
-                            Button { showSettings = true } label: {
+                            Button { appVM.selectedTab = .me } label: {
                                 SetHomeCTACard()
                             }
                             .buttonStyle(.plain)
@@ -148,27 +127,6 @@ struct DashboardView: View {
                                 .padding(.horizontal, 20)
                         }
 
-                        // Past years — open any year's recap
-                        let pastYears = availableYears.filter { $0 != currentYear }
-                        if !pastYears.isEmpty {
-                            VStack(alignment: .leading, spacing: 10) {
-                                SectionHeader(title: "Past Years", systemImage: "clock.arrow.circlepath")
-                                    .padding(.horizontal, 20)
-                                ForEach(pastYears, id: \.self) { year in
-                                    Button {
-                                        buildingRecap = true
-                                        Task {
-                                            yearRecap = await appVM.makeYearRecap(year: year)
-                                            buildingRecap = false
-                                        }
-                                    } label: {
-                                        YearRow(year: year, tripCount: tripCount(for: year))
-                                    }
-                                    .buttonStyle(.plain)
-                                    .padding(.horizontal, 20)
-                                }
-                            }
-                        }
                     } else if !scanProgress.isActive {
                         // Empty state — scan finished but no geotagged photos found
                         EmptyStateView()
@@ -187,11 +145,6 @@ struct DashboardView: View {
                 ToolbarItem(placement: .principal) {
                     LogoLockup(size: 22)
                 }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { showSettings = true } label: {
-                        Image(systemName: "gearshape")
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showShareCard = true
@@ -204,9 +157,6 @@ struct DashboardView: View {
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
                                   trips: stats.trips.filter { $0.countryCode == country.id })
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
             }
             .sheet(isPresented: $showWonders) {
                 WondersListView(wonders: stats.wonders)
@@ -259,34 +209,6 @@ private struct RecapEntryCard: View {
                            startPoint: .topLeading, endPoint: .bottomTrailing),
             in: RoundedRectangle(cornerRadius: 18, style: .continuous)
         )
-    }
-}
-
-private struct YearRow: View {
-    let year: Int
-    let tripCount: Int
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "calendar")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.tint)
-                .frame(width: 32)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(String(year))
-                    .font(.subheadline.weight(.semibold))
-                Text(tripCount == 1 ? "1 trip" : "\(tripCount) trips")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .padding(14)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .contentShape(Rectangle())
     }
 }
 

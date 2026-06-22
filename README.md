@@ -13,11 +13,13 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 - **Most visited countries** — Countries ranked by number of distinct trips
 - **Furthest from home** — Set a home city/country in Settings and see which trip took you furthest away
 - **World Wonders & Landmarks** — Detects, by location, which of the New 7 Wonders and other famous landmarks you've photographed; tap any to see your photos of it
-- **Travel Personality** — An on‑device profile of your travel style (Urban / Coastal / Mountain / Nature / Culture / Transit / Adventure) as percentages, with a dominant type
-- **Year in Travel recap** — A paged, Spotify‑Wrapped‑style story for any year ending in a shareable "snapshot" finale, plus a Past Years archive on the homepage
+- **Travel Personality** — An on‑device profile of your travel style (Urban / Coastal / Mountain / Nature / Culture / Transit / Adventure) as percentages, with a dominant type. Daily‑life photos within 50 km of home are excluded so the profile reflects travel
+- **Me tab** — A profile page with an emoji avatar, your lifetime snapshot, travel personality, home location, reindex, and the Recaps archive
+- **Year in Travel recap** — A paged, Spotify‑Wrapped‑style story (distance with relatable comparisons, most‑photographed country, chronological route map, first‑ever‑visited countries, personality, wonders & landmarks seen, biggest trip, highest peak, superlatives, Vision‑curated "best shots", year summary, hero finale). **Every slide is individually shareable** as its own branded card; the finale also exports light / dark / transparent themes
+- **Vision‑curated best shots** — On‑device image aesthetics + scene classification pick the year's most beautiful photos, matched to your personality and time‑spaced, skipping screenshots and people/pet shots
 - **New‑country notifications** — When a photo taken *today* is your first ever in a country, you get a "Welcome to …" notification (works in the background)
 - **Monthly activity timeline** — Bar chart of your photo activity over time
-- **Premium share system** — Multiple card templates (Personality, Summary, Wonders, Trip, Year Recap) with map / transparent / photo backgrounds, exported at Instagram‑story resolution (1080×1920) with Photrail branding
+- **Premium share system** — Multiple card templates (Personality, Summary, Wonders, Trip) plus the Year Recap cards, with map / transparent / photo backgrounds, exported at Instagram‑story resolution (1080×1920) with Photrail branding
 - **Home‑screen widgets** — A travel‑stats widget and a world‑wonders widget (small / medium / lock‑screen)
 - **Durable, resumable processing** — Every result is persisted to a local SwiftData store as it completes, so closing or killing the app never loses progress
 
@@ -41,7 +43,8 @@ Clean MVVM with Swift Concurrency throughout. Persistence is SwiftData (SQLite);
 ```
 Photrail/
 ├── App/
-│   └── RootView.swift                  State machine: onboarding → dashboard
+│   ├── RootView.swift                  State machine: onboarding → tabs
+│   └── MainTabView.swift               Home + Me tab bar
 ├── Models/
 │   ├── GeoPhoto.swift                  Lightweight Sendable photo DTO
 │   ├── StoredPhoto.swift               SwiftData @Model — one SQLite row per photo
@@ -55,6 +58,7 @@ Photrail/
 │   ├── OfflineCountryGeocoder.swift    On-device coordinate → country (bundled GeoJSON)
 │   ├── OfflineCoastline.swift          On-device distance to nearest coast (bundled GeoJSON)
 │   ├── OfflinePlaces.swift             On-device distance to nearest city (bundled GeoJSON)
+│   ├── PhotoCurator.swift              Vision aesthetics + scene classification → best shots
 │   ├── GeocodingService.swift          City names via CLGeocoder (rate-limited, cached)
 │   ├── PhotoStore.swift                @ModelActor — serialized SwiftData access
 │   ├── ContinentMapper.swift           ISO country code → continent
@@ -66,22 +70,23 @@ Photrail/
 │   ├── BackgroundTaskService.swift     BGProcessingTask scheduling and execution
 │   ├── TravelPersonality/              Pure scoring engine (category → score → profile)
 │   ├── Recap/                          Year recap model, travel title + travel score
-│   └── Sharing/                        Share card types, model, renderer, share sheet
+│   └── Sharing/                        Share cards (templates, recap, collage), renderer, presenter
 ├── ViewModels/
 │   ├── AppViewModel.swift              @Observable root state + scan pipeline
 │   └── CountryDetailViewModel.swift    PHCachingImageManager for photo grids
 ├── Views/
 │   ├── Onboarding/                     Onboarding + permission denied screen
-│   ├── Dashboard/                      Map, recap entry, stats, personality, countries,
-│   │                                   most-visited, continents, wonders, timeline, past years
-│   ├── CountryDetail/                  Trips + city list + lazy photo grid
+│   ├── Dashboard/                      Map, current-year recap entry, stats, countries,
+│   │                                   most-visited, continents, wonders, timeline
+│   ├── CountryDetail/                  Mini map + trips + city list + lazy photo grid
 │   ├── ContinentDetail/               Per-continent country list
-│   ├── Wonders/                        Wonders & landmarks list + per-wonder photo grid
-│   ├── Recap/                          8-slide Year in Travel story + hero finale
-│   ├── Settings/                       Home city/country picker + reindex
+│   ├── Wonders/                        Wonders & landmarks list + mini map + photo grid
+│   ├── Recap/                          Multi-slide Year in Travel story + hero finale
+│   ├── Profile/                        Me tab: avatar, personality, home, reindex, recaps
 │   └── ShareCard/                      Share composer (templates + backgrounds)
 ├── Components/                         StatCard, SectionHeader, PhotoThumbnail, ScanBanner,
-│                                       LogoView (brand mark), MiniMapDots
+│                                       LogoView (brand mark), MiniMapDots, JourneyMapView,
+│                                       LocationMiniMap, FlowLayout
 └── Shared/
     └── WidgetSharedStats.swift         App Group snapshot (member of app + widget targets)
 
@@ -101,6 +106,9 @@ PhotrailWidgets/                        Widget extension (Travel Stats + World W
 | `BGProcessingTask` (not `BGAppRefreshTask`) | City geocoding can run for minutes on large libraries; refresh tasks cap at ~30s |
 | Dataset version flags | Bumping `countryDatasetVersion` / the personality signature silently re-resolves when data or scoring logic improves |
 | Pure scoring engines (personality, score, title) | Decoupled from SwiftUI, deterministic, unit-tested |
+| EXIF altitude captured at scan | Drives the Mountain personality and the recap's highest-peak slide, no dataset needed |
+| Vision best-shots (aesthetics + classification) | On-device curation of the recap's photo collage; matched to personality, time-spaced, skips people/pets/screenshots |
+| High-res image requests (network allowed) | Optimized-Storage libraries fetch full-res originals from iCloud instead of blurry local thumbnails |
 | Self-healing ModelContainer | The store is a rebuildable cache; on a migration failure it's wiped and recreated, never crashing |
 
 ## Bundled datasets
@@ -120,7 +128,7 @@ Keep the bundled versions lightly simplified (≥30%) — over-simplifying borde
 ```
 App launch
     └── Permission granted → show dashboard (stats from the store if available)
-            └── Enumerate library if changed → insert new photo rows
+            └── Enumerate library if changed → insert new photo rows (with GPS + altitude)
                     └── (If boundary dataset version changed: silently re-resolve all countries)
                     └── Resolve countries OFFLINE for new photos        → core features appear
                             └── fires "new country" notifications, publishes widgets
@@ -149,10 +157,13 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 > e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"com.berend.photrail.scan"]
 > ```
 
-## Settings
+## Me tab
 
-- **Home** — pick a country and optionally a city. Used for the furthest‑trip calculation and to exclude everyday photos within 50 km of home from your travel personality.
-- **Reindex photo library** — rebuilds travel history from scratch. Use it after changing the location or date of photos that were already scanned (a normal incremental scan keeps the original data because the asset id is unchanged).
+- **Avatar** — pick an emoji as your profile picture.
+- **Travel personality** + lifetime snapshot (countries / cities / continents / trips).
+- **Home** — pick a country and optionally a city. Used for the furthest‑trip calculation, to exclude home‑country trips from recaps, and to exclude everyday photos within 50 km of home from your travel personality.
+- **Reindex photo library** — rebuilds travel history from scratch. Use it after changing the location or date of photos that were already scanned (a normal incremental scan keeps the original data because the asset id is unchanged), or to backfill altitude onto previously scanned photos.
+- **Recaps** — archive of every year with travel; the current year also has a dedicated entry on the dashboard.
 
 ## Testing
 

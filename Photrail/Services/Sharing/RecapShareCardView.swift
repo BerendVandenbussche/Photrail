@@ -6,11 +6,15 @@ enum RecapTheme: String, CaseIterable, Identifiable, Sendable {
     var title: String { rawValue.capitalized }
 }
 
-/// The premium, exportable "Year in Travel" finale card. 9:16, render-ready.
+/// Which aspect of the recap a share card emphasizes (per-slide sharing).
+enum RecapCardFocus: Sendable { case snapshot, route, personality, newCountries }
+
+/// The premium, exportable "Year in Travel" share card. 9:16, render-ready.
 /// This is the primary marketing asset — branded, glanceable, beautiful.
 struct RecapShareCardView: View {
     let recap: RecapModel
     var theme: RecapTheme = .dark
+    var focus: RecapCardFocus = .snapshot
 
     static let canvasSize = CGSize(width: 360, height: 640)
 
@@ -57,13 +61,7 @@ struct RecapShareCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Spacer(minLength: 10)
-            hero
-            Spacer(minLength: 16)
-            statsGrid
-            if !recap.topSlices.isEmpty {
-                Spacer(minLength: 16)
-                personality
-            }
+            focusBody
             Spacer(minLength: 14)
             footer
         }
@@ -71,6 +69,103 @@ struct RecapShareCardView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(transparentPanel)
         .padding(theme == .transparent ? 18 : 0)
+    }
+
+    @ViewBuilder
+    private var focusBody: some View {
+        switch focus {
+        case .snapshot:     snapshotBody
+        case .route:        routeBody
+        case .personality:  personalityBody
+        case .newCountries: newCountriesBody
+        }
+    }
+
+    private var snapshotBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            hero
+            Spacer(minLength: 16)
+            statsGrid
+            if !recap.topSlices.isEmpty {
+                Spacer(minLength: 16)
+                personality
+            }
+        }
+    }
+
+    private func eyebrow(_ text: String) -> some View {
+        Text(text.uppercased())
+            .font(.system(size: 12, weight: .bold)).tracking(1.6)
+            .foregroundStyle(accent)
+    }
+
+    private func bigHeadline(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 44, weight: .black, design: .rounded))
+            .foregroundStyle(primaryText)
+            .lineLimit(2).minimumScaleFactor(0.5)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var routeBody: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            eyebrow("Where I went")
+            bigHeadline("\(recap.journey.count) countries,\none journey")
+            JourneyMapView(stops: recap.journey,
+                           lineColor: primaryText.opacity(0.5), dotColor: primaryText)
+                .frame(height: 230)
+            FlowLayout(spacing: 12, rowSpacing: 10) {
+                ForEach(recap.journey) { stop in
+                    Text(stop.flag).font(.system(size: 26))
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var personalityBody: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            eyebrow("My travel personality")
+            bigHeadline(personalityHeadline)
+            VStack(spacing: 12) {
+                ForEach(recap.topSlices) { slice in
+                    HStack(spacing: 10) {
+                        Text(slice.category.emoji).font(.system(size: 20))
+                        Text(slice.category.title)
+                            .font(.system(size: 16, weight: .semibold)).foregroundStyle(primaryText.opacity(0.9))
+                        Spacer()
+                        Text("\(Int(slice.percentage.rounded()))%")
+                            .font(.system(size: 16, weight: .bold).monospacedDigit()).foregroundStyle(primaryText)
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var personalityHeadline: String {
+        guard let slice = recap.topSlices.first else { return recap.title }
+        return "\(Int(slice.percentage.rounded()))%\n\(slice.category.title)"
+    }
+
+    private var newCountriesBody: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            eyebrow("New in \(String(recap.year))")
+            bigHeadline(recap.newCountries.count == 1 ? "1 new country" : "\(recap.newCountries.count) new countries")
+            FlowLayout(spacing: 12, rowSpacing: 12) {
+                ForEach(recap.newCountries) { badge in
+                    VStack(spacing: 3) {
+                        Text(badge.flag).font(.system(size: 30))
+                        Text(badge.name)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(secondaryText)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: 76)
+                }
+            }
+            Spacer(minLength: 0)
+        }
     }
 
     @ViewBuilder

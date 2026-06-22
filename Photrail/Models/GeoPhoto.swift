@@ -14,6 +14,8 @@ struct GeoPhoto: Codable, Identifiable, Sendable {
     /// Whether a real town/city was resolved (vs. only an administrative area).
     /// nil = city lookup hasn't run yet. Used by the personality engine.
     var hasLocality: Bool? = nil
+    /// GPS altitude in meters (nil if no vertical fix). Drives the Mountain personality.
+    var altitude: Double? = nil
 
     struct Coordinate: Codable, Sendable {
         let latitude: Double

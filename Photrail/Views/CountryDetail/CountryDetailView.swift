@@ -25,6 +25,15 @@ struct CountryDetailView: View {
                     // Hero header
                     headerSection
 
+                    // Location
+                    if country.representativeCoordinate.latitude != 0 || country.representativeCoordinate.longitude != 0 {
+                        LocationMiniMap(latitude: country.representativeCoordinate.latitude,
+                                        longitude: country.representativeCoordinate.longitude,
+                                        glyph: country.flag,
+                                        spanMeters: 1_400_000)
+                            .padding(.horizontal, 20)
+                    }
+
                     // Stats row
                     statsRow
                         .padding(.horizontal, 20)

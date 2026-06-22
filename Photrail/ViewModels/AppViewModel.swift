@@ -35,9 +35,19 @@ final class AppViewModel {
         }
     }
 
+    enum AppTab: Hashable { case home, me }
+
     var navState: NavState = .onboarding
     var scanProgress: ScanProgress = .idle
     var stats: TravelStats = .empty
+
+    /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
+    var selectedTab: AppTab = .home
+
+    /// Emoji the user picked as their profile avatar.
+    var profileEmoji: String {
+        didSet { UserDefaults.standard.set(profileEmoji, forKey: "profileEmoji") }
+    }
 
     /// Travel personality profile derived from photo locations (cached).
     var personalityProfile: TravelPersonalityProfile?
@@ -125,6 +135,7 @@ final class AppViewModel {
     private let offlineGeocoder = OfflineCountryGeocoder()
     private let offlineCoastline = OfflineCoastline()
     private let offlinePlaces = OfflinePlaces()
+    private let photoCurator = PhotoCurator()
     private let store: PhotoStore
     private let statsEngine = StatisticsEngine()
 
@@ -152,6 +163,7 @@ final class AppViewModel {
         self.store = store
         self.homeCountryCode = UserDefaults.standard.string(forKey: "homeCountryCode")
         self.homeCityID = UserDefaults.standard.string(forKey: "homeCityID")
+        self.profileEmoji = UserDefaults.standard.string(forKey: "profileEmoji") ?? "🧭"
         if let data = UserDefaults.standard.data(forKey: personalityCacheKey),
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
@@ -249,8 +261,66 @@ final class AppViewModel {
         )
         let distance = Self.totalDistanceKm(trips: yearStats.trips, home: home)
 
+        // Countries visited for the first time *ever* this year: their earliest photo
+        // across the whole library falls in this year.
+        var earliestByCountry: [String: Date] = [:]
+        for photo in all where photo.isGeocoded {
+            guard let code = photo.countryCode else { continue }
+            if let existing = earliestByCountry[code] {
+                if photo.date < existing { earliestByCountry[code] = photo.date }
+            } else {
+                earliestByCountry[code] = photo.date
+            }
+        }
+        let newCountries: [RecapModel.CountryBadge] = yearStats.countries
+            .filter { country in
+                country.id != homeCountryCode &&
+                earliestByCountry[country.id].map { Calendar.current.component(.year, from: $0) == year } == true
+            }
+            .sorted { $0.firstVisit < $1.firstVisit }
+            .map { .init(id: $0.id, name: $0.name, flag: $0.flag) }
+
+        // Highest point reached this year (only surfaced above 1000 m).
+        var highestAltitude: Double?
+        var highestAltitudePlace: String?
+        var highestPeakPhotoID: String?
+        if let peak = yearPhotos.compactMap({ p in p.altitude.map { ($0, p) } }).max(by: { $0.0 < $1.0 }),
+           peak.0 >= 1000 {
+            highestAltitude = peak.0
+            highestAltitudePlace = peak.1.country.map { "\(peak.1.flagEmoji) \($0)" }
+
+            // Look for an actual mountain photo within 1 km of the highest point.
+            let peakLoc = CLLocation(latitude: peak.1.coordinate.latitude, longitude: peak.1.coordinate.longitude)
+            let nearbyIDs = yearPhotos
+                .filter {
+                    CLLocation(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
+                        .distance(from: peakLoc) <= 1000
+                }
+                .prefix(40)
+                .map(\.id)
+            highestPeakPhotoID = await photoCurator.mountainPhoto(candidateIDs: Array(nearbyIDs))
+        }
+
+        // Vision-curated best shots: candidates = away-trip photos (cap for performance),
+        // ranked on-device by aesthetics + personality match, minus people/pet/screenshots.
+        let candidateIDs = Array(
+            yearStats.trips
+                .filter { $0.countryCode != homeCountryCode }
+                .sorted { $0.photoCount > $1.photoCount }
+                .flatMap { $0.photoIDs }
+                .prefix(80)
+        )
+        let highlightPhotoIDs = await photoCurator.bestPhotos(
+            candidateIDs: candidateIDs,
+            category: profile.dominantCategory
+        )
+
         return RecapModel.make(year: year, stats: yearStats, profile: profile,
-                               photoCount: yearPhotos.count, distanceKm: distance)
+                               photoCount: yearPhotos.count, distanceKm: distance,
+                               homeCountryCode: homeCountryCode, newCountries: newCountries,
+                               highestAltitude: highestAltitude, highestAltitudePlace: highestAltitudePlace,
+                               highestPeakPhotoID: highestPeakPhotoID,
+                               highlightPhotoIDs: highlightPhotoIDs)
     }
 
     /// Approximate total distance: round trips from home if set, else hop-to-hop between trips.
@@ -518,7 +588,7 @@ final class AppViewModel {
         let geocodedCount = photos.lazy.filter { $0.isGeocoded }.count
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
-        let signature = "v4-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
+        let signature = "v5-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {

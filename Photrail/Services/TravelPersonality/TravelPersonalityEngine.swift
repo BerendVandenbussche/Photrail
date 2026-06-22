@@ -78,7 +78,8 @@ struct TravelPersonalityEngine: Sendable {
             let kind = wonderIDByPhoto[photo.id].flatMap(Self.wonderKind(forID:))
             let scores = score(photo: photo, previous: prev, next: next, wonderKind: kind,
                                coastalDistanceKm: coastalDistanceByPhoto[photo.id],
-                               cityDistanceKm: cityDistanceByPhoto[photo.id])
+                               cityDistanceKm: cityDistanceByPhoto[photo.id],
+                               altitude: photo.altitude)
             scored.append(.init(id: photo.id, scores: scores))
         }
 

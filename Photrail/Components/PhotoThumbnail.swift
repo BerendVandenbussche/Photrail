@@ -41,8 +41,11 @@ struct PhotoThumbnail: View {
                 return
             }
             let options = PHImageRequestOptions()
-            options.deliveryMode = .fastFormat
-            options.isNetworkAccessAllowed = false
+            // High quality + iCloud access, so optimized-storage libraries (where the
+            // full-res original lives in iCloud) don't render a blurry local thumbnail.
+            // .highQualityFormat delivers a single callback, safe for the continuation.
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
             options.isSynchronous = false
             PHImageManager.default().requestImage(
                 for: asset,
