@@ -199,7 +199,7 @@ struct RecapView: View {
     }
 
     private var favorite: some View {
-        slide(eyebrow: "Most photographed") {
+        slide(eyebrow: "Top destination") {
             HStack(spacing: 14) {
                 Text(recap.favoriteCountryFlag ?? "").font(.system(size: 56))
                 Text(recap.favoriteCountryName ?? "—")
@@ -300,8 +300,12 @@ struct RecapView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(recap.seenWonders.prefix(6)) { badge in
-                    HStack(spacing: 10) {
-                        Text(badge.emoji).font(.system(size: 22))
+                    HStack(spacing: 12) {
+                        if let photoID = badge.photoID {
+                            PhotoThumbnail(assetID: photoID, size: 44, cornerRadius: 10)
+                        } else {
+                            Text(badge.emoji).font(.system(size: 22)).frame(width: 44)
+                        }
                         Text(badge.name)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(.white.opacity(0.95))

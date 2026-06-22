@@ -53,6 +53,7 @@ struct RecapModel: Sendable, Identifiable {
         let name: String
         let emoji: String
         let isOfficial: Bool
+        let photoID: String?   // a verified photo of the wonder, if found
     }
 
     var highestAltitudeText: String? {
@@ -110,8 +111,13 @@ extension RecapModel {
                      highestAltitude: Double? = nil,
                      highestAltitudePlace: String? = nil,
                      highestPeakPhotoID: String? = nil,
-                     highlightPhotoIDs: [String] = []) -> RecapModel {
-        let favorite = stats.mostPhotographedCountry
+                     highlightPhotoIDs: [String] = [],
+                     wonderPhotos: [String: String] = [:]) -> RecapModel {
+        // Top *destination* — most-photographed country excluding home (home is full of
+        // everyday photos and isn't a destination).
+        let favorite = stats.countries
+            .filter { $0.id != homeCountryCode }
+            .max { $0.photoCount < $1.photoCount }
         // Trips away from home — your home country isn't really a "trip".
         let awayTrips = stats.trips.filter { $0.countryCode != homeCountryCode }
         let biggest = awayTrips.max { $0.photoCount < $1.photoCount }
@@ -136,7 +142,8 @@ extension RecapModel {
                 return (lo, $0.wonder.name) < (ro, $1.wonder.name)
             }
             .map { WonderBadge(id: $0.wonder.id, name: $0.wonder.name,
-                               emoji: $0.wonder.emoji, isOfficial: $0.wonder.category == .sevenWonders) }
+                               emoji: $0.wonder.emoji, isOfficial: $0.wonder.category == .sevenWonders,
+                               photoID: wonderPhotos[$0.wonder.id]) }
 
         // Chronological overview of every country visited (excluding home), ordered by
         // first visit. Built from countries — not trips — so any country with photos that

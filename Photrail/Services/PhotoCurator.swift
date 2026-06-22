@@ -66,21 +66,30 @@ actor PhotoCurator {
         return total
     }
 
-    /// Best photo among the candidates that actually shows a mountain, or nil if none do.
-    func mountainPhoto(candidateIDs: [String]) async -> String? {
+    /// What a photo should depict for `bestPhoto(_:subject:)`.
+    enum Subject { case mountain, landmark, nature, coastal }
+
+    /// Best photo among the candidates that actually depicts `subject`, or nil if none do.
+    /// Used to surface a real photo of a mountain peak or a wonder/landmark — not a nearby selfie.
+    func bestPhoto(candidateIDs: [String], subject: Subject, minMatch: Float = 0.25) async -> String? {
         guard !candidateIDs.isEmpty else { return nil }
+        let keys = Self.labels(for: subject)
+        let avoid = Self.avoidLabels(for: subject)
         var best: (id: String, score: Double)?
         for asset in fetchAssets(candidateIDs) {
             guard let cg = await thumbnail(for: asset)?.cgImage else { continue }
             let labels = classify(cg)
-            let mountainScore = labelScore(labels, Self.mountainLabels)
-            guard mountainScore >= 0.25 else { continue }   // must convincingly be a mountain
+            let match = labelScore(labels, keys)
+            guard match >= minMatch else { continue }            // must convincingly show the subject
+            // Penalize photos dominated by the wrong scenery (e.g. a mountain panorama
+            // when we want the statue/monument that happens to sit on a mountain).
+            let off = labelScore(labels, avoid)
             var aesthetics = 0.0
             if let obs = try? await CalculateImageAestheticsScoresRequest().perform(on: cg) {
                 if obs.isUtility { continue }
                 aesthetics = Double(obs.overallScore)
             }
-            let total = aesthetics + Double(mountainScore)
+            let total = aesthetics + Double(match) - 1.3 * Double(off)
             if best == nil || total > best!.score { best = (asset.localIdentifier, total) }
         }
         return best?.id
@@ -136,7 +145,24 @@ actor PhotoCurator {
 
     private static let peopleLabels: Set<String> = ["people", "person", "portrait", "selfie", "crowd", "baby", "wedding", "group"]
     private static let petLabels: Set<String> = ["dog", "cat", "pet", "puppy", "kitten"]
-    private static let mountainLabels: Set<String> = ["mountain", "peak", "summit", "alp", "glacier", "cliff", "ridge", "hill", "valley", "snow", "mountaineering"]
+    private static func labels(for subject: Subject) -> Set<String> {
+        switch subject {
+        case .mountain: return ["mountain", "peak", "summit", "alp", "glacier", "cliff", "ridge", "hill", "valley", "snow", "mountaineering"]
+        case .landmark: return ["architecture", "monument", "building", "temple", "church", "cathedral", "castle", "palace", "ruins", "statue", "tower", "structure", "landmark", "pyramid", "historic", "arch", "skyscraper", "bridge", "fountain"]
+        case .nature:   return ["nature", "landscape", "mountain", "valley", "canyon", "waterfall", "forest", "desert", "cliff", "rock", "lake", "river", "outdoor"]
+        case .coastal:  return ["beach", "ocean", "sea", "coast", "water", "island", "sunset", "harbor", "bay", "cliff"]
+        }
+    }
+
+    /// Labels that should count *against* a photo for a given subject (wrong scenery).
+    private static func avoidLabels(for subject: Subject) -> Set<String> {
+        switch subject {
+        case .landmark: return ["mountain", "valley", "landscape", "snow", "beach", "ocean", "sea", "hill", "field", "forest", "sky"]
+        case .mountain: return ["building", "architecture", "indoor", "room", "interior", "office"]
+        case .nature:   return ["building", "architecture", "indoor", "room", "interior", "street"]
+        case .coastal:  return ["mountain", "indoor", "building", "room", "interior"]
+        }
+    }
 
     private static func labels(for category: TravelCategory) -> Set<String> {
         switch category {

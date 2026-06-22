@@ -298,18 +298,32 @@ final class AppViewModel {
                 }
                 .prefix(40)
                 .map(\.id)
-            highestPeakPhotoID = await photoCurator.mountainPhoto(candidateIDs: Array(nearbyIDs))
+            highestPeakPhotoID = await photoCurator.bestPhoto(candidateIDs: Array(nearbyIDs), subject: .mountain)
         }
 
-        // Vision-curated best shots: candidates = away-trip photos (cap for performance),
-        // ranked on-device by aesthetics + personality match, minus people/pet/screenshots.
-        let candidateIDs = Array(
-            yearStats.trips
-                .filter { $0.countryCode != homeCountryCode }
-                .sorted { $0.photoCount > $1.photoCount }
-                .flatMap { $0.photoIDs }
-                .prefix(80)
-        )
+        // For each seen wonder, find a photo that actually depicts it (not a nearby selfie).
+        var wonderPhotos: [String: String] = [:]
+        for wonderStat in yearStats.wonders where wonderStat.seen {
+            let subject: PhotoCurator.Subject
+            switch TravelPersonalityEngine.wonderKind(forID: wonderStat.wonder.id) {
+            case .mountain: subject = .mountain
+            case .natural:  subject = .nature
+            case .coastal:  subject = .coastal
+            case .cultural: subject = .landmark
+            }
+            let candidates = Array(wonderStat.photoIDs.prefix(12))
+            if let id = await photoCurator.bestPhoto(candidateIDs: candidates, subject: subject) {
+                wonderPhotos[wonderStat.wonder.id] = id
+            }
+        }
+
+        // Vision-curated best shots from the top destination (the country shown on the
+        // "Top destination" slide), so the header and photos always match. Ranked on-device
+        // by aesthetics + personality match, minus people/pet/screenshots.
+        let topDestination = yearStats.countries
+            .filter { $0.id != homeCountryCode }
+            .max { $0.photoCount < $1.photoCount }
+        let candidateIDs = Array((topDestination?.photoIDs ?? []).prefix(80))
         let highlightPhotoIDs = await photoCurator.bestPhotos(
             candidateIDs: candidateIDs,
             category: profile.dominantCategory
@@ -320,7 +334,8 @@ final class AppViewModel {
                                homeCountryCode: homeCountryCode, newCountries: newCountries,
                                highestAltitude: highestAltitude, highestAltitudePlace: highestAltitudePlace,
                                highestPeakPhotoID: highestPeakPhotoID,
-                               highlightPhotoIDs: highlightPhotoIDs)
+                               highlightPhotoIDs: highlightPhotoIDs,
+                               wonderPhotos: wonderPhotos)
     }
 
     /// Approximate total distance: round trips from home if set, else hop-to-hop between trips.
