@@ -1,35 +1,38 @@
 import Foundation
 
-/// Groups photos into trips: chronological streaks within a single country.
-/// A new trip starts when the country changes or there's a long gap (you went
-/// home and came back).
+/// Groups photos into trips. A trip is a stay in one country; consecutive photos
+/// in that country within `maxGapDays` belong to the same trip — even if you
+/// briefly crossed into a neighbouring country, because grouping happens per
+/// country first. Home-country photos are excluded (home life isn't a trip).
 struct TripDetector: Sendable {
 
-    /// Photos more than `maxGapDays` apart (even in the same country) are treated
-    /// as separate trips. A short gap (a day or two without photos) keeps the same
-    /// trip; about a week or more apart starts a new one.
-    func detect(from photos: [GeoPhoto], maxGapDays: Int = 7) -> [Trip] {
-        let sorted = photos
-            .filter { $0.isGeocoded && $0.countryCode != nil }
-            .sorted { $0.date < $1.date }
-        guard !sorted.isEmpty else { return [] }
+    /// - Parameters:
+    ///   - maxGapDays: a gap of about a week in the same country starts a new trip.
+    ///   - homeCountryCode: excluded entirely, so everyday home photos don't form trips.
+    func detect(from photos: [GeoPhoto], maxGapDays: Int = 7, homeCountryCode: String? = nil) -> [Trip] {
+        let relevant = photos.filter {
+            $0.isGeocoded && $0.countryCode != nil && $0.countryCode != homeCountryCode
+        }
+        guard !relevant.isEmpty else { return [] }
 
         let gap = Double(maxGapDays) * 86_400
         var trips: [Trip] = []
-        var current: [GeoPhoto] = []
 
-        for photo in sorted {
-            if let last = current.last {
-                let sameCountry = last.countryCode == photo.countryCode
-                let withinGap = photo.date.timeIntervalSince(last.date) <= gap
-                if !sameCountry || !withinGap {
+        // Group per country first, then split each country's photos by time gap.
+        // This keeps a multi-country journey from fragmenting one country's stay
+        // into several trips just because another country's photos interleave.
+        for (_, countryPhotos) in Dictionary(grouping: relevant, by: { $0.countryCode! }) {
+            let sorted = countryPhotos.sorted { $0.date < $1.date }
+            var current: [GeoPhoto] = []
+            for photo in sorted {
+                if let last = current.last, photo.date.timeIntervalSince(last.date) > gap {
                     trips.append(makeTrip(current))
                     current = []
                 }
+                current.append(photo)
             }
-            current.append(photo)
+            if !current.isEmpty { trips.append(makeTrip(current)) }
         }
-        if !current.isEmpty { trips.append(makeTrip(current)) }
 
         return trips.sorted { $0.startDate > $1.startDate }
     }

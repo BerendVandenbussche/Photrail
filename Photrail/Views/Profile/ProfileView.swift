@@ -9,6 +9,7 @@ struct ProfileView: View {
     @State private var showReindexConfirm = false
     @State private var yearRecap: RecapModel?
     @State private var pendingYear: Int?
+    @State private var selectedCategory: TravelCategory?
 
     private var stats: TravelStats { appVM.stats }
     private var profile: TravelPersonalityProfile? { appVM.personalityProfile }
@@ -36,7 +37,9 @@ struct ProfileView: View {
                     snapshot
 
                     if let profile, profile.isMeaningful {
-                        PersonalitySection(profile: profile)
+                        PersonalitySection(profile: profile) { category in
+                            selectedCategory = category
+                        }
                     } else {
                         personalityPlaceholder
                     }
@@ -54,6 +57,9 @@ struct ProfileView: View {
             .sheet(isPresented: $showEmojiPicker) { EmojiPickerView() }
             .sheet(isPresented: $showHomePicker) { HomeLocationView() }
             .sheet(item: $yearRecap) { recap in RecapView(recap: recap) }
+            .sheet(item: $selectedCategory) { category in
+                if let profile { PersonalityDetailView(category: category, profile: profile) }
+            }
             .confirmationDialog("Reindex photo library?",
                                 isPresented: $showReindexConfirm, titleVisibility: .visible) {
                 Button("Reindex", role: .destructive) { appVM.reindex() }

@@ -3,7 +3,8 @@ import Foundation
 /// Pure transformation: [GeoPhoto] → TravelStats.
 /// No side effects, fully testable, runs synchronously on whatever actor calls it.
 struct StatisticsEngine: Sendable {
-    func compute(from photos: [GeoPhoto]) -> TravelStats {
+    /// - Parameter homeCountryCode: excluded from trip detection so home life isn't counted as trips.
+    func compute(from photos: [GeoPhoto], homeCountryCode: String? = nil) -> TravelStats {
         let geocoded = photos.filter { $0.isGeocoded && $0.country != nil }
 
         // --- Countries ---
@@ -15,8 +16,8 @@ struct StatisticsEngine: Sendable {
             }
             countryMap[code]?.add(photo)
         }
-        // --- Trips (streaks of photos within one country) ---
-        let trips = TripDetector().detect(from: geocoded)
+        // --- Trips (streaks of photos within one country, excluding home) ---
+        let trips = TripDetector().detect(from: geocoded, homeCountryCode: homeCountryCode)
         var tripCounts: [String: Int] = [:]
         for trip in trips { tripCounts[trip.countryCode, default: 0] += 1 }
 

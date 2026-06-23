@@ -3,6 +3,7 @@ import SwiftUI
 /// "Your Travel Personality" — a list of category bars with the dominant one highlighted.
 struct PersonalitySection: View {
     let profile: TravelPersonalityProfile
+    var onSelect: (TravelCategory) -> Void = { _ in }
 
     private var maxPercentage: Double {
         max(profile.slices.first?.percentage ?? 1, 1)
@@ -12,7 +13,7 @@ struct PersonalitySection: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 SectionHeader(title: "Your Travel Personality", systemImage: "person.crop.circle.badge.checkmark")
-                Text("Based on your photo locations")
+                Text("Tap a style to see what it's based on")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -20,9 +21,12 @@ struct PersonalitySection: View {
 
             VStack(spacing: 10) {
                 ForEach(profile.visibleSlices) { slice in
-                    PersonalityBar(slice: slice,
-                                   fraction: slice.percentage / maxPercentage,
-                                   isDominant: slice.category == profile.dominantCategory)
+                    Button { onSelect(slice.category) } label: {
+                        PersonalityBar(slice: slice,
+                                       fraction: slice.percentage / maxPercentage,
+                                       isDominant: slice.category == profile.dominantCategory)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 20)

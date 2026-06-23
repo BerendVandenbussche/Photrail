@@ -240,7 +240,7 @@ final class AppViewModel {
         }
         guard !yearPhotos.isEmpty else { return .empty(year: year) }
 
-        let yearStats = statsEngine.compute(from: yearPhotos)
+        let yearStats = statsEngine.compute(from: yearPhotos, homeCountryCode: homeCountryCode)
 
         var wonderByPhoto: [String: String] = [:]
         for wonder in yearStats.wonders {
@@ -400,7 +400,7 @@ final class AppViewModel {
         // Load stored stats immediately so the dashboard isn't empty
         Task {
             if let stored = try? await store.allPhotos(), !stored.isEmpty {
-                stats = statsEngine.compute(from: stored)
+                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode)
                 publishWidgetStats()
             }
         }
@@ -455,22 +455,22 @@ final class AppViewModel {
             if storedVersion != Self.countryDatasetVersion {
                 let resolved = ((try? await store.allPhotos()) ?? []).filter { $0.isGeocoded }
                 try await resolveCountries(resolved, generation: generation,
-                                           statsEngine: statsEngine, notify: false)
+                                           statsEngine: statsEngine, homeCode: homeCountryCode, notify: false)
                 UserDefaults.standard.set(Self.countryDatasetVersion, forKey: countryDatasetVersionKey)
             }
 
             // Seed the set of countries already known so new-country detection starts clean.
             let stored = (try? await store.allPhotos()) ?? []
-            stats = statsEngine.compute(from: stored)
+            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode)
             scanSeenCountryCodes = Set(stored.compactMap { $0.isGeocoded ? $0.countryCode : nil })
 
             // Phase 2b: resolve countries OFFLINE for new photos (instant, no network).
             let pending = (try? await store.photosNeedingCountry()) ?? []
             try await resolveCountries(pending, generation: generation,
-                                       statsEngine: statsEngine, notify: true)
+                                       statsEngine: statsEngine, homeCode: homeCountryCode, notify: true)
 
             // Phase 3: enrich with city names via CLGeocoder (rate-limited, optional).
-            try await resolveCities(generation: generation, statsEngine: statsEngine)
+            try await resolveCities(generation: generation, statsEngine: statsEngine, homeCode: homeCountryCode)
 
             await completeScan()
 
@@ -488,6 +488,7 @@ final class AppViewModel {
     private func resolveCountries(_ pending: [GeoPhoto],
                                   generation: Int,
                                   statsEngine: StatisticsEngine,
+                                  homeCode: String?,
                                   notify: Bool) async throws {
         let store = self.store
         let offline = self.offlineGeocoder
@@ -522,7 +523,7 @@ final class AppViewModel {
             try await store.applyCountries(rows)
 
             processed += chunk.count
-            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode)
             let progress = Double(processed) / Double(total)
             await MainActor.run {
                 guard self.scanGeneration == generation else { return }
@@ -537,7 +538,7 @@ final class AppViewModel {
     }
 
     /// Phase 3 — optional city enrichment via CLGeocoder (rate-limited).
-    private func resolveCities(generation: Int, statsEngine: StatisticsEngine) async throws {
+    private func resolveCities(generation: Int, statsEngine: StatisticsEngine, homeCode: String?) async throws {
         let store = self.store
         let pending = (try? await store.photosNeedingCity()) ?? []
         guard !pending.isEmpty else { return }
@@ -549,7 +550,7 @@ final class AppViewModel {
             try? await store.applyCity(id: id, city: result.city, hasLocality: result.hasLocality)
             var refreshed: TravelStats?
             if done % 25 == 0 || done == total {
-                refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
+                refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode)
             }
             let snapshot = refreshed
             await MainActor.run {
@@ -560,7 +561,7 @@ final class AppViewModel {
         }
 
         try Task.checkCancellation()
-        stats = statsEngine.compute(from: (try? await store.allPhotos()) ?? [])
+        stats = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode)
     }
 
     /// Fire a "new country" notification when a photo taken *today* is the first
@@ -603,7 +604,7 @@ final class AppViewModel {
         let geocodedCount = photos.lazy.filter { $0.isGeocoded }.count
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
-        let signature = "v5-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
+        let signature = "v6-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {

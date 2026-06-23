@@ -15,6 +15,13 @@ struct TravelPersonalityProfile: Codable, Sendable, Equatable {
     var photoCount: Int
     /// 0...1 — grows with sample size; low for sparse libraries.
     var confidence: Double
+    /// How many photos contributed to each category (keyed by raw value).
+    var categoryPhotoCounts: [String: Int] = [:]
+
+    /// Number of photos that fed a given category's score.
+    func photoCount(for category: TravelCategory) -> Int {
+        categoryPhotoCounts[category.rawValue] ?? 0
+    }
 
     var dominantCategory: TravelCategory? {
         slices.first(where: { $0.percentage > 0 })?.category

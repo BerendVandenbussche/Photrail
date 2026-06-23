@@ -42,7 +42,16 @@ struct TravelPersonalityAggregator: Sendable {
             .map { TravelPersonalityProfile.Slice(category: $0, percentage: percentages[$0]) }
             .sorted { $0.percentage > $1.percentage }
 
+        // How many photos contributed to each category (a non-zero score).
+        var counts: [String: Int] = [:]
+        for photo in scored {
+            for category in TravelCategory.allCases where photo.scores[category] > 0 {
+                counts[category.rawValue, default: 0] += 1
+            }
+        }
+
         let confidence = min(1, Double(photoCount) / 200)
-        return TravelPersonalityProfile(slices: slices, photoCount: photoCount, confidence: confidence)
+        return TravelPersonalityProfile(slices: slices, photoCount: photoCount,
+                                        confidence: confidence, categoryPhotoCounts: counts)
     }
 }
