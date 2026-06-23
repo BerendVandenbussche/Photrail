@@ -168,6 +168,12 @@ final class AppViewModel {
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
         }
+        // Skip the onboarding flash on relaunch: if the user already onboarded,
+        // start straight on the dashboard. The async permission check still runs
+        // and will redirect to .permissionDenied if access was revoked.
+        if UserDefaults.standard.bool(forKey: "hasSeenOnboarding") {
+            self.navState = .dashboard
+        }
     }
 
     /// In-memory instance for SwiftUI previews.
