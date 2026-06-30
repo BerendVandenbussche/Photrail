@@ -202,27 +202,47 @@ struct RecapShareCardView: View {
                 .minimumScaleFactor(0.5)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 8) {
-                Text("Travel Score")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(secondaryText)
                 Text("\(recap.score)")
                     .font(.system(size: 16, weight: .heavy, design: .rounded).monospacedDigit())
                     .foregroundStyle(.white)
                     .padding(.horizontal, 10).padding(.vertical, 3)
                     .background(Capsule().fill(accent))
+                Text(recap.scoreTier)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(primaryText)
+                Text("· Travel Score")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(secondaryText)
             }
         }
     }
 
+    /// Year-specific, share-worthy metrics. Interesting "this year" stats come first;
+    /// always-available totals backfill so the grid is full. Capped at 6 (3×2).
+    private var statItems: [(String, String, String)] {
+        var items: [(String, String, String)] = []
+        items.append(("🌍", "\(recap.countries)", recap.countries == 1 ? "Country" : "Countries"))
+        if !recap.newCountries.isEmpty {
+            items.append(("🆕", "\(recap.newCountries.count)",
+                          recap.newCountries.count == 1 ? "New country" : "New countries"))
+        }
+        items.append(("✈️", "\(recap.trips)", recap.trips == 1 ? "Trip" : "Trips"))
+        if recap.wonders > 0 {
+            items.append(("🏛", "\(recap.wonders)", recap.wonders == 1 ? "Wonder" : "Wonders"))
+        }
+        if let peak = recap.highestAltitudeText {
+            items.append(("🏔", peak, "Highest peak"))
+        }
+        if recap.distanceKm >= 100 {
+            items.append(("📏", recap.distanceText, "Traveled"))
+        }
+        items.append(("📸", "\(recap.photos)", "Photos"))
+        items.append(("🌎", "\(recap.continents)", recap.continents == 1 ? "Continent" : "Continents"))
+        return Array(items.prefix(6))
+    }
+
     private var statsGrid: some View {
-        let items: [(String, String, String)] = [
-            ("🌍", "\(recap.countries)", "Countries"),
-            ("🏙", "\(recap.cities)", "Cities"),
-            ("✈️", "\(recap.trips)", "Trips"),
-            ("📸", "\(recap.photos)", "Photos"),
-            ("🏛", "\(recap.wonders)", "Wonders"),
-            ("🌎", "\(recap.continents)", "Continents")
-        ]
+        let items = statItems
         let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
         return LazyVGrid(columns: columns, spacing: 10) {
             ForEach(items, id: \.2) { emoji, value, label in

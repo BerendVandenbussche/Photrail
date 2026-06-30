@@ -18,4 +18,16 @@ enum TravelScore {
             min(distanceKm / 1000, 40)        // distance contributes up to ~40 pts, then plateaus
         return max(0, min(100, Int(raw.rounded())))
     }
+
+    /// A human label for a score, so the number means something at a glance.
+    /// The score blends countries, trips, wonders, continents and distance for the year.
+    static func tier(for score: Int) -> String {
+        switch score {
+        case 85...: return "Globetrotter"
+        case 65..<85: return "Adventurer"
+        case 45..<65: return "Explorer"
+        case 25..<45: return "Wanderer"
+        default: return "Getaway"
+        }
+    }
 }

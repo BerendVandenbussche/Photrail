@@ -44,6 +44,11 @@ struct ShareCardView: View {
                 Image(uiImage: photo)
                     .resizable()
                     .scaledToFill()
+                    // Pin to the canvas and clip: in fill mode the image's layout size
+                    // overflows for landscape photos, which would widen the card and
+                    // push the text content out of frame.
+                    .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
+                    .clipped()
                     .blur(radius: 18)
                     .overlay(LinearGradient(colors: [.black.opacity(0.35), .black.opacity(0.65)],
                                             startPoint: .top, endPoint: .bottom))

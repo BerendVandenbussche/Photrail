@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/berendvandenbussche/Documents/Projects/photrail-website", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

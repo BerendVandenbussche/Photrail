@@ -40,6 +40,8 @@ final class AppViewModel {
     var navState: NavState = .onboarding
     var scanProgress: ScanProgress = .idle
     var stats: TravelStats = .empty
+    /// "On this day" memories for today — photos from this calendar day in past years.
+    var memories: [Memory] = []
 
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .home
@@ -407,6 +409,8 @@ final class AppViewModel {
         Task {
             if let stored = try? await store.allPhotos(), !stored.isEmpty {
                 stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode)
+                memories = MemoriesEngine().memories(from: stored, homeCoordinate: homeCoordinate,
+                                                     homeCountryCode: homeCountryCode)
                 publishWidgetStats()
             }
         }
@@ -567,7 +571,10 @@ final class AppViewModel {
         }
 
         try Task.checkCancellation()
-        stats = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode)
+        let finalPhotos = (try? await store.allPhotos()) ?? []
+        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode)
+        memories = MemoriesEngine().memories(from: finalPhotos, homeCoordinate: homeCoordinate,
+                                             homeCountryCode: homeCode)
     }
 
     /// Fire a "new country" notification when a photo taken *today* is the first

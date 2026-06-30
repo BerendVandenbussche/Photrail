@@ -33,6 +33,11 @@ struct DashboardView: View {
                     // Stats grid
                     if stats.totalGeotaggedPhotos > 0 {
 
+                        // On this day — memories from past years on today's date
+                        if !appVM.memories.isEmpty {
+                            OnThisDaySection(memories: appVM.memories)
+                        }
+
                         // Year in Travel recap entry
                         Button {
                             buildingRecap = true

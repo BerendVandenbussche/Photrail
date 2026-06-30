@@ -78,6 +78,9 @@ struct RecapModel: Sendable, Identifiable {
     var isEmpty: Bool { photos == 0 }
     var distanceText: String { "\(Int(distanceKm).formatted()) km" }
 
+    /// A human label for the travel score, e.g. "Globetrotter".
+    var scoreTier: String { TravelScore.tier(for: score) }
+
     /// A relatable, quotable comparison for the distance traveled.
     var distanceComparison: String? {
         let earth = 40_075.0, moon = 384_400.0
