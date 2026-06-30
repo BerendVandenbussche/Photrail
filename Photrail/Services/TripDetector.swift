@@ -41,10 +41,23 @@ struct TripDetector: Sendable {
         let first = photos.first!
         let code = first.countryCode ?? ""
 
-        // Cities by frequency
-        var cityCounts: [String: Int] = [:]
-        for photo in photos { if let c = photo.city { cityCounts[c, default: 0] += 1 } }
-        let cities = cityCounts.sorted { $0.value > $1.value }.map(\.key)
+        // Group photos by city for both frequency ordering and located stops.
+        var byCity: [String: [GeoPhoto]] = [:]
+        for photo in photos { if let c = photo.city { byCity[c, default: []].append(photo) } }
+
+        // Cities by frequency (most-photographed first)
+        let cities = byCity.sorted { $0.value.count > $1.value.count }.map(\.key)
+
+        // Located stops, in the order they were first visited — drives the trip map line.
+        let stops = byCity.map { name, cityPhotos -> Trip.TripStop in
+            let count = Double(cityPhotos.count)
+            let clat = cityPhotos.map(\.coordinate.latitude).reduce(0, +) / count
+            let clon = cityPhotos.map(\.coordinate.longitude).reduce(0, +) / count
+            let firstVisit = cityPhotos.map(\.date).min() ?? first.date
+            return Trip.TripStop(id: name, latitude: clat, longitude: clon,
+                                 firstVisit: firstVisit, photoCount: cityPhotos.count)
+        }
+        .sorted { $0.firstVisit < $1.firstVisit }
 
         // Centroid
         let lat = photos.map(\.coordinate.latitude).reduce(0, +) / Double(photos.count)
@@ -52,6 +65,17 @@ struct TripDetector: Sendable {
 
         let start = photos.map(\.date).min() ?? first.date
         let end = photos.map(\.date).max() ?? first.date
+
+        // Highest altitude reached on the trip.
+        let highestAltitude = photos.compactMap(\.altitude).max()
+
+        // Wonders / landmarks photographed on the trip.
+        let wonders = WonderDetector().detect(photos: photos)
+            .filter { $0.photoCount > 0 }
+            .map { Trip.WonderHit(id: $0.wonder.id, name: $0.wonder.name,
+                                  emoji: $0.wonder.emoji,
+                                  isOfficial: $0.wonder.category == .sevenWonders,
+                                  photoID: $0.representativePhotoID) }
 
         return Trip(
             id: "\(code)-\(Int(start.timeIntervalSince1970))",
@@ -62,8 +86,11 @@ struct TripDetector: Sendable {
             endDate: end,
             photoCount: photos.count,
             cities: cities,
+            stops: stops,
             photoIDs: photos.map(\.id),
-            coordinate: .init(latitude: lat, longitude: lon)
+            coordinate: .init(latitude: lat, longitude: lon),
+            highestAltitude: highestAltitude,
+            wonders: wonders
         )
     }
 }

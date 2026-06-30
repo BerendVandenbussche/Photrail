@@ -4,7 +4,17 @@ struct CountryDetailView: View {
     let country: CountryStat
     let trips: [Trip]
     @State private var vm: CountryDetailViewModel
+    @State private var showAllTrips = false
+    @State private var showAllCities = false
+    @State private var selectedPhoto: IdentifiedPhoto?
     @Environment(\.dismiss) private var dismiss
+
+    /// Items shown in trips/cities before "Show more" is tapped.
+    private let tripPreviewCount = 5
+    private let cityPreviewCount = 5
+
+    /// Identifiable wrapper so a tapped photo can drive a fullScreenCover.
+    private struct IdentifiedPhoto: Identifiable { let id: String }
 
     init(country: CountryStat, trips: [Trip] = []) {
         self.country = country
@@ -59,6 +69,9 @@ struct CountryDetailView: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .fullScreenCover(item: $selectedPhoto) { photo in
+                FullScreenPhotoView(assetID: photo.id)
+            }
         }
         .onAppear {
             vm.loadThumbnails(for: Array(vm.country.photoIDs.prefix(60)))
@@ -90,33 +103,63 @@ struct CountryDetailView: View {
         }
     }
 
+    private var displayedTrips: [Trip] {
+        showAllTrips ? trips : Array(trips.prefix(tripPreviewCount))
+    }
+
     private var tripsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader(title: trips.count == 1 ? "1 Trip" : "\(trips.count) Trips")
                 .padding(.horizontal, 20)
 
-            ForEach(trips) { trip in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(trip.dateRangeText)
-                            .font(.subheadline.weight(.semibold))
+            ForEach(displayedTrips) { trip in
+                NavigationLink {
+                    TripDetailView(trip: trip)
+                } label: {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(trip.dateRangeText)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                            if !trip.cities.isEmpty {
+                                Text(trip.cities.joined(separator: " · "))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
                         Spacer()
                         Text("\(trip.photoCount) photos · \(trip.durationText)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.caption).foregroundStyle(.tertiary)
                     }
-                    if !trip.cities.isEmpty {
-                        Text(trip.cities.joined(separator: " · "))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    .padding(.horizontal, 20)
+                    .contentShape(Rectangle())
                 }
-                .padding(.horizontal, 20)
-                if trip.id != trips.last?.id {
+                .buttonStyle(.plain)
+                if trip.id != displayedTrips.last?.id {
                     Divider().padding(.leading, 20)
                 }
             }
+
+            if trips.count > tripPreviewCount {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) { showAllTrips.toggle() }
+                } label: {
+                    Text(showAllTrips ? "Show less" : "Show all \(trips.count) trips")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.tint)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
+            }
         }
+    }
+
+    private var displayedCities: [CityStat] {
+        showAllCities ? vm.country.cities : Array(vm.country.cities.prefix(cityPreviewCount))
     }
 
     private var citiesSection: some View {
@@ -124,12 +167,24 @@ struct CountryDetailView: View {
             SectionHeader(title: "Cities")
                 .padding(.horizontal, 20)
 
-            ForEach(vm.country.cities) { city in
+            ForEach(displayedCities) { city in
                 CityRow(city: city)
                     .padding(.horizontal, 20)
-                if city.id != vm.country.cities.last?.id {
+                if city.id != displayedCities.last?.id {
                     Divider().padding(.leading, 20)
                 }
+            }
+
+            if vm.country.cities.count > cityPreviewCount {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) { showAllCities.toggle() }
+                } label: {
+                    Text(showAllCities ? "Show less" : "Show all \(vm.country.cities.count) cities")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.tint)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
             }
         }
     }
@@ -146,8 +201,11 @@ struct CountryDetailView: View {
             } else {
                 LazyVGrid(columns: gridColumns, spacing: 2) {
                     ForEach(vm.country.photoIDs.prefix(60), id: \.self) { id in
-                        PhotoThumbnail(assetID: id, size: (UIScreen.main.bounds.width - 4) / 3,
-                                       cornerRadius: 0)
+                        Button { selectedPhoto = IdentifiedPhoto(id: id) } label: {
+                            PhotoThumbnail(assetID: id, size: (UIScreen.main.bounds.width - 4) / 3,
+                                           cornerRadius: 0)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }

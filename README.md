@@ -9,13 +9,16 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 - **World map** — Interactive map with a pin for every country you've visited
 - **Travel statistics** — Countries visited, cities explored, percentage of the world covered, most photographed country
 - **Continents overview** — How many of the 6 inhabited continents you've visited, with a per‑continent country list (Antarctica appears as a bonus when visited)
-- **Trips** — Photos are grouped into trips (streaks of photos in one country); a gap of about a week starts a new trip
+- **Trips** — Photos are grouped into trips (streaks of photos in one country); a gap of about a week starts a new trip. Home‑country photos are excluded, and grouping happens per country so a brief border crossing doesn't fragment a stay
+- **Trip detail** — Tap any trip for a dedicated page: a Vision‑curated hero cover photo, a MapKit map with a numbered pin per city joined by a line in visit order, a key‑stats row (distance traveled, duration, cities, photos, highest point), an itinerary, wonders & landmarks seen on that trip, and the trip's photos — with a live share‑card preview before sharing
+- **On This Day** — Resurfaces photos taken on today's calendar day in past years ("5 years ago · 🇵🇹 Lisbon"), away from home; tap to see that day's photos. Excludes everyday photos within 50 km of home
+- **Full‑screen photo viewer** — Tap any photo in a country or trip to open it full‑screen with pinch / double‑tap zoom
 - **Most visited countries** — Countries ranked by number of distinct trips
 - **Furthest from home** — Set a home city/country in Settings and see which trip took you furthest away
 - **World Wonders & Landmarks** — Detects, by location, which of the New 7 Wonders and other famous landmarks you've photographed; tap any to see your photos of it
 - **Travel Personality** — An on‑device profile of your travel style (Urban / Coastal / Mountain / Nature / Culture / Transit / Adventure) as percentages, with a dominant type. Daily‑life photos within 50 km of home are excluded so the profile reflects travel
 - **Me tab** — A profile page with an emoji avatar, your lifetime snapshot, travel personality, home location, reindex, and the Recaps archive
-- **Year in Travel recap** — A paged, Spotify‑Wrapped‑style story (distance with relatable comparisons, most‑photographed country, chronological route map, first‑ever‑visited countries, personality, wonders & landmarks seen, biggest trip, highest peak, superlatives, Vision‑curated "best shots", year summary, hero finale). **Every slide is individually shareable** as its own branded card; the finale also exports light / dark / transparent themes
+- **Year in Travel recap** — A paged, Spotify‑Wrapped‑style story (distance with relatable comparisons, most‑photographed country, chronological route map, first‑ever‑visited countries, personality, wonders & landmarks seen, biggest trip, highest peak, superlatives, Vision‑curated "best shots", year summary, hero finale). **Every slide is individually shareable** as its own branded card; the finale also exports light / dark / transparent themes. The finale shows a year‑specific stat set (new countries, highest peak, distance) and a labelled **Travel Score** tier (Getaway → Wanderer → Explorer → Adventurer → Globetrotter)
 - **Vision‑curated best shots** — On‑device image aesthetics + scene classification pick the year's most beautiful photos, matched to your personality and time‑spaced, skipping screenshots and people/pet shots
 - **New‑country notifications** — When a photo taken *today* is your first ever in a country, you get a "Welcome to …" notification (works in the background)
 - **Monthly activity timeline** — Bar chart of your photo activity over time
@@ -26,7 +29,7 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 ## Privacy
 
 - No backend, no accounts, no analytics
-- **Country, continent, coastline, city‑remoteness, wonder, trip and personality detection all run 100% on‑device** using bundled geographic datasets — no network, no third‑party service
+- **Country, continent, coastline, city‑remoteness, wonder, trip, "On This Day" and personality detection all run 100% on‑device** using bundled geographic datasets — no network, no third‑party service
 - City **names** are the only thing resolved online (via Apple's `CLGeocoder`); only coordinates are sent, and only for the optional city‑enrichment pass
 - Image data is only loaded when displaying thumbnails; all travel data lives in a local on‑device SwiftData database
 - Photo library access can be revoked at any time in Settings
@@ -51,7 +54,9 @@ Photrail/
 │   ├── CountryStat.swift               Aggregated country stats (+ trip count, coordinate)
 │   ├── ContinentStat.swift             Continent enum + per-continent aggregation
 │   ├── Wonder.swift                    Wonder/landmark + per-site match radius & category
-│   ├── Trip.swift                      A streak of photos in one country
+│   ├── Trip.swift                      A streak of photos in one country (+ stops, route
+│   │                                   distance, highest altitude, wonders/landmarks seen)
+│   ├── Memory.swift                    An "On This Day" memory (past-year photos for today)
 │   └── TravelStats.swift              Full stats snapshot + widget snapshot + mocks
 ├── Services/
 │   ├── PhotoScanService.swift          Extracts GPS metadata from PHAsset library
@@ -64,21 +69,26 @@ Photrail/
 │   ├── ContinentMapper.swift           ISO country code → continent
 │   ├── WonderCatalog.swift             Static catalog of wonders & landmarks
 │   ├── WonderDetector.swift            Location-based wonder matching (image-recog ready)
-│   ├── TripDetector.swift              Groups photos into trips by country + time gap
+│   ├── TripDetector.swift              Groups photos into trips by country + time gap;
+│   │                                   builds per-city stops, route, altitude, wonders
 │   ├── StatisticsEngine.swift          Pure [GeoPhoto] → TravelStats transformation
+│   ├── MemoriesEngine.swift            Pure [GeoPhoto] → "On This Day" memories
 │   ├── NotificationService.swift       Local "new country" notifications
 │   ├── BackgroundTaskService.swift     BGProcessingTask scheduling and execution
 │   ├── TravelPersonality/              Pure scoring engine (category → score → profile)
 │   ├── Recap/                          Year recap model, travel title + travel score
-│   └── Sharing/                        Share cards (templates, recap, collage), renderer, presenter
+│   └── Sharing/                        Share cards (templates, recap, collage, trip), renderer, presenter
 ├── ViewModels/
 │   ├── AppViewModel.swift              @Observable root state + scan pipeline
 │   └── CountryDetailViewModel.swift    PHCachingImageManager for photo grids
 ├── Views/
 │   ├── Onboarding/                     Onboarding + permission denied screen
-│   ├── Dashboard/                      Map, current-year recap entry, stats, countries,
-│   │                                   most-visited, continents, wonders, timeline
-│   ├── CountryDetail/                  Mini map + trips + city list + lazy photo grid
+│   ├── Dashboard/                      Map, On This Day, current-year recap entry, stats,
+│   │                                   countries, most-visited, continents, wonders, timeline
+│   ├── CountryDetail/                  Mini map + collapsible trips/cities + lazy photo grid
+│   │                                   + full-screen zoomable photo viewer
+│   ├── TripDetail/                     Hero cover + trip map + stats + itinerary + wonders
+│   │                                   + photos + share-card preview
 │   ├── ContinentDetail/               Per-continent country list
 │   ├── Wonders/                        Wonders & landmarks list + mini map + photo grid
 │   ├── Recap/                          Multi-slide Year in Travel story + hero finale
@@ -86,7 +96,7 @@ Photrail/
 │   └── ShareCard/                      Share composer (templates + backgrounds)
 ├── Components/                         StatCard, SectionHeader, PhotoThumbnail, ScanBanner,
 │                                       LogoView (brand mark), MiniMapDots, JourneyMapView,
-│                                       LocationMiniMap, FlowLayout
+│                                       TripMapView (pins + route line), LocationMiniMap, FlowLayout
 └── Shared/
     └── WidgetSharedStats.swift         App Group snapshot (member of app + widget targets)
 
@@ -171,4 +181,4 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 
 ## License
 
-MIT
+GNU General Public License v3.0 — see [LICENSE](LICENSE).
