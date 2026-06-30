@@ -8,6 +8,7 @@ struct DashboardView: View {
     @State private var showShareCard = false
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
+    @State private var showFullMap = false
 
     private var stats: TravelStats { appVM.stats }
     private var scanProgress: AppViewModel.ScanProgress { appVM.scanProgress }
@@ -26,9 +27,20 @@ struct DashboardView: View {
                     }
 
                     // Hero map
-                    WorldMapView(countries: stats.countries)
-                        .frame(height: 260)
-                        .padding(.horizontal, 20)
+                    ZStack(alignment: .topTrailing) {
+                        WorldMapView(countries: stats.countries) { selectedCountry = $0 }
+                            .frame(height: 260)
+                        Button { showFullMap = true } label: {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .padding(9)
+                                .background(.regularMaterial, in: Circle())
+                                .shadow(color: .black.opacity(0.15), radius: 3, y: 1)
+                        }
+                        .padding(10)
+                    }
+                    .padding(.horizontal, 20)
 
                     // Stats grid
                     if stats.totalGeotaggedPhotos > 0 {
@@ -175,6 +187,37 @@ struct DashboardView: View {
             .sheet(item: $yearRecap) { recap in
                 RecapView(recap: recap)
             }
+            .fullScreenCover(isPresented: $showFullMap) {
+                FullScreenMapView(countries: stats.countries, trips: stats.trips)
+            }
+        }
+    }
+}
+
+// MARK: - Full-screen map
+
+private struct FullScreenMapView: View {
+    let countries: [CountryStat]
+    let trips: [Trip]
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedCountry: CountryStat?
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            WorldMapView(countries: countries, cornerRadius: 0) { selectedCountry = $0 }
+                .ignoresSafeArea()
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.headline).foregroundStyle(.primary)
+                    .padding(11)
+                    .background(.regularMaterial, in: Circle())
+                    .shadow(color: .black.opacity(0.15), radius: 3, y: 1)
+            }
+            .padding(20)
+        }
+        .sheet(item: $selectedCountry) { country in
+            CountryDetailView(country: country,
+                              trips: trips.filter { $0.countryCode == country.id })
         }
     }
 }

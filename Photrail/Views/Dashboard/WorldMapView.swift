@@ -4,6 +4,9 @@ import MapKit
 /// Interactive map showing visited locations as clustered annotations.
 struct WorldMapView: View {
     let countries: [CountryStat]
+    var cornerRadius: CGFloat = 20
+    /// When set, tapping a pin opens that country instead of just selecting it on the map.
+    var onSelect: ((CountryStat) -> Void)? = nil
 
     @State private var position: MapCameraPosition = .automatic
     @State private var selectedCountry: CountryStat? = nil
@@ -32,6 +35,12 @@ struct WorldMapView: View {
                 Annotation(annotation.name, coordinate: annotation.coordinate) {
                     CountryPin(annotation: annotation, isSelected: selectedCountry?.id == annotation.id)
                         .onTapGesture {
+                            if let onSelect {
+                                if let country = countries.first(where: { $0.id == annotation.id }) {
+                                    onSelect(country)
+                                }
+                                return
+                            }
                             withAnimation(.spring()) {
                                 if selectedCountry?.id == annotation.id {
                                     selectedCountry = nil
@@ -53,7 +62,7 @@ struct WorldMapView: View {
             MapScaleView(scope: mapScope)
         }
         .mapScope(mapScope)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .onAppear {
             if !annotations.isEmpty {
                 position = .automatic
