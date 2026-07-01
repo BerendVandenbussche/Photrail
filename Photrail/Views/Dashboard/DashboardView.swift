@@ -3,12 +3,9 @@ import SwiftUI
 struct DashboardView: View {
     @Environment(AppViewModel.self) private var appVM
     @State private var selectedCountry: CountryStat?
-    @State private var selectedContinent: ContinentStat?
-    @State private var showWonders = false
     @State private var showShareCard = false
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
-    @State private var showFullMap = false
 
     private var stats: TravelStats { appVM.stats }
     private var scanProgress: AppViewModel.ScanProgress { appVM.scanProgress }
@@ -26,29 +23,36 @@ struct DashboardView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
-                    // Hero map
-                    ZStack(alignment: .topTrailing) {
-                        WorldMapView(countries: stats.countries) { selectedCountry = $0 }
-                            .frame(height: 260)
-                        Button { showFullMap = true } label: {
-                            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(.primary)
-                                .padding(9)
-                                .background(.regularMaterial, in: Circle())
-                                .shadow(color: .black.opacity(0.15), radius: 3, y: 1)
+                    // Mini-map peek → opens the Map tab
+                    Button { appVM.selectedTab = .map } label: {
+                        ZStack(alignment: .bottomTrailing) {
+                            WorldMapView(countries: stats.countries)
+                                .frame(height: 180)
+                                .allowsHitTesting(false)
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                Text("Open map").font(.caption.weight(.semibold))
+                            }
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(.regularMaterial, in: Capsule())
+                            .shadow(color: .black.opacity(0.15), radius: 3, y: 1)
+                            .padding(12)
                         }
-                        .padding(10)
                     }
+                    .buttonStyle(.plain)
                     .padding(.horizontal, 20)
 
-                    // Stats grid
                     if stats.totalGeotaggedPhotos > 0 {
 
                         // On this day — memories from past years on today's date
                         if !appVM.memories.isEmpty {
                             OnThisDaySection(memories: appVM.memories)
                         }
+
+                        // Compact lifetime snapshot → taps into Places
+                        statStrip
 
                         // Year in Travel recap entry
                         Button {
@@ -64,85 +68,9 @@ struct DashboardView: View {
                         .buttonStyle(.plain)
                         .padding(.horizontal, 20)
 
-                        VStack(alignment: .leading, spacing: 10) {
-                            SectionHeader(title: "Your Impact", systemImage: "chart.bar.fill")
-                                .padding(.horizontal, 20)
-                            StatsCardsSection(stats: stats)
-                                .padding(.horizontal, 20)
-                        }
+                        highlightsSection
 
-                        // Most photographed callout
-                        if let top = stats.mostPhotographedCountry {
-                            Button { selectedCountry = top } label: {
-                                MostVisitedBanner(country: top)
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal, 20)
-                        }
-
-                        // Furthest from home
-                        if let furthest = appVM.furthestTrip {
-                            Button { selectedCountry = stats.countries.first { $0.id == furthest.trip.countryCode } } label: {
-                                FurthestTripCard(furthest: furthest)
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal, 20)
-                        } else if appVM.homeCountryCode == nil {
-                            Button { appVM.selectedTab = .me } label: {
-                                SetHomeCTACard()
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal, 20)
-                        }
-
-                        // Countries horizontal scroll
-                        VStack(alignment: .leading, spacing: 10) {
-                            SectionHeader(title: "Countries", systemImage: "flag.fill")
-                                .padding(.horizontal, 20)
-                            CountriesSection(
-                                countries: stats.countries.sorted { $0.photoCount > $1.photoCount }
-                            ) { country in
-                                selectedCountry = country
-                            }
-                        }
-
-                        // Most visited (by number of trips)
-                        let mostVisited = appVM.mostVisitedCountries.filter { $0.tripCount > 1 }
-                        if !mostVisited.isEmpty {
-                            VStack(alignment: .leading, spacing: 10) {
-                                SectionHeader(title: "Most Visited", systemImage: "arrow.triangle.2.circlepath")
-                                    .padding(.horizontal, 20)
-                                ForEach(mostVisited.prefix(5)) { country in
-                                    Button { selectedCountry = country } label: {
-                                        MostVisitedRow(country: country)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .padding(.horizontal, 20)
-                                }
-                            }
-                        }
-
-                        // Continents
-                        if !stats.continents.isEmpty {
-                            ContinentsSection(continents: stats.continents) { continent in
-                                selectedContinent = continent
-                            }
-                        }
-
-                        // World wonders
-                        if !stats.wonders.isEmpty {
-                            WondersSection(wonders: stats.wonders) {
-                                showWonders = true
-                            }
-                        }
-
-                        // Timeline
-                        VStack(alignment: .leading, spacing: 10) {
-                            SectionHeader(title: "Activity", systemImage: "chart.bar")
-                                .padding(.horizontal, 20)
-                            TimelineSection(entries: stats.timelineEntries)
-                                .padding(.horizontal, 20)
-                        }
+                        recentTripsSection
 
                     } else if !scanProgress.isActive {
                         // Empty state — scan finished but no geotagged photos found
@@ -175,54 +103,134 @@ struct DashboardView: View {
                 CountryDetailView(country: country,
                                   trips: stats.trips.filter { $0.countryCode == country.id })
             }
-            .sheet(isPresented: $showWonders) {
-                WondersListView(wonders: stats.wonders)
-            }
-            .sheet(item: $selectedContinent) { continent in
-                ContinentDetailView(stat: continent)
-            }
             .sheet(isPresented: $showShareCard) {
                 ShareComposerView(stats: stats, profile: appVM.personalityProfile, trips: stats.trips)
             }
             .sheet(item: $yearRecap) { recap in
                 RecapView(recap: recap)
             }
-            .fullScreenCover(isPresented: $showFullMap) {
-                FullScreenMapView(countries: stats.countries, trips: stats.trips)
+        }
+    }
+
+    // MARK: - Feed sections
+
+    /// Compact lifetime snapshot; the whole strip taps into the Places tab.
+    private var statStrip: some View {
+        Button { appVM.selectedTab = .places } label: {
+            HStack(spacing: 0) {
+                statItem("\(stats.countryCount)", "Countries")
+                statItem("\(stats.cityCount)", "Cities")
+                statItem("\(stats.visitedContinentCount)", "Continents")
+                statItem("\(stats.trips.count)", "Trips")
+            }
+            .padding(.vertical, 14)
+            .card()
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
+    }
+
+    private func statItem(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 3) {
+            Text(value).font(.system(size: 20, weight: .bold, design: .rounded))
+            Text(label).font(.caption2).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt).
+    @ViewBuilder
+    private var highlightsSection: some View {
+        let top = stats.mostPhotographedCountry
+        let furthest = appVM.furthestTrip
+        if top != nil || furthest != nil || appVM.homeCountryCode == nil {
+            VStack(alignment: .leading, spacing: 10) {
+                SectionHeader(title: "Highlights", systemImage: "sparkles")
+                    .padding(.horizontal, 20)
+
+                if let top {
+                    Button { selectedCountry = top } label: {
+                        MostVisitedBanner(country: top)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 20)
+                }
+
+                if let furthest {
+                    Button { selectedCountry = stats.countries.first { $0.id == furthest.trip.countryCode } } label: {
+                        FurthestTripCard(furthest: furthest)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 20)
+                } else if appVM.homeCountryCode == nil {
+                    Button { appVM.selectedTab = .me } label: {
+                        SetHomeCTACard()
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 20)
+                }
             }
         }
     }
-}
 
-// MARK: - Full-screen map
+    private var recentTrips: [Trip] {
+        stats.trips
+            .filter { $0.countryCode != appVM.homeCountryCode }
+            .sorted { $0.startDate > $1.startDate }
+            .prefix(3)
+            .map { $0 }
+    }
 
-private struct FullScreenMapView: View {
-    let countries: [CountryStat]
-    let trips: [Trip]
-    @Environment(\.dismiss) private var dismiss
-    @State private var selectedCountry: CountryStat?
+    @ViewBuilder
+    private var recentTripsSection: some View {
+        if !recentTrips.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Button { appVM.selectedTab = .places } label: {
+                    HStack {
+                        SectionHeader(title: "Recent Trips", systemImage: "suitcase.fill")
+                        Spacer()
+                        Text("See all").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .padding(.trailing, 20)
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
 
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            WorldMapView(countries: countries, cornerRadius: 0) { selectedCountry = $0 }
-                .ignoresSafeArea()
-            Button { dismiss() } label: {
-                Image(systemName: "xmark")
-                    .font(.headline).foregroundStyle(.primary)
-                    .padding(11)
-                    .background(.regularMaterial, in: Circle())
-                    .shadow(color: .black.opacity(0.15), radius: 3, y: 1)
+                ForEach(recentTrips) { trip in
+                    NavigationLink { TripDetailView(trip: trip) } label: {
+                        RecentTripRow(trip: trip)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 20)
+                }
             }
-            .padding(20)
-        }
-        .sheet(item: $selectedCountry) { country in
-            CountryDetailView(country: country,
-                              trips: trips.filter { $0.countryCode == country.id })
         }
     }
 }
 
 // MARK: - Supporting views
+
+private struct RecentTripRow: View {
+    let trip: Trip
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text(trip.flag).font(.system(size: 32))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(trip.country).font(.subheadline.weight(.semibold))
+                Text("\(trip.dateRangeText) · \(trip.photoCount) photos")
+                    .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+        }
+        .padding(14)
+        .card()
+        .contentShape(Rectangle())
+    }
+}
 
 private struct RecapEntryCard: View {
     let year: Int
@@ -255,7 +263,7 @@ private struct RecapEntryCard: View {
             LinearGradient(colors: [Color(red: 0.31, green: 0.27, blue: 0.9),
                                     Color(red: 0.55, green: 0.3, blue: 0.85)],
                            startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+            in: RoundedRectangle(cornerRadius: AppCard.radius, style: .continuous)
         )
     }
 }
@@ -282,8 +290,8 @@ private struct FurthestTripCard: View {
             Image(systemName: "airplane.departure")
                 .foregroundStyle(.tertiary)
         }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .padding(AppCard.padding)
+        .card()
     }
 }
 
@@ -308,37 +316,12 @@ private struct SetHomeCTACard: View {
             Image(systemName: "chevron.right")
                 .foregroundStyle(.tertiary)
         }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .padding(AppCard.padding)
+        .card()
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: AppCard.radius, style: .continuous)
                 .strokeBorder(Color.accentColor.opacity(0.25), lineWidth: 1)
         )
-    }
-}
-
-private struct MostVisitedRow: View {
-    let country: CountryStat
-
-    var body: some View {
-        HStack(spacing: 14) {
-            Text(country.flag)
-                .font(.system(size: 32))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(country.name)
-                    .font(.subheadline.weight(.semibold))
-                Text("\(country.tripCount) trips · \(country.photoCount) photos")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .padding(14)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .contentShape(Rectangle())
     }
 }
 
@@ -363,8 +346,8 @@ private struct MostVisitedBanner: View {
             Image(systemName: "chevron.right")
                 .foregroundStyle(.tertiary)
         }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .padding(AppCard.padding)
+        .card()
     }
 }
 

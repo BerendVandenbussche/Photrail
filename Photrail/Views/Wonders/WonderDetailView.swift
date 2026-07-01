@@ -2,6 +2,8 @@ import SwiftUI
 
 struct WonderDetailView: View {
     let stat: WonderStat
+    /// The trip on which this wonder was seen, if known — enables "View trip".
+    var trip: Trip? = nil
     @Environment(\.dismiss) private var dismiss
 
     private let gridColumns = [
@@ -22,6 +24,7 @@ struct WonderDetailView: View {
                         .padding(.horizontal, 20)
                     statsRow
                         .padding(.horizontal, 20)
+                    if let trip { tripLink(trip) }
                     photoGridSection
                 }
                 .padding(.top, 8)
@@ -48,6 +51,29 @@ struct WonderDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
+    }
+
+    private func tripLink(_ trip: Trip) -> some View {
+        NavigationLink { TripDetailView(trip: trip) } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "suitcase.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("View this trip").font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                    Text("\(trip.flag) \(trip.country) · \(trip.dateRangeText)")
+                        .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }
+            .padding(AppCard.padding)
+            .card()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
     }
 
     private var statsRow: some View {

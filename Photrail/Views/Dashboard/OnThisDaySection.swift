@@ -62,7 +62,7 @@ private struct MemoryCard: View {
             .padding(16)
         }
         .frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AppCard.radius, style: .continuous))
     }
 }
 

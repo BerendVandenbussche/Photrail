@@ -6,6 +6,18 @@ enum ContinentMapper {
         map[countryCode.uppercased()]
     }
 
+    /// Total number of countries the mapper knows for a continent — the denominator
+    /// for "how much of this continent have I seen".
+    static func totalCountries(in continent: Continent) -> Int {
+        countsByContinent[continent] ?? 0
+    }
+
+    private static let countsByContinent: [Continent: Int] = {
+        var counts: [Continent: Int] = [:]
+        for continent in map.values { counts[continent, default: 0] += 1 }
+        return counts
+    }()
+
     private static let map: [String: Continent] = [
         // Africa
         "DZ": .africa, "AO": .africa, "BJ": .africa, "BW": .africa, "BF": .africa,

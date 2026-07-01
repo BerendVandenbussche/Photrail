@@ -134,7 +134,7 @@ struct TripDetailView: View {
                     }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .card(cornerRadius: AppCard.chipRadius)
             }
         }
         .padding(.horizontal, 20)

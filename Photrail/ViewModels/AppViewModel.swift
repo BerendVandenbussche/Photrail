@@ -35,7 +35,7 @@ final class AppViewModel {
         }
     }
 
-    enum AppTab: Hashable { case home, me }
+    enum AppTab: Hashable { case today, map, places, me }
 
     var navState: NavState = .onboarding
     var scanProgress: ScanProgress = .idle
@@ -44,7 +44,7 @@ final class AppViewModel {
     var memories: [Memory] = []
 
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
-    var selectedTab: AppTab = .home
+    var selectedTab: AppTab = .today
 
     /// Emoji the user picked as their profile avatar.
     var profileEmoji: String {

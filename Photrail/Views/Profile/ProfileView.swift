@@ -123,7 +123,7 @@ struct ProfileView: View {
                     Spacer()
                 }
                 .padding(14)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+                .card()
             }
         }
         .padding(.horizontal, 20)
@@ -164,7 +164,7 @@ struct ProfileView: View {
                     if year != availableYears.last { Divider().padding(.leading, 52) }
                 }
             }
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .card()
             .padding(.horizontal, 20)
         }
     }
@@ -180,7 +180,7 @@ struct ProfileView: View {
                 row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
             }
         }
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .card()
         .padding(.horizontal, 20)
     }
 
