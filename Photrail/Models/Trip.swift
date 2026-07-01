@@ -1,12 +1,15 @@
 import Foundation
 import CoreLocation
 
-/// A single trip: a streak of photos taken in one country within a time window.
+/// A single trip: a continuous journey away from home, possibly spanning several
+/// countries. `countryCode`/`country`/`flag` describe the *primary* (most‑photographed)
+/// country for back‑compat; `countries` lists every country visited on the trip.
 struct Trip: Identifiable, Sendable {
     let id: String
-    let countryCode: String
-    let country: String
-    let flag: String
+    let countryCode: String       // primary (most-photographed) country
+    let country: String           // primary country name
+    let flag: String              // primary country flag
+    let countries: [TripCountry]  // every country on the trip, in order first visited
     let startDate: Date
     let endDate: Date
     let photoCount: Int
@@ -19,14 +22,41 @@ struct Trip: Identifiable, Sendable {
     /// World wonders / landmarks photographed on the trip.
     let wonders: [WonderHit]
 
+    /// A country visited during the trip.
+    struct TripCountry: Identifiable, Sendable {
+        let id: String            // ISO code
+        var code: String { id }
+        let name: String
+        let flag: String
+        let photoCount: Int
+    }
+
     /// A city visited during the trip, with a representative location and arrival date.
     struct TripStop: Identifiable, Sendable {
-        let id: String            // city name
-        var name: String { id }
+        let id: String            // "city,countryCode" (cities can repeat across countries)
+        let name: String
+        let countryCode: String
+        let flag: String
         let latitude: Double
         let longitude: Double
         let firstVisit: Date
         let photoCount: Int
+    }
+
+    var countryCodes: [String] { countries.map(\.code) }
+    var isMultiCountry: Bool { countries.count > 1 }
+
+    /// Flags of every country, e.g. "🇫🇷🇮🇹🇨🇭" (capped so rows don't overflow).
+    var flagsLine: String {
+        let flags = countries.prefix(6).map(\.flag).joined()
+        return countries.count > 6 ? flags + "…" : flags
+    }
+
+    /// A human title: the country for single-country trips, else the countries listed.
+    var displayName: String {
+        guard isMultiCountry else { return country }
+        let names = countries.prefix(3).map(\.name).joined(separator: ", ")
+        return countries.count > 3 ? "\(names) +\(countries.count - 3)" : names
     }
 
     /// A wonder/landmark seen on the trip (lightweight projection of WonderStat).

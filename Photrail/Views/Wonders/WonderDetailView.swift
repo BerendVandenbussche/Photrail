@@ -62,7 +62,7 @@ struct WonderDetailView: View {
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("View this trip").font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                    Text("\(trip.flag) \(trip.country) · \(trip.dateRangeText)")
+                    Text("\(trip.isMultiCountry ? trip.flagsLine : trip.flag) \(trip.displayName) · \(trip.dateRangeText)")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer()

@@ -9,8 +9,9 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 - **World map** — Interactive map with a pin for every country you've visited
 - **Travel statistics** — Countries visited, cities explored, percentage of the world covered, most photographed country
 - **Continents overview** — How many of the 6 inhabited continents you've visited, with a per‑continent country list (Antarctica appears as a bonus when visited)
-- **Trips** — Photos are grouped into trips (streaks of photos in one country); a gap of about a week starts a new trip. Home‑country photos are excluded, and grouping happens per country so a brief border crossing doesn't fragment a stay
-- **Trip detail** — Tap any trip for a dedicated page: a Vision‑curated hero cover photo, a MapKit map with a numbered pin per city joined by a line in visit order, a key‑stats row (distance traveled, duration, cities, photos, highest point), an itinerary, wonders & landmarks seen on that trip, and the trip's photos — with a live share‑card preview before sharing
+- **Trips** — Photos are grouped into trips: a continuous journey away from home that can **span several countries**. A trip ends when you return to your home town (within 50 km of home) or after a gap of more than a week — unless the next photo is in the same country within ~30 days (so a long single‑country stay isn't split). A country's "trip count" is how many trips included it
+- **Trip detail** — Tap any trip for a dedicated page: a Vision‑curated hero cover photo, a MapKit map with a numbered pin per city joined by a line in visit order, a key‑stats row (distance traveled, duration, countries, cities, photos, highest point), an itinerary (with per‑stop flags across borders), wonders & landmarks seen on that trip, and the trip's photos — with a live share‑card preview before sharing
+- **Manual countries** — Deleted the photos for a trip? Add a country by hand (Places → Countries) so your map and stats stay accurate. Manual entries count toward totals and appear on the map, but can't produce photo‑based share cards
 - **On This Day** — Resurfaces photos taken on today's calendar day in past years ("5 years ago · 🇵🇹 Lisbon"), away from home; tap to see that day's photos. Excludes everyday photos within 50 km of home
 - **Full‑screen photo viewer** — Tap any photo in a country or trip to open it full‑screen with pinch / double‑tap zoom
 - **Most visited countries** — Countries ranked by number of distinct trips
@@ -32,7 +33,8 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 - **Country, continent, coastline, city‑remoteness, wonder, trip, "On This Day" and personality detection all run 100% on‑device** using bundled geographic datasets — no network, no third‑party service
 - City **names** are the only thing resolved online (via Apple's `CLGeocoder`); only coordinates are sent, and only for the optional city‑enrichment pass
 - Image data is only loaded when displaying thumbnails; all travel data lives in a local on‑device SwiftData database
-- Photo library access can be revoked at any time in Settings
+- Photo library access is **read‑only** and can be revoked at any time in Settings
+- Ships an Apple **privacy manifest** (`PrivacyInfo.xcprivacy`, app + widget): no tracking, no data collected, `UserDefaults` declared with reason `CA92.1`. App Store privacy label is **Data Not Collected**
 
 ## Requirements
 
@@ -47,15 +49,16 @@ Clean MVVM with Swift Concurrency throughout. Persistence is SwiftData (SQLite);
 Photrail/
 ├── App/
 │   ├── RootView.swift                  State machine: onboarding → tabs
-│   └── MainTabView.swift               Home + Me tab bar
+│   └── MainTabView.swift               Tab bar: Today · Map · Places · Me
 ├── Models/
 │   ├── GeoPhoto.swift                  Lightweight Sendable photo DTO
 │   ├── StoredPhoto.swift               SwiftData @Model — one SQLite row per photo
 │   ├── CountryStat.swift               Aggregated country stats (+ trip count, coordinate)
 │   ├── ContinentStat.swift             Continent enum + per-continent aggregation
 │   ├── Wonder.swift                    Wonder/landmark + per-site match radius & category
-│   ├── Trip.swift                      A streak of photos in one country (+ stops, route
-│   │                                   distance, highest altitude, wonders/landmarks seen)
+│   ├── Trip.swift                      A journey away from home (multi-country; primary +
+│   │                                   countries, stops, route distance, altitude, wonders)
+│   ├── ManualCountry.swift             A hand-added, photo-less country (keeps stats accurate)
 │   ├── Memory.swift                    An "On This Day" memory (past-year photos for today)
 │   └── TravelStats.swift              Full stats snapshot + widget snapshot + mocks
 ├── Services/
@@ -69,8 +72,9 @@ Photrail/
 │   ├── ContinentMapper.swift           ISO country code → continent
 │   ├── WonderCatalog.swift             Static catalog of wonders & landmarks
 │   ├── WonderDetector.swift            Location-based wonder matching (image-recog ready)
-│   ├── TripDetector.swift              Groups photos into trips by country + time gap;
-│   │                                   builds per-city stops, route, altitude, wonders
+│   ├── TripDetector.swift              Groups photos into multi-country journeys (home-town
+│   │                                   + time-gap boundaries); builds stops, route, wonders
+│   ├── CountryCatalog.swift            All countries (name + flag) for manual entry
 │   ├── StatisticsEngine.swift          Pure [GeoPhoto] → TravelStats transformation
 │   ├── MemoriesEngine.swift            Pure [GeoPhoto] → "On This Day" memories
 │   ├── NotificationService.swift       Local "new country" notifications
@@ -83,8 +87,11 @@ Photrail/
 │   └── CountryDetailViewModel.swift    PHCachingImageManager for photo grids
 ├── Views/
 │   ├── Onboarding/                     Onboarding + permission denied screen
-│   ├── Dashboard/                      Map, On This Day, current-year recap entry, stats,
-│   │                                   countries, most-visited, continents, wonders, timeline
+│   ├── Dashboard/                      Today feed: mini-map peek, On This Day, recap entry,
+│   │                                   stat strip, highlights, recent trips
+│   ├── Map/                            Map tab: full-screen world map (pin → country)
+│   ├── Places/                         Places tab: segmented catalog (Countries/Trips/
+│   │                                   Continents/Wonders) + manual country picker + activity
 │   ├── CountryDetail/                  Mini map + collapsible trips/cities + lazy photo grid
 │   │                                   + full-screen zoomable photo viewer
 │   ├── TripDetail/                     Hero cover + trip map + stats + itinerary + wonders
@@ -96,7 +103,8 @@ Photrail/
 │   └── ShareCard/                      Share composer (templates + backgrounds)
 ├── Components/                         StatCard, SectionHeader, PhotoThumbnail, ScanBanner,
 │                                       LogoView (brand mark), MiniMapDots, JourneyMapView,
-│                                       TripMapView (pins + route line), LocationMiniMap, FlowLayout
+│                                       TripMapView (pins + route line), LocationMiniMap,
+│                                       FlowLayout, CardStyle (shared card modifier)
 └── Shared/
     └── WidgetSharedStats.swift         App Group snapshot (member of app + widget targets)
 
@@ -108,6 +116,7 @@ PhotrailWidgets/                        Widget extension (Travel Stats + World W
 | Decision | Reason |
 |---|---|
 | Offline geocoding (country / coastline / places GeoJSON + point-in-polygon / nearest-point) | Instant, private, no rate limit, no third-party TOS; only city *names* need the network |
+| Multi-country trips (home-town + time-gap boundaries) | Models real journeys — a Euro-trip is one trip across countries, not several; domestic trips far from home still count |
 | Two-pass scan (countries offline → cities online) | Core features complete in seconds; city names enrich after |
 | SwiftData (`@Model` + `@ModelActor`) | Per-photo row upserts — geocoding is written incrementally and survives an abrupt exit |
 | `actor` for all services | Prevents data races when processing large libraries off the main thread |
@@ -171,7 +180,7 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 
 - **Avatar** — pick an emoji as your profile picture.
 - **Travel personality** + lifetime snapshot (countries / cities / continents / trips).
-- **Home** — pick a country and optionally a city. Used for the furthest‑trip calculation, to exclude home‑country trips from recaps, and to exclude everyday photos within 50 km of home from your travel personality.
+- **Home** — pick a country and optionally a city. Used for the furthest‑trip calculation, as the trip‑detection boundary (a photo within 50 km of home ends a trip), and to exclude everyday photos within 50 km of home from your travel personality.
 - **Reindex photo library** — rebuilds travel history from scratch. Use it after changing the location or date of photos that were already scanned (a normal incremental scan keeps the original data because the asset id is unchanged), or to backfill altitude onto previously scanned photos.
 - **Recaps** — archive of every year with travel; the current year also has a dedicated entry on the dashboard.
 

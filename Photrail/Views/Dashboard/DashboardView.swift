@@ -101,7 +101,7 @@ struct DashboardView: View {
             }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
-                                  trips: stats.trips.filter { $0.countryCode == country.id })
+                                  trips: stats.trips.filter { $0.countryCodes.contains(country.id) })
             }
             .sheet(isPresented: $showShareCard) {
                 ShareComposerView(stats: stats, profile: appVM.personalityProfile, trips: stats.trips)
@@ -175,7 +175,6 @@ struct DashboardView: View {
 
     private var recentTrips: [Trip] {
         stats.trips
-            .filter { $0.countryCode != appVM.homeCountryCode }
             .sorted { $0.startDate > $1.startDate }
             .prefix(3)
             .map { $0 }
@@ -217,9 +216,9 @@ private struct RecentTripRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Text(trip.flag).font(.system(size: 32))
+            FlagCluster(flags: trip.countries.map(\.flag), size: 40)
             VStack(alignment: .leading, spacing: 2) {
-                Text(trip.country).font(.subheadline.weight(.semibold))
+                Text(trip.displayName).font(.subheadline.weight(.semibold)).lineLimit(1)
                 Text("\(trip.dateRangeText) · \(trip.photoCount) photos")
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }

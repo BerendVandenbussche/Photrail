@@ -7,10 +7,14 @@ enum RecapTheme: String, CaseIterable, Identifiable, Sendable {
 }
 
 /// Which aspect of the recap a share card emphasizes (per-slide sharing).
-enum RecapCardFocus: Sendable { case snapshot, route, personality, newCountries }
+enum RecapCardFocus: Sendable {
+    case snapshot, route, personality, newCountries, distance, wonders, biggestTrip, highestPeak
+}
 
 /// The premium, exportable "Year in Travel" share card. 9:16, render-ready.
-/// This is the primary marketing asset — branded, glanceable, beautiful.
+/// This is the primary marketing asset — branded, glanceable, beautiful. Every
+/// card follows the same rhythm: header → eyebrow → hero → visual → stat band → CTA,
+/// so no shared card ever looks empty.
 struct RecapShareCardView: View {
     let recap: RecapModel
     var theme: RecapTheme = .dark
@@ -29,6 +33,7 @@ struct RecapShareCardView: View {
     private var primaryText: Color { onDark ? .white : Color(red: 0.08, green: 0.08, blue: 0.16) }
     private var secondaryText: Color { primaryText.opacity(0.6) }
     private var accent: Color { onDark ? Color(red: 0.6, green: 0.55, blue: 1.0) : Self.accent }
+    private var panelFill: Color { primaryText.opacity(onDark ? 0.08 : 0.05) }
 
     var body: some View {
         ZStack {
@@ -38,6 +43,8 @@ struct RecapShareCardView: View {
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: theme == .transparent ? 0 : 36, style: .continuous))
     }
+
+    // MARK: - Chrome
 
     @ViewBuilder
     private var background: some View {
@@ -60,120 +67,15 @@ struct RecapShareCardView: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-            Spacer(minLength: 10)
-            focusBody
             Spacer(minLength: 14)
+            focusBody
+            Spacer(minLength: 16)
             footer
         }
-        .padding(theme == .transparent ? 26 : 32)
+        .padding(theme == .transparent ? 26 : 30)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(transparentPanel)
         .padding(theme == .transparent ? 18 : 0)
-    }
-
-    @ViewBuilder
-    private var focusBody: some View {
-        switch focus {
-        case .snapshot:     snapshotBody
-        case .route:        routeBody
-        case .personality:  personalityBody
-        case .newCountries: newCountriesBody
-        }
-    }
-
-    private var snapshotBody: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            hero
-            Spacer(minLength: 16)
-            statsGrid
-            if !recap.topSlices.isEmpty {
-                Spacer(minLength: 16)
-                personality
-            }
-        }
-    }
-
-    private func eyebrow(_ text: String) -> some View {
-        Text(text.uppercased())
-            .font(.system(size: 12, weight: .bold)).tracking(1.6)
-            .foregroundStyle(accent)
-    }
-
-    private func bigHeadline(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 44, weight: .black, design: .rounded))
-            .foregroundStyle(primaryText)
-            .lineLimit(2).minimumScaleFactor(0.5)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var routeBody: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            eyebrow("Where I went")
-            bigHeadline("\(recap.journey.count) countries,\none journey")
-            JourneyMapView(stops: recap.journey,
-                           lineColor: primaryText.opacity(0.5), dotColor: primaryText)
-                .frame(height: 230)
-            FlowLayout(spacing: 12, rowSpacing: 10) {
-                ForEach(recap.journey) { stop in
-                    Text(stop.flag).font(.system(size: 26))
-                }
-            }
-            Spacer(minLength: 0)
-        }
-    }
-
-    private var personalityBody: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            eyebrow("My travel personality")
-            bigHeadline(personalityHeadline)
-            VStack(spacing: 12) {
-                ForEach(recap.topSlices) { slice in
-                    HStack(spacing: 10) {
-                        Text(slice.category.emoji).font(.system(size: 20))
-                        Text(slice.category.title)
-                            .font(.system(size: 16, weight: .semibold)).foregroundStyle(primaryText.opacity(0.9))
-                        Spacer()
-                        Text("\(Int(slice.percentage.rounded()))%")
-                            .font(.system(size: 16, weight: .bold).monospacedDigit()).foregroundStyle(primaryText)
-                    }
-                }
-            }
-            Spacer(minLength: 0)
-        }
-    }
-
-    private var personalityHeadline: String {
-        guard let slice = recap.topSlices.first else { return recap.title }
-        return "\(Int(slice.percentage.rounded()))%\n\(slice.category.title)"
-    }
-
-    private var newCountriesBody: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            eyebrow("New in \(String(recap.year))")
-            bigHeadline(recap.newCountries.count == 1 ? "1 new country" : "\(recap.newCountries.count) new countries")
-            FlowLayout(spacing: 12, rowSpacing: 12) {
-                ForEach(recap.newCountries) { badge in
-                    VStack(spacing: 3) {
-                        Text(badge.flag).font(.system(size: 30))
-                        Text(badge.name)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(secondaryText)
-                            .lineLimit(1)
-                    }
-                    .frame(maxWidth: 76)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-    }
-
-    @ViewBuilder
-    private var transparentPanel: some View {
-        if theme == .transparent {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Color(red: 0.06, green: 0.07, blue: 0.18).opacity(0.92))
-        }
     }
 
     private var header: some View {
@@ -189,17 +91,120 @@ struct RecapShareCardView: View {
         .foregroundStyle(primaryText)
     }
 
+    private var footer: some View {
+        HStack(spacing: 6) {
+            LogoMark(color: accent).frame(width: 13, height: 13)
+            Text("Made with Photrail")
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundStyle(primaryText)
+            Text("· travel history, automatically")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(secondaryText)
+        }
+    }
+
+    @ViewBuilder
+    private var transparentPanel: some View {
+        if theme == .transparent {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(Color(red: 0.06, green: 0.07, blue: 0.18).opacity(0.92))
+        }
+    }
+
+    // MARK: - Focus router
+
+    @ViewBuilder
+    private var focusBody: some View {
+        switch focus {
+        case .snapshot:     snapshotBody
+        case .route:        routeBody
+        case .personality:  personalityBody
+        case .newCountries: newCountriesBody
+        case .distance:     distanceBody
+        case .wonders:      wondersBody
+        case .biggestTrip:  biggestTripBody
+        case .highestPeak:  highestPeakBody
+        }
+    }
+
+    // MARK: - Shared building blocks
+
+    private func eyebrow(_ text: String) -> some View {
+        Text(text.uppercased())
+            .font(.system(size: 12, weight: .bold)).tracking(1.6)
+            .foregroundStyle(accent)
+    }
+
+    private func bigHeadline(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 42, weight: .black, design: .rounded))
+            .foregroundStyle(primaryText)
+            .lineLimit(3).minimumScaleFactor(0.5)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// A giant single number for "one big flex" cards.
+    private func hugeNumber(_ value: String, unit: String? = nil) -> some View {
+        HStack(alignment: .lastTextBaseline, spacing: 6) {
+            Text(value)
+                .font(.system(size: 68, weight: .black, design: .rounded))
+                .foregroundStyle(primaryText)
+                .minimumScaleFactor(0.4).lineLimit(1)
+            if let unit {
+                Text(unit)
+                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .foregroundStyle(secondaryText)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// A row of 2–3 headline stats, on a subtle panel — keeps every card full.
+    private func statBand(_ items: [(String, String)]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                VStack(spacing: 3) {
+                    Text(item.0)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(primaryText)
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                    Text(item.1.uppercased())
+                        .font(.system(size: 9, weight: .semibold)).tracking(0.6)
+                        .foregroundStyle(secondaryText)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: .infinity)
+                if index < items.count - 1 {
+                    Rectangle().fill(primaryText.opacity(0.15)).frame(width: 1, height: 30)
+                }
+            }
+        }
+        .padding(.vertical, 16).padding(.horizontal, 8)
+        .frame(maxWidth: .infinity)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(panelFill))
+    }
+
+    // MARK: - Snapshot (hero / summary / finale)
+
+    private var snapshotBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            hero
+            Spacer(minLength: 16)
+            statsGrid
+            if !recap.topSlices.isEmpty {
+                Spacer(minLength: 14)
+                topStyles
+            }
+        }
+    }
+
     private var hero: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("\(String(recap.year)) AT A GLANCE")
-                .font(.system(size: 12, weight: .bold))
-                .tracking(1.6)
-                .foregroundStyle(accent)
+            eyebrow("\(String(recap.year)) at a glance")
             Text(recap.title)
-                .font(.system(size: 46, weight: .black, design: .rounded))
+                .font(.system(size: 44, weight: .black, design: .rounded))
                 .foregroundStyle(primaryText)
-                .lineLimit(2)
-                .minimumScaleFactor(0.5)
+                .lineLimit(2).minimumScaleFactor(0.5)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 8) {
                 Text("\(recap.score)")
@@ -217,8 +222,7 @@ struct RecapShareCardView: View {
         }
     }
 
-    /// Year-specific, share-worthy metrics. Interesting "this year" stats come first;
-    /// always-available totals backfill so the grid is full. Capped at 6 (3×2).
+    /// Year-specific, share-worthy metrics; capped at 6 (3×2).
     private var statItems: [(String, String, String)] {
         var items: [(String, String, String)] = []
         items.append(("🌍", "\(recap.countries)", recap.countries == 1 ? "Country" : "Countries"))
@@ -255,35 +259,249 @@ struct RecapShareCardView: View {
                     Text(label)
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(secondaryText)
+                        .lineLimit(1).minimumScaleFactor(0.7)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(primaryText.opacity(onDark ? 0.08 : 0.05)))
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(panelFill))
             }
         }
     }
 
-    private var personality: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(recap.topSlices) { slice in
-                HStack(spacing: 8) {
-                    Text(slice.category.emoji).font(.system(size: 15))
-                    Text(slice.category.title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(primaryText.opacity(0.9))
-                    Spacer()
-                    Text("\(Int(slice.percentage.rounded()))%")
-                        .font(.system(size: 13, weight: .bold).monospacedDigit())
-                        .foregroundStyle(primaryText)
+    private var topStyles: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text("TOP STYLES")
+                .font(.system(size: 10, weight: .bold)).tracking(1.2)
+                .foregroundStyle(secondaryText)
+            ForEach(recap.topSlices) { slice in compactBar(slice) }
+        }
+    }
+
+    private func compactBar(_ slice: TravelPersonalityProfile.Slice) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text(slice.category.emoji).font(.system(size: 14))
+                Text(slice.category.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(primaryText)
+                Spacer()
+                Text("\(Int(slice.percentage.rounded()))%")
+                    .font(.system(size: 13, weight: .bold).monospacedDigit())
+                    .foregroundStyle(primaryText)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(primaryText.opacity(0.12))
+                    Capsule().fill(accent)
+                        .frame(width: max(4, geo.size.width * CGFloat(slice.percentage / 100)))
                 }
             }
+            .frame(height: 7)
         }
     }
 
-    private var footer: some View {
-        Text("Your travel history, automatically")
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(secondaryText)
+    // MARK: - Route
+
+    private var routeBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            eyebrow("My year on the map")
+            bigHeadline(recap.journey.count == 1
+                        ? "1 country,\none journey"
+                        : "\(recap.journey.count) countries,\none journey")
+            JourneyMapView(stops: recap.journey,
+                           lineColor: primaryText.opacity(0.5), dotColor: primaryText)
+                .frame(height: 190)
+            FlowLayout(spacing: 10, rowSpacing: 8) {
+                ForEach(recap.journey.prefix(24)) { stop in
+                    Text(stop.flag).font(.system(size: 24))
+                }
+            }
+            Spacer(minLength: 0)
+            statBand(routeStats)
+        }
+    }
+
+    private var routeStats: [(String, String)] {
+        var items: [(String, String)] = [("\(recap.countries)", "Countries"),
+                                         ("\(recap.continents)", "Continents")]
+        if recap.distanceKm >= 100 { items.append((recap.distanceText, "Traveled")) }
+        else { items.append(("\(recap.trips)", "Trips")) }
+        return items
+    }
+
+    // MARK: - Distance (one big flex)
+
+    private var distanceBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            eyebrow("Distance traveled")
+            hugeNumber(recap.distanceText)
+            if let comparison = recap.distanceComparison {
+                Text(comparison)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(accent)
+                    .lineLimit(2).minimumScaleFactor(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            JourneyMapView(stops: recap.journey,
+                           lineColor: primaryText.opacity(0.5), dotColor: primaryText)
+                .frame(height: 150)
+            Spacer(minLength: 0)
+            statBand([("\(recap.countries)", "Countries"),
+                      ("\(recap.trips)", "Trips"),
+                      ("\(recap.continents)", "Continents")])
+        }
+    }
+
+    // MARK: - Personality (visual bars)
+
+    private var personalityBody: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            eyebrow("My travel personality")
+            bigHeadline(personalityHeadline)
+            VStack(spacing: 14) {
+                ForEach(recap.topSlices) { slice in personalityBar(slice) }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func personalityBar(_ slice: TravelPersonalityProfile.Slice) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(slice.category.emoji).font(.system(size: 18))
+                Text(slice.category.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(primaryText)
+                Spacer()
+                Text("\(Int(slice.percentage.rounded()))%")
+                    .font(.system(size: 15, weight: .bold).monospacedDigit())
+                    .foregroundStyle(primaryText)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(primaryText.opacity(0.12))
+                    Capsule().fill(accent)
+                        .frame(width: max(6, geo.size.width * CGFloat(slice.percentage / 100)))
+                }
+            }
+            .frame(height: 10)
+        }
+    }
+
+    private var personalityHeadline: String {
+        guard let slice = recap.topSlices.first else { return recap.title }
+        return "\(Int(slice.percentage.rounded()))%\n\(slice.category.title)"
+    }
+
+    // MARK: - New countries
+
+    private var newCountriesBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            eyebrow("New in \(String(recap.year))")
+            bigHeadline(recap.newCountries.count == 1
+                        ? "1 new country\nunlocked"
+                        : "\(recap.newCountries.count) new countries\nunlocked")
+            FlowLayout(spacing: 12, rowSpacing: 12) {
+                ForEach(recap.newCountries.prefix(15)) { badge in
+                    VStack(spacing: 3) {
+                        Text(badge.flag).font(.system(size: 32))
+                        Text(badge.name)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(secondaryText)
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .frame(maxWidth: 74)
+                }
+            }
+            Spacer(minLength: 0)
+            statBand([("\(recap.newCountries.count)", "New"),
+                      ("\(recap.countries)", "Countries"),
+                      ("\(recap.continents)", "Continents")])
+        }
+    }
+
+    // MARK: - Wonders
+
+    private var wondersBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            eyebrow("World wonders")
+            bigHeadline(wondersHeadline)
+            VStack(spacing: 10) {
+                ForEach(recap.seenWonders.prefix(6)) { wonder in
+                    HStack(spacing: 12) {
+                        Text(wonder.emoji).font(.system(size: 24))
+                        Text(wonder.name)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(primaryText).lineLimit(1)
+                        Spacer()
+                        if wonder.isOfficial {
+                            Text("WONDER")
+                                .font(.system(size: 9, weight: .heavy)).tracking(0.8)
+                                .foregroundStyle(accent)
+                                .padding(.horizontal, 7).padding(.vertical, 3)
+                                .background(Capsule().fill(accent.opacity(0.18)))
+                        }
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var wondersHeadline: String {
+        let official = recap.seenWonders.filter(\.isOfficial).count
+        if official > 0 { return "\(official) of the\n7 Wonders" }
+        let n = recap.seenWonders.count
+        return n == 1 ? "1 famous\nlandmark" : "\(n) famous\nlandmarks"
+    }
+
+    // MARK: - Biggest trip
+
+    private var biggestTripBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            eyebrow("My biggest adventure")
+            bigHeadline(recap.biggestTripTitle ?? recap.favoriteCountryName ?? "My biggest trip")
+            if let subtitle = recap.biggestTripSubtitle {
+                Text(subtitle)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(secondaryText)
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+            }
+            if let longest = recap.longestTripText {
+                Text("🧳 Longest · \(longest)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(accent).lineLimit(1).minimumScaleFactor(0.7)
+            }
+            if let month = recap.busiestMonth {
+                Text("📅 Busiest month · \(month)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(secondaryText).lineLimit(1)
+            }
+            Spacer(minLength: 0)
+            statBand([("\(recap.countries)", "Countries"),
+                      ("\(recap.trips)", "Trips"),
+                      ("\(recap.photos)", "Photos")])
+        }
+    }
+
+    // MARK: - Highest peak
+
+    private var highestPeakBody: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            eyebrow("Highest point reached")
+            Text("⛰️").font(.system(size: 56))
+            hugeNumber(recap.highestAltitudeText ?? "—")
+            if let place = recap.highestAltitudePlace {
+                Text(place)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(accent)
+                    .lineLimit(2).minimumScaleFactor(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            statBand([("\(recap.countries)", "Countries"),
+                      ("\(recap.trips)", "Trips"),
+                      ("\(recap.continents)", "Continents")])
+        }
     }
 }

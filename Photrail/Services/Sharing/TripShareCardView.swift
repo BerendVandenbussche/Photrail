@@ -67,10 +67,10 @@ struct TripShareCardView: View {
             Text(trip.dateRangeText.uppercased())
                 .font(.system(size: 12, weight: .bold)).tracking(1.6)
                 .foregroundStyle(Self.accent)
-            Text("\(trip.flag) \(trip.country)")
+            Text(trip.isMultiCountry ? "\(trip.flagsLine)\n\(trip.displayName)" : "\(trip.flag) \(trip.country)")
                 .font(.system(size: 44, weight: .black, design: .rounded))
                 .foregroundStyle(.white)
-                .lineLimit(2).minimumScaleFactor(0.5)
+                .lineLimit(3).minimumScaleFactor(0.5)
                 .fixedSize(horizontal: false, vertical: true)
             if !trip.cities.isEmpty {
                 Text(trip.cities.prefix(4).joined(separator: " · "))
@@ -102,7 +102,11 @@ struct TripShareCardView: View {
     }
 
     private var statItems: [(String, String)] {
-        var items: [(String, String)] = [
+        var items: [(String, String)] = []
+        if trip.isMultiCountry {
+            items.append(("\(trip.countries.count)", "Countries"))
+        }
+        items += [
             ("\(trip.cities.count)", trip.cities.count == 1 ? "City" : "Cities"),
             ("\(trip.photoCount)", "Photos"),
             (trip.durationText.replacingOccurrences(of: " days", with: "")

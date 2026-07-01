@@ -31,6 +31,14 @@ actor OfflineCountryGeocoder {
         return items.map { ($0.id, match(latitude: $0.latitude, longitude: $0.longitude)) }
     }
 
+    /// A rough representative point (bounding-box center) for a country code — good
+    /// enough to place a map pin for a manually-added country. Nil if unknown.
+    func representativeCoordinate(for code: String) -> (latitude: Double, longitude: Double)? {
+        loadIfNeeded()
+        guard let shape = shapes.first(where: { $0.code == code.uppercased() }) else { return nil }
+        return ((shape.minLat + shape.maxLat) / 2, (shape.minLon + shape.maxLon) / 2)
+    }
+
     func match(latitude: Double, longitude: Double) -> Match? {
         loadIfNeeded()
         for shape in shapes {

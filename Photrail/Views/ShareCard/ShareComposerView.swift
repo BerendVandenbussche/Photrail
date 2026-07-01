@@ -149,11 +149,11 @@ struct ShareComposerView: View {
             Text("Trip").font(.headline)
             Menu {
                 ForEach(trips) { trip in
-                    Button("\(trip.flag) \(trip.country) · \(trip.dateRangeText)") { selectedTrip = trip }
+                    Button("\(trip.flag) \(trip.displayName) · \(trip.dateRangeText)") { selectedTrip = trip }
                 }
             } label: {
                 HStack {
-                    Text(selectedTrip.map { "\($0.flag) \($0.country) · \($0.dateRangeText)" } ?? "Choose a trip")
+                    Text(selectedTrip.map { "\($0.flag) \($0.displayName) · \($0.dateRangeText)" } ?? "Choose a trip")
                         .lineLimit(1)
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down").font(.caption)

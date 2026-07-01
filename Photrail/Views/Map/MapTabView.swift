@@ -15,7 +15,7 @@ struct MapTabView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .sheet(item: $selectedCountry) { country in
                     CountryDetailView(country: country,
-                                      trips: stats.trips.filter { $0.countryCode == country.id })
+                                      trips: stats.trips.filter { $0.countryCodes.contains(country.id) })
                 }
         }
     }

@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// The premium, render-ready share card. Designed in a fixed 360×640 (9:16) space
-/// so it exports cleanly to an Instagram-story-sized image. All visuals are solid
-/// colors / gradients / blur (no Materials) so they render faithfully via ImageRenderer.
+/// so it exports cleanly to an Instagram-story-sized image. Shares the same visual
+/// language as the Year-in-Travel recap cards: header → eyebrow → hero → stat band → CTA.
 struct ShareCardView: View {
     let model: ShareCardModel
     var background: ShareCardBackground = .map
@@ -13,7 +13,10 @@ struct ShareCardView: View {
     // Brand palette
     private static let brandTop = Color(red: 0.07, green: 0.09, blue: 0.24)
     private static let brandBottom = Color(red: 0.22, green: 0.13, blue: 0.42)
-    private static let accent = Color(red: 0.55, green: 0.5, blue: 1.0)
+    private let accent = Color(red: 0.6, green: 0.55, blue: 1.0)
+    private var primaryText: Color { .white }
+    private var secondaryText: Color { .white.opacity(0.6) }
+    private var panelFill: Color { .white.opacity(0.1) }
 
     var body: some View {
         ZStack {
@@ -33,10 +36,8 @@ struct ShareCardView: View {
             ZStack {
                 LinearGradient(colors: [Self.brandTop, Self.brandBottom],
                                startPoint: .topLeading, endPoint: .bottomTrailing)
-                Constellation(pins: model.pins)
-                    .opacity(0.9)
-                // soft glow
-                RadialGradient(colors: [Self.accent.opacity(0.35), .clear],
+                Constellation(pins: model.pins).opacity(0.9)
+                RadialGradient(colors: [accent.opacity(0.35), .clear],
                                center: .topTrailing, startRadius: 0, endRadius: 360)
             }
         case .photo:
@@ -44,12 +45,8 @@ struct ShareCardView: View {
                 Image(uiImage: photo)
                     .resizable()
                     .scaledToFill()
-                    // Pin to the canvas and clip: in fill mode the image's layout size
-                    // overflows for landscape photos, which would widen the card and
-                    // push the text content out of frame.
                     .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
                     .clipped()
-                    .blur(radius: 18)
                     .overlay(LinearGradient(colors: [.black.opacity(0.35), .black.opacity(0.65)],
                                             startPoint: .top, endPoint: .bottom))
             } else {
@@ -65,13 +62,16 @@ struct ShareCardView: View {
 
     private var contentLayer: some View {
         VStack(alignment: .leading, spacing: 0) {
-            brandMark
-            Spacer(minLength: 12)
-            cardContent
-            Spacer(minLength: 12)
+            header
+            Spacer(minLength: 14)
+            VStack(alignment: .leading, spacing: 16) {
+                eyebrow(eyebrowText)
+                cardContent
+            }
+            Spacer(minLength: 16)
             footer
         }
-        .padding(background == .transparent ? 28 : 34)
+        .padding(background == .transparent ? 28 : 32)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(transparentPanel)
         .padding(background == .transparent ? 20 : 0)
@@ -85,23 +85,99 @@ struct ShareCardView: View {
         }
     }
 
-    private var brandMark: some View {
+    private var header: some View {
         HStack(spacing: 7) {
-            LogoMark(color: .white)
-                .frame(width: 18, height: 18)
+            LogoMark(color: primaryText).frame(width: 18, height: 18)
             Text("Photrail")
-                .font(.system(size: 16, weight: .heavy, design: .rounded))
-                .tracking(0.5)
+                .font(.system(size: 15, weight: .heavy, design: .rounded))
             Spacer()
         }
-        .foregroundStyle(.white.opacity(0.9))
+        .foregroundStyle(primaryText)
     }
 
     private var footer: some View {
-        Text(ShareCardModel.tagline)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(.white.opacity(0.55))
+        HStack(spacing: 6) {
+            LogoMark(color: accent).frame(width: 13, height: 13)
+            Text("Made with Photrail")
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundStyle(primaryText)
+            Text("· travel history, automatically")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(secondaryText)
+        }
     }
+
+    // MARK: - Shared building blocks
+
+    private func eyebrow(_ text: String) -> some View {
+        Text(text.uppercased())
+            .font(.system(size: 12, weight: .bold)).tracking(1.6)
+            .foregroundStyle(accent)
+    }
+
+    private var headlineText: some View {
+        Text(model.headline)
+            .font(.system(size: 52, weight: .black, design: .rounded))
+            .foregroundStyle(primaryText)
+            .lineLimit(3).minimumScaleFactor(0.5)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func statBand(_ items: [ShareCardModel.Stat]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                VStack(spacing: 3) {
+                    Text(item.value)
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundStyle(primaryText)
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                    Text(item.label.uppercased())
+                        .font(.system(size: 9, weight: .semibold)).tracking(0.6)
+                        .foregroundStyle(secondaryText)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: .infinity)
+                if index < items.count - 1 {
+                    Rectangle().fill(primaryText.opacity(0.15)).frame(width: 1, height: 32)
+                }
+            }
+        }
+        .padding(.vertical, 18).padding(.horizontal, 8)
+        .frame(maxWidth: .infinity)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(panelFill))
+    }
+
+    private func bar(_ slice: TravelPersonalityProfile.Slice) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(slice.category.emoji).font(.system(size: 18))
+                Text(slice.category.title)
+                    .font(.system(size: 15, weight: .semibold)).foregroundStyle(primaryText)
+                Spacer()
+                Text("\(Int(slice.percentage.rounded()))%")
+                    .font(.system(size: 15, weight: .bold).monospacedDigit()).foregroundStyle(primaryText)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(primaryText.opacity(0.14))
+                    Capsule().fill(accent)
+                        .frame(width: max(6, geo.size.width * CGFloat(slice.percentage / 100)))
+                }
+            }
+            .frame(height: 10)
+        }
+    }
+
+    private var eyebrowText: String {
+        switch model.type {
+        case .summary:     return "My travel map"
+        case .personality: return model.subheadline ?? "My travel personality"
+        case .wonders:     return "World wonders"
+        case .trip:        return "My trip"
+        }
+    }
+
+    // MARK: - Per-type content
 
     @ViewBuilder
     private var cardContent: some View {
@@ -113,82 +189,46 @@ struct ShareCardView: View {
         }
     }
 
-    // MARK: - Per-type content
-
-    private var headlineText: some View {
-        Text(model.headline)
-            .font(.system(size: 54, weight: .black, design: .rounded))
-            .foregroundStyle(.white)
-            .lineLimit(2)
-            .minimumScaleFactor(0.5)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
     private var summaryContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 22) {
             headlineText
-            HStack(spacing: 22) {
-                ForEach(model.supporting) { stat in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(stat.value)
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                        Text(stat.label)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.65))
-                    }
-                }
-            }
+            if !model.supporting.isEmpty { statBand(model.supporting) }
+            Spacer(minLength: 0)
         }
     }
 
     private var personalityContent: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            if let sub = model.subheadline {
-                Text(sub.uppercased())
-                    .font(.system(size: 13, weight: .bold))
-                    .tracking(1.5)
-                    .foregroundStyle(Self.accent)
-            }
+        VStack(alignment: .leading, spacing: 20) {
             headlineText
-            VStack(spacing: 12) {
-                ForEach(model.slices) { slice in
-                    HStack(spacing: 10) {
-                        Text(slice.category.emoji).font(.system(size: 20))
-                        Text(slice.category.title)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.9))
-                        Spacer()
-                        Text("\(Int(slice.percentage.rounded()))%")
-                            .font(.system(size: 16, weight: .bold).monospacedDigit())
-                            .foregroundStyle(.white)
-                    }
-                }
+            VStack(spacing: 14) {
+                ForEach(model.slices) { bar($0) }
             }
+            Spacer(minLength: 0)
         }
     }
 
     private var wondersContent: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: 18) {
             headlineText
             VStack(spacing: 10) {
                 ForEach(model.wonders) { badge in
                     HStack(spacing: 10) {
                         Text(badge.emoji)
-                            .font(.system(size: 20))
+                            .font(.system(size: 22))
                             .grayscale(badge.seen ? 0 : 1)
                             .opacity(badge.seen ? 1 : 0.4)
                         Text(badge.name)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white.opacity(badge.seen ? 0.95 : 0.5))
+                            .foregroundStyle(primaryText.opacity(badge.seen ? 0.95 : 0.5))
                             .lineLimit(1)
                         Spacer()
                         Image(systemName: badge.seen ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 16))
-                            .foregroundStyle(badge.seen ? Self.accent : .white.opacity(0.3))
+                            .foregroundStyle(badge.seen ? accent : primaryText.opacity(0.3))
                     }
                 }
             }
+            Spacer(minLength: 0)
         }
     }
 
@@ -199,29 +239,18 @@ struct ShareCardView: View {
                 headlineText
                 Text(trip.dateRange)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.8))
-                HStack(spacing: 22) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(trip.photoCount)")
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                        Text("Photos").font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.65))
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(trip.cities.count)")
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                        Text("Cities").font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.65))
-                    }
-                }
+                    .foregroundStyle(secondaryText)
+                statBand([
+                    .init(value: "\(trip.photoCount)", label: "Photos"),
+                    .init(value: "\(trip.cities.count)", label: trip.cities.count == 1 ? "City" : "Cities")
+                ])
                 if !trip.cities.isEmpty {
                     Text(trip.cities.prefix(5).joined(separator: " · "))
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(secondaryText)
                         .lineLimit(2)
                 }
+                Spacer(minLength: 0)
             }
         }
     }

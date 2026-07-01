@@ -36,6 +36,10 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photrail reads location metadata from your photos to map your travel history. Your photos never leave your device.</string>
 
+	<!-- Export compliance: only standard HTTPS is used (exempt) -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<!-- UI -->
 	<key>UIApplicationSceneManifest</key>
 	<dict>

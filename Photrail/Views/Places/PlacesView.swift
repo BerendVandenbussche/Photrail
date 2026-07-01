@@ -9,6 +9,7 @@ struct PlacesView: View {
     @State private var selectedCountry: CountryStat?
     @State private var selectedContinent: ContinentStat?
     @State private var selectedWonder: WonderStat?
+    @State private var showAddCountry = false
 
     private var stats: TravelStats { appVM.stats }
 
@@ -23,19 +24,24 @@ struct PlacesView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if stats.totalGeotaggedPhotos == 0 {
-                    ContentUnavailableView("Nothing here yet",
-                                           systemImage: "globe.europe.africa",
-                                           description: Text("Your places will appear as your photos are scanned."))
+                if stats.totalGeotaggedPhotos == 0 && appVM.manualCountries.isEmpty {
+                    ContentUnavailableView {
+                        Label("Nothing here yet", systemImage: "globe.europe.africa")
+                    } description: {
+                        Text("Your places will appear as your photos are scanned — or add countries you've visited by hand.")
+                    } actions: {
+                        Button("Add a country") { showAddCountry = true }
+                    }
                 } else {
                     content
                 }
             }
             .navigationTitle("Places")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showAddCountry) { ManualCountryPickerView() }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
-                                  trips: stats.trips.filter { $0.countryCode == country.id })
+                                  trips: stats.trips.filter { $0.countryCodes.contains(country.id) })
             }
             .sheet(item: $selectedContinent) { ContinentDetailView(stat: $0) }
             .sheet(item: $selectedWonder) { wonder in
@@ -93,12 +99,42 @@ struct PlacesView: View {
     private var countriesList: some View {
         let countries = stats.countries.sorted { $0.photoCount > $1.photoCount }
         return LazyVStack(spacing: 0) {
-            ForEach(countries) { country in
-                Button { selectedCountry = country } label: {
-                    CatalogRow(flag: country.flag, title: country.name,
-                               subtitle: "\(country.photoCount) photos · \(country.tripCount) \(country.tripCount == 1 ? "trip" : "trips")")
+            Button { showAddCountry = true } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 26)).foregroundStyle(.tint)
+                    Text("Add a country manually")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                    Spacer()
                 }
-                .buttonStyle(.plain)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            Divider().padding(.leading, 66)
+
+            ForEach(countries) { country in
+                let manual = appVM.isManualCountry(country.id)
+                HStack(spacing: 0) {
+                    Button { selectedCountry = country } label: {
+                        CatalogRow(flag: country.flag, title: country.name,
+                                   subtitle: manual
+                                       ? "Added manually"
+                                       : "\(country.photoCount) photos · \(country.tripCount) \(country.tripCount == 1 ? "trip" : "trips")",
+                                   showChevron: !manual)
+                    }
+                    .buttonStyle(.plain)
+                    if manual {
+                        Button { appVM.removeManualCountry(code: country.id) } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.red)
+                                .padding(.leading, 10)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
                 if country.id != countries.last?.id { Divider().padding(.leading, 66) }
             }
         }
@@ -108,8 +144,7 @@ struct PlacesView: View {
     // MARK: - Trips (grouped by year, newest first)
 
     private var tripsByYear: [(year: Int, trips: [Trip])] {
-        let away = stats.trips.filter { $0.countryCode != appVM.homeCountryCode }
-        let grouped = Dictionary(grouping: away) {
+        let grouped = Dictionary(grouping: stats.trips) {
             Calendar.current.component(.year, from: $0.startDate)
         }
         return grouped.keys.sorted(by: >).map { year in
@@ -134,11 +169,10 @@ struct PlacesView: View {
                             .padding(.horizontal, 20).padding(.bottom, 6)
                         ForEach(group.trips) { trip in
                             NavigationLink { TripDetailView(trip: trip) } label: {
-                                CatalogRow(flag: trip.flag, title: trip.country,
-                                           subtitle: "\(trip.dateRangeText) · \(trip.photoCount) photos")
+                                TripRow(trip: trip)
                             }
                             .buttonStyle(.plain)
-                            if trip.id != group.trips.last?.id { Divider().padding(.leading, 66) }
+                            if trip.id != group.trips.last?.id { Divider().padding(.leading, 78) }
                         }
                     }
                 }
@@ -203,11 +237,33 @@ struct PlacesView: View {
 
 // MARK: - Rows
 
+private struct TripRow: View {
+    let trip: Trip
+
+    var body: some View {
+        HStack(spacing: 14) {
+            FlagCluster(flags: trip.countries.map(\.flag), size: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(trip.displayName)
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.primary).lineLimit(1)
+                Text("\(trip.dateRangeText) · \(trip.photoCount) photos")
+                    .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+    }
+}
+
 private struct CatalogRow: View {
     let flag: String
     let title: String
     let subtitle: String
     var dimmed: Bool = false
+    var showChevron: Bool = true
 
     var body: some View {
         HStack(spacing: 14) {
@@ -217,7 +273,9 @@ private struct CatalogRow: View {
                 Text(subtitle).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            if showChevron {
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }
         }
         .padding(.vertical, 10)
         .contentShape(Rectangle())

@@ -3,8 +3,14 @@ import Foundation
 /// Pure transformation: [GeoPhoto] → TravelStats.
 /// No side effects, fully testable, runs synchronously on whatever actor calls it.
 struct StatisticsEngine: Sendable {
-    /// - Parameter homeCountryCode: excluded from trip detection so home life isn't counted as trips.
-    func compute(from photos: [GeoPhoto], homeCountryCode: String? = nil) -> TravelStats {
+    /// - Parameters:
+    ///   - homeCountryCode: excluded from trip detection so home life isn't counted as trips.
+    ///   - manualCountries: countries the user added by hand (no photos) — merged in so the
+    ///     country/continent stats stay accurate even after the photos are deleted.
+    func compute(from photos: [GeoPhoto],
+                 homeCountryCode: String? = nil,
+                 homeCoordinate: GeoPhoto.Coordinate? = nil,
+                 manualCountries: [ManualCountry] = []) -> TravelStats {
         let geocoded = photos.filter { $0.isGeocoded && $0.country != nil }
 
         // --- Countries ---
@@ -16,18 +22,36 @@ struct StatisticsEngine: Sendable {
             }
             countryMap[code]?.add(photo)
         }
-        // --- Trips (streaks of photos within one country, excluding home) ---
-        let trips = TripDetector().detect(from: geocoded, homeCountryCode: homeCountryCode)
+        // --- Trips (continuous journeys away from home; may span countries) ---
+        let trips = TripDetector().detect(from: geocoded,
+                                          homeCoordinate: homeCoordinate,
+                                          homeCountryCode: homeCountryCode)
+        // A country's trip count = number of trips that included it.
         var tripCounts: [String: Int] = [:]
-        for trip in trips { tripCounts[trip.countryCode, default: 0] += 1 }
+        for trip in trips {
+            for code in Set(trip.countryCodes) { tripCounts[code, default: 0] += 1 }
+        }
 
-        let countries = countryMap.values
+        var countries = countryMap.values
             .map { accumulator -> CountryStat in
                 var stat = accumulator.build()
                 stat.tripCount = max(1, tripCounts[stat.id] ?? 1)
                 return stat
             }
-            .sorted { $0.photoCount > $1.photoCount }
+
+        // Merge manually-added, photo-less countries (only codes we don't already have).
+        for manual in manualCountries where countryMap[manual.code] == nil {
+            var stat = CountryStat(
+                id: manual.code, name: manual.name, flag: manual.flag, photoCount: 0,
+                cities: [], firstVisit: .distantPast, lastVisit: .distantPast, photoIDs: [],
+                representativeCoordinate: .init(latitude: manual.latitude ?? 0,
+                                                longitude: manual.longitude ?? 0)
+            )
+            stat.tripCount = 0
+            countries.append(stat)
+        }
+
+        countries.sort { $0.photoCount > $1.photoCount }
 
         // --- Cities ---
         var cityMap: [String: CityAccumulator] = [:]

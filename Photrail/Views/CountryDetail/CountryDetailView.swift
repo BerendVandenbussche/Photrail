@@ -213,6 +213,7 @@ struct CountryDetailView: View {
     }
 
     private var dateRange: String {
+        if country.firstVisit == .distantPast { return "Added manually" }
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM yyyy"
         return "\(formatter.string(from: country.firstVisit)) – \(formatter.string(from: country.lastVisit))"

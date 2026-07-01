@@ -45,7 +45,7 @@ struct TripDetailView: View {
             }
             .padding(.bottom, 8)
         }
-        .navigationTitle("\(trip.flag) \(trip.country)")
+        .navigationTitle(trip.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -71,8 +71,8 @@ struct TripDetailView: View {
                                     Color(red: 0.33, green: 0.20, blue: 0.52)],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
             if coverImage == nil {
-                Text(trip.flag)
-                    .font(.system(size: 84))
+                Text(trip.isMultiCountry ? trip.flagsLine : trip.flag)
+                    .font(.system(size: trip.isMultiCountry ? 52 : 84))
                     .opacity(0.35)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -93,9 +93,10 @@ struct TripDetailView: View {
                 Text(trip.dateRangeText.uppercased())
                     .font(.system(size: 12, weight: .bold)).tracking(1.2)
                     .foregroundStyle(.white.opacity(0.85))
-                Text("\(trip.flag) \(trip.country)")
+                Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(trip.displayName)" : "\(trip.flag) \(trip.country)")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
+                    .lineLimit(2).minimumScaleFactor(0.6)
             }
             .padding(20)
         }
@@ -113,6 +114,9 @@ struct TripDetailView: View {
             items.append(("arrow.triangle.swap", "\(Int(trip.routeDistanceKm).formatted()) km", "Traveled"))
         }
         items.append(("calendar", trip.durationText, "Duration"))
+        if trip.isMultiCountry {
+            items.append(("globe.europe.africa", "\(trip.countries.count)", "Countries"))
+        }
         items.append(("building.2", "\(trip.cities.count)", trip.cities.count == 1 ? "City" : "Cities"))
         items.append(("photo.stack", "\(trip.photoCount)", "Photos"))
         if let peak = trip.highestAltitudeText, (trip.highestAltitude ?? 0) >= 1000 {
@@ -156,7 +160,8 @@ struct TripDetailView: View {
                             .foregroundStyle(.tint)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(stop.name).font(.subheadline.weight(.semibold))
+                        Text(trip.isMultiCountry ? "\(stop.flag) \(stop.name)" : stop.name)
+                            .font(.subheadline.weight(.semibold))
                         Text(dateLabel(stop.firstVisit))
                             .font(.caption).foregroundStyle(.secondary)
                     }

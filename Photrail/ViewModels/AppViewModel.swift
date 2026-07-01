@@ -43,6 +43,15 @@ final class AppViewModel {
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
 
+    /// Countries the user added by hand (photos deleted / never on device). Persisted.
+    var manualCountries: [ManualCountry] = [] {
+        didSet {
+            if let data = try? JSONEncoder().encode(manualCountries) {
+                UserDefaults.standard.set(data, forKey: "manualCountries")
+            }
+        }
+    }
+
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .today
 
@@ -109,7 +118,6 @@ final class AppViewModel {
         let homeLocation = CLLocation(latitude: home.latitude, longitude: home.longitude)
 
         let best = stats.trips
-            .filter { $0.countryCode != homeCountryCode }
             .map { trip -> (Trip, Double) in
                 let loc = CLLocation(latitude: trip.coordinate.latitude, longitude: trip.coordinate.longitude)
                 return (trip, homeLocation.distance(from: loc) / 1000)
@@ -170,6 +178,10 @@ final class AppViewModel {
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
         }
+        if let data = UserDefaults.standard.data(forKey: "manualCountries"),
+           let decoded = try? JSONDecoder().decode([ManualCountry].self, from: data) {
+            self.manualCountries = decoded
+        }
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
         // and will redirect to .permissionDenied if access was revoked.
@@ -190,6 +202,41 @@ final class AppViewModel {
     }
 
     // MARK: - Entry points
+
+    // MARK: - Manual countries
+
+    /// Add a country by hand (for trips whose photos are gone), then refresh stats.
+    func addManualCountry(code: String) {
+        let code = code.uppercased()
+        guard !manualCountries.contains(where: { $0.code == code }) else { return }
+        Task {
+            let coord = await offlineGeocoder.representativeCoordinate(for: code)
+            manualCountries.append(ManualCountry(
+                code: code,
+                name: CountryCatalog.name(for: code),
+                flag: CountryCatalog.flag(for: code),
+                latitude: coord?.latitude, longitude: coord?.longitude
+            ))
+            await refreshStatsWithManual()
+        }
+    }
+
+    func removeManualCountry(code: String) {
+        manualCountries.removeAll { $0.code == code }
+        Task { await refreshStatsWithManual() }
+    }
+
+    /// True when a country code came from a manual entry (no photos).
+    func isManualCountry(_ code: String) -> Bool {
+        manualCountries.contains { $0.code == code }
+    }
+
+    private func refreshStatsWithManual() async {
+        let photos = (try? await store.allPhotos()) ?? []
+        stats = statsEngine.compute(from: photos, homeCountryCode: homeCountryCode,
+                                    homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+        publishWidgetStats()
+    }
 
     func startOnboarding() {
         if hasSeenOnboarding {
@@ -248,7 +295,9 @@ final class AppViewModel {
         }
         guard !yearPhotos.isEmpty else { return .empty(year: year) }
 
-        let yearStats = statsEngine.compute(from: yearPhotos, homeCountryCode: homeCountryCode)
+        // Manual countries are intentionally excluded from a year recap (they have no date).
+        let yearStats = statsEngine.compute(from: yearPhotos, homeCountryCode: homeCountryCode,
+                                            homeCoordinate: homeCoordinate)
 
         var wonderByPhoto: [String: String] = [:]
         for wonder in yearStats.wonders {
@@ -408,7 +457,7 @@ final class AppViewModel {
         // Load stored stats immediately so the dashboard isn't empty
         Task {
             if let stored = try? await store.allPhotos(), !stored.isEmpty {
-                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode)
+                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
                 memories = MemoriesEngine().memories(from: stored, homeCoordinate: homeCoordinate,
                                                      homeCountryCode: homeCountryCode)
                 publishWidgetStats()
@@ -471,7 +520,7 @@ final class AppViewModel {
 
             // Seed the set of countries already known so new-country detection starts clean.
             let stored = (try? await store.allPhotos()) ?? []
-            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode)
+            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
             scanSeenCountryCodes = Set(stored.compactMap { $0.isGeocoded ? $0.countryCode : nil })
 
             // Phase 2b: resolve countries OFFLINE for new photos (instant, no network).
@@ -533,7 +582,7 @@ final class AppViewModel {
             try await store.applyCountries(rows)
 
             processed += chunk.count
-            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode)
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
             let progress = Double(processed) / Double(total)
             await MainActor.run {
                 guard self.scanGeneration == generation else { return }
@@ -550,6 +599,8 @@ final class AppViewModel {
     /// Phase 3 — optional city enrichment via CLGeocoder (rate-limited).
     private func resolveCities(generation: Int, statsEngine: StatisticsEngine, homeCode: String?) async throws {
         let store = self.store
+        let manual = manualCountries   // capture copies; the batch closure runs off the main actor
+        let home = homeCoordinate
         let pending = (try? await store.photosNeedingCity()) ?? []
         guard !pending.isEmpty else { return }
 
@@ -560,7 +611,7 @@ final class AppViewModel {
             try? await store.applyCity(id: id, city: result.city, hasLocality: result.hasLocality)
             var refreshed: TravelStats?
             if done % 25 == 0 || done == total {
-                refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode)
+                refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: home, manualCountries: manual)
             }
             let snapshot = refreshed
             await MainActor.run {
@@ -572,7 +623,7 @@ final class AppViewModel {
 
         try Task.checkCancellation()
         let finalPhotos = (try? await store.allPhotos()) ?? []
-        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode)
+        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
         memories = MemoriesEngine().memories(from: finalPhotos, homeCoordinate: homeCoordinate,
                                              homeCountryCode: homeCode)
     }

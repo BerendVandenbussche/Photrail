@@ -6,6 +6,9 @@ enum ContinentMapper {
         map[countryCode.uppercased()]
     }
 
+    /// Every ISO country code the app knows — the universe for manual country entry.
+    static var allCodes: [String] { Array(map.keys) }
+
     /// Total number of countries the mapper knows for a continent — the denominator
     /// for "how much of this continent have I seen".
     static func totalCountries(in continent: Continent) -> Int {

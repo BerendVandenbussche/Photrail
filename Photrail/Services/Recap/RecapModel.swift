@@ -121,8 +121,8 @@ extension RecapModel {
         let favorite = stats.countries
             .filter { $0.id != homeCountryCode }
             .max { $0.photoCount < $1.photoCount }
-        // Trips away from home — your home country isn't really a "trip".
-        let awayTrips = stats.trips.filter { $0.countryCode != homeCountryCode }
+        // Every detected trip is already a journey away from home town.
+        let awayTrips = stats.trips
         let biggest = awayTrips.max { $0.photoCount < $1.photoCount }
 
         // Superlatives
@@ -134,7 +134,7 @@ extension RecapModel {
         let longest = awayTrips.max {
             ($0.endDate.timeIntervalSince($0.startDate)) < ($1.endDate.timeIntervalSince($1.startDate))
         }
-        let longestTripText = longest.map { "\($0.flag) \($0.country) · \($0.durationText)" }
+        let longestTripText = longest.map { "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.displayName) · \($0.durationText)" }
 
         // Wonders & landmarks actually seen this year, official ones first.
         let seenWonders = stats.wonders
@@ -191,7 +191,7 @@ extension RecapModel {
             topSlices: Array((profile?.visibleSlices ?? []).prefix(3)),
             favoriteCountryName: favorite?.name,
             favoriteCountryFlag: favorite?.flag,
-            biggestTripTitle: biggest.map { "\($0.flag) \($0.country)" },
+            biggestTripTitle: biggest.map { "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.displayName)" },
             biggestTripSubtitle: biggest.map { "\($0.photoCount) photos · \($0.dateRangeText)" },
             pins: stats.countries
                 .map { $0.representativeCoordinate }

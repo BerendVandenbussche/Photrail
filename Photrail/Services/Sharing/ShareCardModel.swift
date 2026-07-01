@@ -128,14 +128,14 @@ extension ShareCardModel {
 
         case .trip:
             let card = trip.map {
-                TripCard(title: "\($0.flag) \($0.country)",
+                TripCard(title: "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.displayName)",
                          dateRange: $0.dateRangeText,
                          photoCount: $0.photoCount,
                          cities: $0.cities)
             }
             return ShareCardModel(
                 type: .trip,
-                headline: trip.map { "\($0.country)\nTrip" } ?? "",
+                headline: trip.map { $0.isMultiCountry ? $0.displayName : "\($0.country)\nTrip" } ?? "",
                 subheadline: nil,
                 supporting: [], slices: [], wonders: [], wondersSeen: 0, wondersTotal: 0,
                 trip: card,
