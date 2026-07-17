@@ -6,8 +6,11 @@ import Photos
 struct TripDetailView: View {
     let trip: Trip
 
+    @Environment(AppViewModel.self) private var appVM
     @State private var coverImage: UIImage?
     @State private var showSharePreview = false
+    @State private var note: String = ""
+    @State private var showNoteEditor = false
 
     var body: some View {
         ScrollView {
@@ -15,6 +18,8 @@ struct TripDetailView: View {
                 header
 
                 statsSection
+
+                notesSection
 
                 if !trip.stops.isEmpty {
                     TripMapView(stops: trip.stops)
@@ -46,7 +51,48 @@ struct TripDetailView: View {
         .sheet(isPresented: $showSharePreview) {
             TripSharePreview(trip: trip, cover: coverImage)
         }
+        .sheet(isPresented: $showNoteEditor) {
+            TripNoteEditor(text: note) { saved in
+                note = saved
+                TripNoteStore.setNote(saved, for: trip.id)
+            }
+        }
         .task { await loadCover() }
+        .onAppear { note = TripNoteStore.note(for: trip.id) }
+    }
+
+    // MARK: - Notes
+
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: "Notes").padding(.horizontal, 20)
+
+            Button { showNoteEditor = true } label: {
+                if note.isEmpty {
+                    HStack(spacing: 10) {
+                        Image(systemName: "square.and.pencil").foregroundStyle(.tint)
+                        Text("Add a note").foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .padding(AppCard.padding)
+                    .card()
+                } else {
+                    HStack(alignment: .top, spacing: 12) {
+                        Text(appVM.profileEmoji)
+                            .font(.system(size: 24))
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Color.accentColor.opacity(0.15)))
+                        Text(note)
+                            .font(.subheadline).foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(AppCard.padding)
+                    .card()
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+        }
     }
 
     // MARK: - Header (hero cover)
@@ -291,6 +337,35 @@ private struct TripSharePreview: View {
             opaque: true
         ) {
             SharePresenter.present([image])
+        }
+    }
+}
+
+// MARK: - Note editor
+
+private struct TripNoteEditor: View {
+    @State var text: String
+    let onSave: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $text)
+                    .padding(12)
+                if text.isEmpty {
+                    Text("Write a note about this trip…")
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 17).padding(.vertical, 20)
+                        .allowsHitTesting(false)
+                }
+            }
+            .navigationTitle("Note")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { onSave(text); dismiss() } }
+            }
         }
     }
 }
