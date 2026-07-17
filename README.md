@@ -1,6 +1,20 @@
-# Photrail
+<div align="center">
 
-Photrail automatically turns your photo library into a beautiful travel map. It reads the GPS metadata already embedded in your photos — no manual tagging, no accounts, no cloud.
+<img src=".github/assets/banner.svg" alt="Photrail — Your travel history, automatically." width="100%" />
+
+<br />
+
+**Your travel history, automatically.**
+
+Photrail turns your photo library into a beautiful travel map. It reads the GPS metadata already embedded in your photos — no manual tagging, no accounts, no cloud.
+
+![Platform](https://img.shields.io/badge/platform-iOS%2018%2B-0b0e1f?style=flat-square&logo=apple)
+![Swift](https://img.shields.io/badge/Swift-SwiftUI-4f45e6?style=flat-square&logo=swift&logoColor=white)
+![Privacy](https://img.shields.io/badge/privacy-100%25%20on--device-8c4dd9?style=flat-square)
+![License](https://img.shields.io/badge/license-GPLv3-a3a6ff?style=flat-square)
+[![Website](https://img.shields.io/badge/website-photrail.berendvandenbussche.be-38216b?style=flat-square)](https://photrail.berendvandenbussche.be)
+
+</div>
 
 ---
 
@@ -213,3 +227,15 @@ Conventions:
 ## License
 
 GNU General Public License v3.0 — see [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+
+<img src=".github/assets/logo.svg" alt="Photrail" width="52" />
+
+**Photrail** — Your travel history, automatically.
+
+[photrail.berendvandenbussche.be](https://photrail.berendvandenbussche.be)
+
+</div>

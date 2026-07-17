@@ -11,6 +11,7 @@ struct TripDetailView: View {
     @State private var showSharePreview = false
     @State private var note: String = ""
     @State private var showNoteEditor = false
+    @State private var selectedWonder: WonderStat?
 
     var body: some View {
         ScrollView {
@@ -59,6 +60,7 @@ struct TripDetailView: View {
                 TripNoteStore.setNote(saved, for: trip.id)
             }
         }
+        .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
         .task { await loadCover() }
         .onAppear { note = TripNoteStore.note(for: trip.id) }
     }
@@ -226,6 +228,11 @@ struct TripDetailView: View {
 
     // MARK: - Wonders
 
+    /// The full wonder stat (for the detail page) matching a trip's lightweight hit.
+    private func wonderStat(for id: String) -> WonderStat? {
+        appVM.stats.wonders.first { $0.wonder.id == id }
+    }
+
     private var wondersSectionTitle: LocalizedStringKey {
         let hasWonder = trip.wonders.contains { $0.isOfficial }
         let hasLandmark = trip.wonders.contains { !$0.isOfficial }
@@ -244,20 +251,29 @@ struct TripDetailView: View {
                 .padding(.horizontal, 20)
 
             ForEach(trip.wonders) { wonder in
-                HStack(spacing: 14) {
-                    if let id = wonder.photoID {
-                        TappablePhotoThumbnail(assetID: id, size: 48, cornerRadius: 10)
-                    } else {
-                        Text(wonder.emoji)
-                            .font(.system(size: 30))
-                            .frame(width: 48, height: 48)
-                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                Button { selectedWonder = wonderStat(for: wonder.id) } label: {
+                    HStack(spacing: 14) {
+                        if let id = wonder.photoID {
+                            PhotoThumbnail(assetID: id, size: 48, cornerRadius: 10)
+                        } else {
+                            Text(wonder.emoji)
+                                .font(.system(size: 30))
+                                .frame(width: 48, height: 48)
+                                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(wonder.name).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                            Text(wonder.isOfficial ? "New 7 Wonder" : "Landmark")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                     }
-                    Text(wonder.name).font(.subheadline.weight(.semibold))
-                    Spacer()
-                    Text(wonder.emoji).font(.system(size: 20))
+                    .padding(.horizontal, 20)
+                    .contentShape(Rectangle())
                 }
-                .padding(.horizontal, 20)
+                .buttonStyle(.plain)
+                .disabled(wonderStat(for: wonder.id) == nil)
                 if wonder.id != trip.wonders.last?.id {
                     Divider().padding(.leading, 76)
                 }
