@@ -31,6 +31,42 @@ enum NotificationService {
         )
         try? await center.add(request)
     }
+
+    /// Nudge that a recent trip is ready to relive/share. Delivered soon.
+    static func notifyTripReady(tripID: String, flag: String, country: String) async {
+        guard await isAuthorized() else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "\(flag) Your \(country) trip is ready"
+        content.body = "Relive your journey and share it ✈️"
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "trip-ready-\(tripID)", content: content, trigger: nil)
+        try? await UNUserNotificationCenter.current().add(request)
+    }
+
+    /// Schedule the "Year in Travel is ready" nudge for Jan 2 (7pm) — a calm day when
+    /// people are back and reflecting, not lost in New Year's Eve. Delivered soon if
+    /// that moment has already passed.
+    static func scheduleYearRecap(year: Int) async {
+        guard await isAuthorized() else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "✈️ Your \(year) Year in Travel is ready"
+        content.body = "See everywhere you went this year — and share your recap."
+        content.sound = .default
+
+        var comps = DateComponents()
+        comps.year = year + 1; comps.month = 1; comps.day = 2; comps.hour = 19; comps.minute = 0
+        let target = Calendar.current.date(from: comps) ?? Date()
+        let trigger: UNNotificationTrigger? = target > Date()
+            ? UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+            : nil
+        let request = UNNotificationRequest(identifier: "year-recap-\(year)", content: content, trigger: trigger)
+        try? await UNUserNotificationCenter.current().add(request)
+    }
+
+    private static func isAuthorized() async -> Bool {
+        let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        return status == .authorized || status == .provisional
+    }
 }
 
 /// Lets "new country" notifications appear as a banner even while the app is foregrounded.

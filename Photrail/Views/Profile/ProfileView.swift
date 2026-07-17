@@ -184,12 +184,26 @@ struct ProfileView: View {
     }
 
     private var settingsCard: some View {
-        VStack(spacing: 0) {
+        @Bindable var appVM = appVM
+        return VStack(spacing: 0) {
             Button { showHomePicker = true } label: {
                 row(icon: "house.fill", title: "Home",
                     detail: appVM.homeDisplayName ?? "Not set")
             }
             Divider().padding(.leading, 52)
+
+            HStack(spacing: 14) {
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .frame(width: 24)
+                Text("Travel notifications").foregroundStyle(.primary)
+                Spacer()
+                Toggle("", isOn: $appVM.travelNudgesEnabled).labelsHidden()
+            }
+            .padding(14)
+            Divider().padding(.leading, 52)
+
             Button { showReindexConfirm = true } label: {
                 row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
             }

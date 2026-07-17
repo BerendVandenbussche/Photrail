@@ -55,6 +55,14 @@ final class AppViewModel {
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .today
 
+    /// Master switch for all travel nudges (new-country, trip-ready, year recap). Default on.
+    var travelNudgesEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(travelNudgesEnabled, forKey: "travelNudgesEnabled")
+            if travelNudgesEnabled { Task { await NotificationService.requestAuthorization() } }
+        }
+    }
+
     /// Emoji the user picked as their profile avatar.
     var profileEmoji: String {
         didSet { UserDefaults.standard.set(profileEmoji, forKey: "profileEmoji") }
@@ -181,6 +189,9 @@ final class AppViewModel {
         if let data = UserDefaults.standard.data(forKey: "manualCountries"),
            let decoded = try? JSONDecoder().decode([ManualCountry].self, from: data) {
             self.manualCountries = decoded
+        }
+        if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
+            self.travelNudgesEnabled = enabled
         }
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
@@ -628,6 +639,69 @@ final class AppViewModel {
                                              homeCountryCode: homeCode)
     }
 
+    // MARK: - Travel nudges
+
+    private let lastNudgeDateKey = "lastNudgeDate"
+    private let notifiedTripIDsKey = "notifiedTripIDs"
+    private let notifiedRecapYearsKey = "notifiedRecapYears"
+
+    /// Decide, after a scan, whether to send a (single) tasteful nudge. Conservative:
+    /// at most one reactive nudge per 7 days, each thing announced only once.
+    private func runNudges() async {
+        guard travelNudgesEnabled else { return }
+        await maybeNudgeTripReady()
+        await maybeScheduleYearRecap()
+    }
+
+    /// "Your trip is ready" once you're home from a notable, recent trip.
+    private func maybeNudgeTripReady() async {
+        // Global 7-day cap on reactive nudges.
+        if let last = UserDefaults.standard.object(forKey: lastNudgeDateKey) as? Date,
+           Date().timeIntervalSince(last) < 7 * 86_400 { return }
+
+        var notified = Set(UserDefaults.standard.stringArray(forKey: notifiedTripIDsKey) ?? [])
+        let now = Date()
+        // A trip that ended a couple days ago (likely home), still fresh, and worth sharing.
+        let candidate = stats.trips.first { trip in
+            let daysSinceEnd = now.timeIntervalSince(trip.endDate) / 86_400
+            return daysSinceEnd >= 2 && daysSinceEnd <= 14
+                && trip.photoCount >= 12
+                && !notified.contains(trip.id)
+        }
+        guard let trip = candidate else { return }
+
+        notified.insert(trip.id)
+        UserDefaults.standard.set(Array(notified), forKey: notifiedTripIDsKey)
+        UserDefaults.standard.set(now, forKey: lastNudgeDateKey)
+        await NotificationService.notifyTripReady(tripID: trip.id, flag: trip.flag, country: trip.displayName)
+    }
+
+    /// Around year-end, schedule the "Year in Travel is ready" nudge for Jan 2
+    /// (once per year, only if travelled). Covers December openers (schedules ahead)
+    /// and early-January openers who missed December (delivered soon).
+    private func maybeScheduleYearRecap() async {
+        let cal = Calendar.current
+        let now = Date()
+        let month = cal.component(.month, from: now)
+        let day = cal.component(.day, from: now)
+        let currentYear = cal.component(.year, from: now)
+
+        // The year the recap is about: this year in December, last year in early January.
+        let recapYear: Int?
+        if month == 12 { recapYear = currentYear }
+        else if month == 1 && day <= 7 { recapYear = currentYear - 1 }
+        else { recapYear = nil }
+        guard let year = recapYear else { return }
+
+        var years = Set(UserDefaults.standard.stringArray(forKey: notifiedRecapYearsKey) ?? [])
+        guard !years.contains(String(year)) else { return }
+        guard stats.trips.contains(where: { cal.component(.year, from: $0.startDate) == year }) else { return }
+
+        years.insert(String(year))
+        UserDefaults.standard.set(Array(years), forKey: notifiedRecapYearsKey)
+        await NotificationService.scheduleYearRecap(year: year)
+    }
+
     /// Fire a "new country" notification when a photo taken *today* is the first
     /// we've ever seen in its country. Processing in ascending date order means a
     /// country visited earlier already seeded `scanSeenCountryCodes`, so only a
@@ -640,7 +714,8 @@ final class AppViewModel {
         let alreadySeen = scanSeenCountryCodes.contains(code)
         scanSeenCountryCodes.insert(code)
 
-        guard !alreadySeen,                                  // first sighting in this scan
+        guard travelNudgesEnabled,                           // master switch
+              !alreadySeen,                                  // first sighting in this scan
               Calendar.current.isDateInToday(photo.date),    // taken today
               !notifiedCountryCodes.contains(code)           // not already notified
         else { return }
@@ -704,6 +779,7 @@ final class AppViewModel {
 
     private func completeScan() async {
         publishWidgetStats()
+        await runNudges()
         await recomputePersonality()
         withAnimation { scanProgress = .complete }
         try? await Task.sleep(nanoseconds: 3_000_000_000)
