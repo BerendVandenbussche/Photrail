@@ -261,19 +261,10 @@ private struct TripSharePreview: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                Spacer(minLength: 8)
-
-                let scale: CGFloat = 0.72
-                let size = TripShareCardView.canvasSize
-                TripShareCardView(trip: trip, cover: cover)
-                    .frame(width: size.width, height: size.height)
-                    .scaleEffect(scale)
-                    .frame(width: size.width * scale, height: size.height * scale)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.25), radius: 18, y: 8)
-
-                Spacer(minLength: 8)
+            VStack(spacing: 16) {
+                SharePreviewCanvas(size: TripShareCardView.canvasSize) {
+                    TripShareCardView(trip: trip, cover: cover)
+                }
 
                 Button { share() } label: {
                     Label("Share", systemImage: "square.and.arrow.up")

@@ -54,6 +54,20 @@ struct ProfileView: View {
             }
             .navigationTitle("Me")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if !stats.trips.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { CalendarView(trips: stats.trips) } label: {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.tint)
+                                .frame(width: 34, height: 34)
+                                .background(Circle().fill(Color.accentColor.opacity(0.15)))
+                        }
+                        .accessibilityLabel("Travel Calendar")
+                    }
+                }
+            }
             .sheet(isPresented: $showEmojiPicker) { EmojiPickerView() }
             .sheet(isPresented: $showHomePicker) { HomeLocationView() }
             .sheet(item: $yearRecap) { recap in RecapView(recap: recap) }

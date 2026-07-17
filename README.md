@@ -13,12 +13,14 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 - **Trip detail** — Tap any trip for a dedicated page: a Vision‑curated hero cover photo, a MapKit map with a numbered pin per city joined by a line in visit order, a key‑stats row (distance traveled, duration, countries, cities, photos, highest point), an itinerary (with per‑stop flags across borders), wonders & landmarks seen on that trip, and the trip's photos — with a live share‑card preview before sharing
 - **Manual countries** — Deleted the photos for a trip? Add a country by hand (Places → Countries) so your map and stats stay accurate. Manual entries count toward totals and appear on the map, but can't produce photo‑based share cards
 - **On This Day** — Resurfaces photos taken on today's calendar day in past years ("5 years ago · 🇵🇹 Lisbon"), away from home; tap to see that day's photos. Excludes everyday photos within 50 km of home
+- **Travel Calendar** — A month grid (Me tab) with a flag on every day you were on a trip — the right country's flag per day for multi‑country journeys. Tap a day to open that trip; share any month as a branded card
+- **World Wonders progress** — A Today‑tab card showing how many of the New 7 Wonders you've photographed ("3 of 7") with a flag row + progress bar, once you've seen at least one; a country's detail page also lists the wonders you've seen there
 - **Full‑screen photo viewer** — Tap any photo in a country or trip to open it full‑screen with pinch / double‑tap zoom
 - **Most visited countries** — Countries ranked by number of distinct trips
 - **Furthest from home** — Set a home city/country in Settings and see which trip took you furthest away
 - **World Wonders & Landmarks** — Detects, by location, which of the New 7 Wonders and other famous landmarks you've photographed; tap any to see your photos of it
 - **Travel Personality** — An on‑device profile of your travel style (Urban / Coastal / Mountain / Nature / Culture / Transit / Adventure) as percentages, with a dominant type. Daily‑life photos within 50 km of home are excluded so the profile reflects travel
-- **Me tab** — A profile page with an emoji avatar, your lifetime snapshot, travel personality, home location, reindex, and the Recaps archive
+- **Me tab** — A profile page with an emoji avatar, your lifetime snapshot, travel personality, home location, reindex, the Travel Calendar, and the Recaps archive
 - **Year in Travel recap** — A paged, Spotify‑Wrapped‑style story (distance with relatable comparisons, most‑photographed country, chronological route map, first‑ever‑visited countries, personality, wonders & landmarks seen, biggest trip, highest peak, superlatives, Vision‑curated "best shots", year summary, hero finale). **Every slide is individually shareable** as its own branded card; the finale also exports light / dark / transparent themes. The finale shows a year‑specific stat set (new countries, highest peak, distance) and a labelled **Travel Score** tier (Getaway → Wanderer → Explorer → Adventurer → Globetrotter)
 - **Vision‑curated best shots** — On‑device image aesthetics + scene classification pick the year's most beautiful photos, matched to your personality and time‑spaced, skipping screenshots and people/pet shots
 - **New‑country notifications** — When a photo taken *today* is your first ever in a country, you get a "Welcome to …" notification (works in the background)
@@ -77,11 +79,13 @@ Photrail/
 │   ├── CountryCatalog.swift            All countries (name + flag) for manual entry
 │   ├── StatisticsEngine.swift          Pure [GeoPhoto] → TravelStats transformation
 │   ├── MemoriesEngine.swift            Pure [GeoPhoto] → "On This Day" memories
+│   ├── TripCalendar.swift              Pure [Trip] → per-day flags for a month
+│   ├── TripCoverStore.swift            Caches each trip's curated hero photo
 │   ├── NotificationService.swift       Local "new country" notifications
 │   ├── BackgroundTaskService.swift     BGProcessingTask scheduling and execution
 │   ├── TravelPersonality/              Pure scoring engine (category → score → profile)
 │   ├── Recap/                          Year recap model, travel title + travel score
-│   └── Sharing/                        Share cards (templates, recap, collage, trip), renderer, presenter
+│   └── Sharing/                        Share cards (templates, recap, collage, trip, calendar), renderer, presenter
 ├── ViewModels/
 │   ├── AppViewModel.swift              @Observable root state + scan pipeline
 │   └── CountryDetailViewModel.swift    PHCachingImageManager for photo grids
@@ -96,6 +100,7 @@ Photrail/
 │   │                                   + full-screen zoomable photo viewer
 │   ├── TripDetail/                     Hero cover + trip map + stats + itinerary + wonders
 │   │                                   + photos + share-card preview
+│   ├── Calendar/                       Travel calendar: month grid of trip-day flags + share
 │   ├── ContinentDetail/               Per-continent country list
 │   ├── Wonders/                        Wonders & landmarks list + mini map + photo grid
 │   ├── Recap/                          Multi-slide Year in Travel story + hero finale
@@ -104,7 +109,8 @@ Photrail/
 ├── Components/                         StatCard, SectionHeader, PhotoThumbnail, ScanBanner,
 │                                       LogoView (brand mark), MiniMapDots, JourneyMapView,
 │                                       TripMapView (pins + route line), LocationMiniMap,
-│                                       FlowLayout, CardStyle (shared card modifier)
+│                                       FlowLayout, CardStyle (shared card modifier), FlagCluster,
+│                                       DetailHeader, PhotoGridSection, TappablePhotoThumbnail
 └── Shared/
     └── WidgetSharedStats.swift         App Group snapshot (member of app + widget targets)
 
@@ -181,6 +187,7 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 - **Avatar** — pick an emoji as your profile picture.
 - **Travel personality** + lifetime snapshot (countries / cities / continents / trips).
 - **Home** — pick a country and optionally a city. Used for the furthest‑trip calculation, as the trip‑detection boundary (a photo within 50 km of home ends a trip), and to exclude everyday photos within 50 km of home from your travel personality.
+- **Travel Calendar** — a month grid with a flag on every trip day; tap a day to open the trip, or share the month as a branded card.
 - **Reindex photo library** — rebuilds travel history from scratch. Use it after changing the location or date of photos that were already scanned (a normal incremental scan keeps the original data because the asset id is unchanged), or to backfill altitude onto previously scanned photos.
 - **Recaps** — archive of every year with travel; the current year also has a dedicated entry on the dashboard.
 
