@@ -1,6 +1,31 @@
 import Foundation
 import CoreLocation
 
+/// A light "vibe" for a trip, shown as a badge. Titles are localized for the app.
+enum TripType: Sendable {
+    case cityBreak, roadTrip, mountains, culture, getaway
+
+    var emoji: String {
+        switch self {
+        case .cityBreak: return "🏙"
+        case .roadTrip:  return "🚗"
+        case .mountains: return "🏔"
+        case .culture:   return "🏛"
+        case .getaway:   return "✈️"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .cityBreak: return String(localized: "City break")
+        case .roadTrip:  return String(localized: "Road trip")
+        case .mountains: return String(localized: "Mountains")
+        case .culture:   return String(localized: "Culture")
+        case .getaway:   return String(localized: "Getaway")
+        }
+    }
+}
+
 /// A single trip: a continuous journey away from home, possibly spanning several
 /// countries. `countryCode`/`country`/`flag` describe the *primary* (most‑photographed)
 /// country for back‑compat; `countries` lists every country visited on the trip.
@@ -99,6 +124,17 @@ struct Trip: Identifiable, Sendable {
 
     var highestAltitudeText: String? {
         highestAltitude.map { "\(Int($0).formatted()) m" }
+    }
+
+    /// A light, automatic "vibe" for the trip, inferred from its shape (altitude,
+    /// countries/route, wonders, cities, duration). Purely heuristic — just for flavour.
+    var tripType: TripType {
+        let days = (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
+        if (highestAltitude ?? 0) >= 1500 { return .mountains }
+        if isMultiCountry || (stops.count >= 4 && routeDistanceKm >= 250) { return .roadTrip }
+        if !wonders.isEmpty { return .culture }
+        if cities.count <= 2 && days <= 4 { return .cityBreak }
+        return .getaway
     }
 
     var dateRangeText: String { dateRange(locale: .current) }

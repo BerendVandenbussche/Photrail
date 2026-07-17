@@ -36,6 +36,8 @@ struct ProfileView: View {
 
                     snapshot
 
+                    if appVM.explorerRarity > 0 { rarityCard }
+
                     if let profile, profile.isMeaningful {
                         PersonalitySection(profile: profile) { category in
                             selectedCategory = category
@@ -117,6 +119,30 @@ struct ProfileView: View {
         guard let dominant = profile?.dominantCategory,
               let pct = profile?.categoryPercentages[dominant] else { return nil }
         return "\(dominant.emoji) \(Int(pct.rounded()))% \(dominant.title)"
+    }
+
+    private var rarityCard: some View {
+        let score = appVM.explorerRarity
+        let tier: LocalizedStringKey = score >= 67 ? "Off the map"
+            : score >= 34 ? "Beyond the crowds" : "Tourist trails"
+        return HStack(spacing: 14) {
+            Text("🧭")
+                .font(.system(size: 24))
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(Color.accentColor.opacity(0.15)))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Explorer rarity").font(.subheadline.weight(.semibold))
+                Text(tier).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            HStack(alignment: .lastTextBaseline, spacing: 1) {
+                Text("\(score)").font(.system(size: 22, weight: .bold, design: .rounded))
+                Text("/100").font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(14)
+        .card()
+        .padding(.horizontal, 20)
     }
 
     private var snapshot: some View {

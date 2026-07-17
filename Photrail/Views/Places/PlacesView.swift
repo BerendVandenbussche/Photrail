@@ -246,7 +246,7 @@ private struct TripRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(trip.displayName)
                     .font(.subheadline.weight(.semibold)).foregroundStyle(.primary).lineLimit(1)
-                Text("\(trip.dateRangeText) · \(L.photos(trip.photoCount))")
+                Text("\(trip.tripType.emoji) \(trip.tripType.title) · \(trip.dateRangeText)")
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()

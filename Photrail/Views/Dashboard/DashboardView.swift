@@ -276,7 +276,7 @@ private struct RecentTripRow: View {
             FlagCluster(flags: trip.countries.map(\.flag), size: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(trip.displayName).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text("\(trip.dateRangeText) · \(L.photos(trip.photoCount))")
+                Text("\(trip.tripType.emoji) \(trip.tripType.title) · \(trip.dateRangeText)")
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()

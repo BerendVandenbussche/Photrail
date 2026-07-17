@@ -37,9 +37,11 @@ struct TravelPersonalityAggregator: Sendable {
             lifetime = lifetime + bucket.scores.normalized(to: weight)
         }
 
-        let percentages = lifetime.normalized(to: 100)
+        // Integer percentages that sum to exactly 100 (largest-remainder rounding),
+        // so the displayed slices always add up — no 93%/101% rounding drift.
+        let rounded = Self.percentagesSummingTo100(lifetime)
         let slices = TravelCategory.allCases
-            .map { TravelPersonalityProfile.Slice(category: $0, percentage: percentages[$0]) }
+            .map { TravelPersonalityProfile.Slice(category: $0, percentage: Double(rounded[$0] ?? 0)) }
             .sorted { $0.percentage > $1.percentage }
 
         // How many photos contributed to each category (a non-zero score).
@@ -53,5 +55,33 @@ struct TravelPersonalityAggregator: Sendable {
         let confidence = min(1, Double(photoCount) / 200)
         return TravelPersonalityProfile(slices: slices, photoCount: photoCount,
                                         confidence: confidence, categoryPhotoCounts: counts)
+    }
+
+    /// Convert a raw score vector into whole-number percentages that sum to exactly 100,
+    /// using the largest-remainder (Hamilton) method. Returns all-zero when there's no data.
+    static func percentagesSummingTo100(_ scores: TravelCategoryScores) -> [TravelCategory: Int] {
+        let total = scores.total
+        guard total > 0 else {
+            return Dictionary(uniqueKeysWithValues: TravelCategory.allCases.map { ($0, 0) })
+        }
+
+        var result: [TravelCategory: Int] = [:]
+        var remainders: [(category: TravelCategory, remainder: Double)] = []
+        var floorSum = 0
+        for category in TravelCategory.allCases {
+            let scaled = scores[category] / total * 100
+            let floor = Int(scaled.rounded(.down))
+            result[category] = floor
+            floorSum += floor
+            remainders.append((category, scaled - Double(floor)))
+        }
+
+        // Distribute the leftover points to the largest fractional remainders.
+        var deficit = 100 - floorSum
+        for entry in remainders.sorted(by: { $0.remainder > $1.remainder }) where deficit > 0 {
+            result[entry.category, default: 0] += 1
+            deficit -= 1
+        }
+        return result
     }
 }

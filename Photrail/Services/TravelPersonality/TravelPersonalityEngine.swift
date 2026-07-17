@@ -7,7 +7,7 @@ import CoreLocation
 /// - `city` presence (from prior geocoding) → urban vs. nature
 /// - proximity to a known wonder/landmark → culture / nature / coastal / mountain
 /// - movement between consecutive photos → transit / adventure
-/// - optional `altitude` → mountain (GeoPhoto carries none today; kept for future use)
+/// - `altitude` (EXIF GPS) → mountain / adventure (skiing, hiking, alpine trips)
 /// - a lightweight coastal-leaning country list → mild coastal lean for rural photos
 ///
 /// Scoring is pure and deterministic, so it is straightforward to unit test.
@@ -22,8 +22,9 @@ struct TravelPersonalityEngine: Sendable {
         static let wonderNature = 0.8
         static let wonderCoastal = 1.0
         static let wonderMountain = 1.0
-        static let altitudeHigh = 0.9     // > 1000m
-        static let altitudeMedium = 0.5   // 500–1000m
+        static let altitudeVeryHigh = 1.5 // > 2000m (alpine / high ski areas)
+        static let altitudeHigh = 1.1     // > 1000m
+        static let altitudeMedium = 0.6   // 500–1000m
         static let coastalNear = 1.0      // ≤ 10 km from coast
         static let coastalMedium = 0.5    // 10–50 km from coast
     }
@@ -118,10 +119,15 @@ struct TravelPersonalityEngine: Sendable {
         case .none:     break
         }
 
+        // At altitude you're in the mountains, even if there's a resort town nearby —
+        // so a high-altitude photo shouldn't be counted as "urban".
+        let highAltitude = (altitude ?? 0) > 1000
+
         // Urban vs. nature, graded by remoteness when available.
         if let d = cityDistanceKm {
             if d <= 8 {
-                s.add(.urban, Weight.cityUrban)
+                if highAltitude { s.add(.mountain, 0.4) }   // mountain resort / ski village
+                else { s.add(.urban, Weight.cityUrban) }
             } else if d <= 30 {
                 s.add(.urban, 0.3)
                 s.add(.nature, 0.4)
@@ -129,7 +135,7 @@ struct TravelPersonalityEngine: Sendable {
                 s.add(.nature, 0.9)        // genuinely remote — countryside / parks / wilderness
                 s.add(.adventure, 0.2)
             }
-        } else if isUrban {
+        } else if isUrban && !highAltitude {
             s.add(.urban, Weight.cityUrban)
         } else {
             s.add(.nature, Weight.ruralNature)
@@ -141,9 +147,10 @@ struct TravelPersonalityEngine: Sendable {
             else if coast <= 50 { s.add(.coastal, Weight.coastalMedium) }
         }
 
-        // Altitude (optional; future-proof)
+        // Altitude → mountain (skiing, hiking, alpine trips). Stronger the higher you go.
         if let altitude {
-            if altitude > 1000 { s.add(.mountain, Weight.altitudeHigh); s.add(.adventure, 0.4) }
+            if altitude > 2000 { s.add(.mountain, Weight.altitudeVeryHigh); s.add(.adventure, 0.5) }
+            else if altitude > 1000 { s.add(.mountain, Weight.altitudeHigh); s.add(.adventure, 0.4) }
             else if altitude > 500 { s.add(.mountain, Weight.altitudeMedium) }
         }
 

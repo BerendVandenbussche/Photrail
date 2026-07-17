@@ -46,6 +46,10 @@ final class AppViewModel {
     /// A recap presented from an App Intent (Siri / Shortcuts). Drives a root sheet.
     var presentedRecap: RecapModel?
 
+    /// "Explorer rarity" 0–100 — how off-the-beaten-path your photos are (distance to
+    /// the nearest town), computed alongside the personality profile. 0 = not enough data.
+    var explorerRarity: Int = 0
+
     /// Countries the user added by hand (photos deleted / never on device). Persisted.
     var manualCountries: [ManualCountry] = [] {
         didSet {
@@ -196,6 +200,7 @@ final class AppViewModel {
         if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
             self.travelNudgesEnabled = enabled
         }
+        self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
         // and will redirect to .permissionDenied if access was revoked.
@@ -749,7 +754,7 @@ final class AppViewModel {
         let geocodedCount = photos.lazy.filter { $0.isGeocoded }.count
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
-        let signature = "v6-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
+        let signature = "v8-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {
@@ -765,6 +770,24 @@ final class AppViewModel {
         let pointInput = photos.map { (id: $0.id, latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
         let coastByPhoto = await offlineCoastline.distancesKm(pointInput)
         let cityByPhoto = await offlinePlaces.distancesKm(pointInput)
+
+        // Explorer rarity: how remote your away-from-home photos are (distance to the
+        // nearest town). Uses the 90th percentile so it reflects your most remote spots.
+        let awayRemoteness: [Double] = photos.compactMap { photo in
+            if let home {
+                let d = photo.coordinate.clLocation.distance(from: home.clLocation) / 1000
+                if d <= 50 { return nil }   // exclude everyday photos near home
+            }
+            return cityByPhoto[photo.id]
+        }
+        if !awayRemoteness.isEmpty {
+            let sorted = awayRemoteness.sorted()
+            let p90 = sorted[min(sorted.count - 1, Int(Double(sorted.count) * 0.9))]
+            explorerRarity = max(0, min(100, Int((p90 / 60.0 * 100).rounded())))
+        } else {
+            explorerRarity = 0
+        }
+        UserDefaults.standard.set(explorerRarity, forKey: "explorerRarity")
 
         let trips = stats.trips
         let profile = await Task.detached(priority: .utility) {

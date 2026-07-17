@@ -17,6 +17,8 @@ struct TripDetailView: View {
             LazyVStack(alignment: .leading, spacing: 24) {
                 header
 
+                tripTypeBadge
+
                 statsSection
 
                 notesSection
@@ -59,6 +61,16 @@ struct TripDetailView: View {
         }
         .task { await loadCover() }
         .onAppear { note = TripNoteStore.note(for: trip.id) }
+    }
+
+    private var tripTypeBadge: some View {
+        HStack(spacing: 6) {
+            Text(trip.tripType.emoji)
+            Text(trip.tripType.title).font(.subheadline.weight(.semibold))
+        }
+        .padding(.horizontal, 12).padding(.vertical, 6)
+        .background(Capsule().fill(Color.accentColor.opacity(0.12)))
+        .padding(.horizontal, 20)
     }
 
     // MARK: - Notes
