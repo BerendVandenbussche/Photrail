@@ -126,12 +126,26 @@ struct Trip: Identifiable, Sendable {
         highestAltitude.map { "\(Int($0).formatted()) m" }
     }
 
+    /// Largest hop between consecutive stops (km). A big jump implies a flight, not driving.
+    var maxLegKm: Double {
+        guard stops.count > 1 else { return 0 }
+        var maxKm = 0.0
+        for i in 1..<stops.count {
+            let a = CLLocation(latitude: stops[i - 1].latitude, longitude: stops[i - 1].longitude)
+            let b = CLLocation(latitude: stops[i].latitude, longitude: stops[i].longitude)
+            maxKm = max(maxKm, a.distance(from: b) / 1000)
+        }
+        return maxKm
+    }
+
     /// A light, automatic "vibe" for the trip, inferred from its shape (altitude,
-    /// countries/route, wonders, cities, duration). Purely heuristic — just for flavour.
+    /// drivable hops, wonders, cities, duration). Purely heuristic — just for flavour.
     var tripType: TripType {
         let days = (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
         if (highestAltitude ?? 0) >= 1500 { return .mountains }
-        if isMultiCountry || (stops.count >= 4 && routeDistanceKm >= 250) { return .roadTrip }
+        // Road trip only when there are several stops joined by *drivable* hops — a big
+        // jump between stops means you flew, so it shouldn't count as a road trip.
+        if stops.count >= 4 && routeDistanceKm >= 250 && maxLegKm <= 400 { return .roadTrip }
         if !wonders.isEmpty { return .culture }
         if cities.count <= 2 && days <= 4 { return .cityBreak }
         return .getaway
