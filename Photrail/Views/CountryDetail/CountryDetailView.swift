@@ -26,7 +26,7 @@ struct CountryDetailView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
                     // Hero header
-                    DetailHeader(glyph: country.flag, title: country.name, subtitle: dateRange)
+                    DetailHeader(glyph: country.flag, title: country.localizedName, subtitle: dateRange)
 
                     // Location
                     if country.representativeCoordinate.latitude != 0 || country.representativeCoordinate.longitude != 0 {
@@ -116,7 +116,7 @@ struct CountryDetailView: View {
                             }
                         }
                         Spacer()
-                        Text("\(trip.photoCount) photos · \(trip.durationText)")
+                        Text("\(L.photos(trip.photoCount)) · \(trip.durationText)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Image(systemName: "chevron.right")
@@ -145,7 +145,7 @@ struct CountryDetailView: View {
         }
     }
 
-    private var wondersTitle: String {
+    private var wondersTitle: LocalizedStringKey {
         let hasWonder = seenWonders.contains { $0.wonder.category == .sevenWonders }
         let hasLandmark = seenWonders.contains { $0.wonder.category == .landmark }
         if hasWonder && hasLandmark { return "Wonders & Landmarks" }

@@ -4,7 +4,7 @@ import SwiftUI
 /// zoomable viewer. Shared across the country / trip / wonder detail pages so
 /// photo behavior is consistent everywhere.
 struct PhotoGridSection: View {
-    var title: String = "Photos"
+    var title: LocalizedStringKey = "Photos"
     let photoIDs: [String]
     var limit: Int = 90
 

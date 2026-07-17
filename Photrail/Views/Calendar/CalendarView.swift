@@ -39,7 +39,7 @@ struct CalendarView: View {
         ScrollView {
             VStack(spacing: 16) {
                 Picker("", selection: $mode) {
-                    ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(Mode.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                 }
                 .pickerStyle(.segmented)
 
@@ -123,13 +123,11 @@ struct CalendarView: View {
     private var yearSummaryCard: some View {
         let s = yearSummary
         return VStack(alignment: .leading, spacing: 12) {
-            Text("\(s.daysAway) \(s.daysAway == 1 ? "day" : "days") away · "
-                 + "\(s.countries.count) \(s.countries.count == 1 ? "country" : "countries") · "
-                 + "\(s.tripCount) \(s.tripCount == 1 ? "trip" : "trips")")
+            Text("\(L.daysAway(s.daysAway)) · \(L.countries(s.countries.count)) · \(L.trips(s.tripCount))")
                 .font(.subheadline.weight(.semibold))
             FlowLayout(spacing: 8, rowSpacing: 8) {
                 ForEach(s.countries, id: \.flag) { item in
-                    Text("\(item.flag) \(item.days) \(item.days == 1 ? "day" : "days")")
+                    Text("\(item.flag) \(L.days(item.days))")
                         .font(.caption.weight(.medium))
                         .padding(.horizontal, 10).padding(.vertical, 6)
                         .background(.regularMaterial, in: Capsule())
@@ -207,14 +205,12 @@ struct CalendarView: View {
         }()
 
         return VStack(alignment: .leading, spacing: 12) {
-            Text("\(daysAway) \(daysAway == 1 ? "day" : "days") away · "
-                 + "\(countries) \(countries == 1 ? "country" : "countries") · "
-                 + "\(trips) \(trips == 1 ? "trip" : "trips")")
+            Text("\(L.daysAway(daysAway)) · \(L.countries(countries)) · \(L.trips(trips))")
                 .font(.subheadline.weight(.semibold))
 
             FlowLayout(spacing: 8, rowSpacing: 8) {
                 ForEach(monthCountries, id: \.flag) { item in
-                    Text("\(item.flag) \(item.days) \(item.days == 1 ? "day" : "days")")
+                    Text("\(item.flag) \(L.days(item.days))")
                         .font(.caption.weight(.medium))
                         .padding(.horizontal, 10).padding(.vertical, 6)
                         .background(.regularMaterial, in: Capsule())

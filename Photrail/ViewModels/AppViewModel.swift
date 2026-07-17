@@ -43,6 +43,9 @@ final class AppViewModel {
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
 
+    /// A recap presented from an App Intent (Siri / Shortcuts). Drives a root sheet.
+    var presentedRecap: RecapModel?
+
     /// Countries the user added by hand (photos deleted / never on device). Persisted.
     var manualCountries: [ManualCountry] = [] {
         didSet {
@@ -346,7 +349,10 @@ final class AppViewModel {
                 earliestByCountry[country.id].map { Calendar.current.component(.year, from: $0) == year } == true
             }
             .sorted { $0.firstVisit < $1.firstVisit }
-            .map { .init(id: $0.id, name: $0.name, flag: $0.flag) }
+            // English names — the recap cards stay English.
+            .map { .init(id: $0.id,
+                         name: Locale(identifier: "en_US").localizedString(forRegionCode: $0.id) ?? $0.name,
+                         flag: $0.flag) }
 
         // Highest point reached this year (only surfaced above 1000 m).
         var highestAltitude: Double?

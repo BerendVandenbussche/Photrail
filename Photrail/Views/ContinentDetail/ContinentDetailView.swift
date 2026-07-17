@@ -13,7 +13,7 @@ struct ContinentDetailView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
-                    DetailHeader(glyph: stat.continent.emoji, title: stat.continent.rawValue,
+                    DetailHeader(glyph: stat.continent.emoji, title: stat.continent.displayName,
                                  subtitle: stat.visited ? "Visited" : "Not yet visited")
                     statsRow
                         .padding(.horizontal, 20)
@@ -79,7 +79,7 @@ private struct CountryRow: View {
             Text(country.flag)
                 .font(.system(size: 34))
             VStack(alignment: .leading, spacing: 2) {
-                Text(country.name)
+                Text(country.localizedName)
                     .font(.subheadline.weight(.semibold))
                 Text("\(country.photoCount) photos · \(country.cityCount) cities")
                     .font(.caption)

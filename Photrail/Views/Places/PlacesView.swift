@@ -62,7 +62,7 @@ struct PlacesView: View {
                     segmentBody
                 } header: {
                     Picker("", selection: $segment) {
-                        ForEach(Segment.allCases) { Text($0.rawValue).tag($0) }
+                        ForEach(Segment.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal, 20)
@@ -118,10 +118,10 @@ struct PlacesView: View {
                 let manual = appVM.isManualCountry(country.id)
                 HStack(spacing: 0) {
                     Button { selectedCountry = country } label: {
-                        CatalogRow(flag: country.flag, title: country.name,
+                        CatalogRow(flag: country.flag, title: country.localizedName,
                                    subtitle: manual
                                        ? "Added manually"
-                                       : "\(country.photoCount) photos · \(country.tripCount) \(country.tripCount == 1 ? "trip" : "trips")",
+                                       : "\(L.photos(country.photoCount)) · \(L.trips(country.tripCount))",
                                    showChevron: !manual)
                     }
                     .buttonStyle(.plain)
@@ -188,7 +188,7 @@ struct PlacesView: View {
         return LazyVStack(spacing: 0) {
             ForEach(items) { stat in
                 Button { selectedContinent = stat } label: {
-                    CatalogRow(flag: stat.continent.emoji, title: stat.continent.rawValue,
+                    CatalogRow(flag: stat.continent.emoji, title: stat.continent.displayName,
                                subtitle: continentSubtitle(stat),
                                dimmed: !stat.visited)
                 }
@@ -199,13 +199,12 @@ struct PlacesView: View {
         .padding(.horizontal, 20)
     }
 
-    /// "X of Y countries · NN% seen" for a continent.
-    private func continentSubtitle(_ stat: ContinentStat) -> String {
+    /// "X of Y · NN% seen" for a continent.
+    private func continentSubtitle(_ stat: ContinentStat) -> LocalizedStringKey {
         let total = ContinentMapper.totalCountries(in: stat.continent)
-        let base = "\(stat.countryCount) \(stat.countryCount == 1 ? "country" : "countries")"
-        guard total > 0 else { return "\(base) · \(stat.photoCount) photos" }
+        guard total > 0 else { return "\(L.countries(stat.countryCount)) · \(L.photos(stat.photoCount))" }
         let pct = Int((Double(stat.countryCount) / Double(total) * 100).rounded())
-        return "\(base) of \(total) · \(pct)% seen"
+        return "\(L.countries(stat.countryCount)) of \(total) · \(pct)% seen"
     }
 
     /// The most recent trip on which this wonder was photographed, if any.
@@ -247,7 +246,7 @@ private struct TripRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(trip.displayName)
                     .font(.subheadline.weight(.semibold)).foregroundStyle(.primary).lineLimit(1)
-                Text("\(trip.dateRangeText) · \(trip.photoCount) photos")
+                Text("\(trip.dateRangeText) · \(L.photos(trip.photoCount))")
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
@@ -262,7 +261,7 @@ private struct TripRow: View {
 private struct CatalogRow: View {
     let flag: String
     let title: String
-    let subtitle: String
+    let subtitle: LocalizedStringKey
     var dimmed: Bool = false
     var showChevron: Bool = true
 

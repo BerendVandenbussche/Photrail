@@ -30,7 +30,7 @@ struct StatsProvider: TimelineProvider {
 
 private struct MetricView: View {
     let value: String
-    let label: String
+    let label: LocalizedStringKey
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(value)
@@ -201,8 +201,8 @@ struct PhotrailStatsWidget: Widget {
         StaticConfiguration(kind: kind, provider: StatsProvider()) { entry in
             PhotrailWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Travel Stats")
-        .description("Your countries, cities and continents at a glance.")
+        .configurationDisplayName(String(localized: "Travel Stats"))
+        .description(String(localized: "Your countries, cities and continents at a glance."))
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
     }
 }
@@ -224,8 +224,8 @@ struct PhotrailWondersWidget: Widget {
         StaticConfiguration(kind: kind, provider: StatsProvider()) { entry in
             PhotrailWondersEntryView(entry: entry)
         }
-        .configurationDisplayName("World Wonders")
-        .description("How many of the 7 World Wonders and famous landmarks you've seen.")
+        .configurationDisplayName(String(localized: "World Wonders"))
+        .description(String(localized: "How many of the 7 World Wonders and famous landmarks you've seen."))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

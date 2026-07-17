@@ -41,7 +41,7 @@ struct HomeLocationView: View {
                         NavigationLink(value: country) {
                             HStack {
                                 Text(country.flag)
-                                Text(country.name)
+                                Text(country.localizedName)
                                 Spacer()
                                 if appVM.homeCountryCode == country.id {
                                     Image(systemName: "checkmark").foregroundStyle(.tint)
@@ -109,7 +109,7 @@ private struct HomeCityPicker: View {
                 }
             }
         }
-        .navigationTitle("\(country.flag) \(country.name)")
+        .navigationTitle("\(country.flag) \(country.localizedName)")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

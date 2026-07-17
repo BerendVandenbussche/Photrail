@@ -16,8 +16,8 @@ struct Memory: Identifiable, Sendable {
     var coverPhotoID: String? { photoIDs.first }
     var photoCount: Int { photoIDs.count }
 
-    /// "1 year ago" / "5 years ago"
-    var yearsAgoText: String { yearsAgo == 1 ? "1 year ago" : "\(yearsAgo) years ago" }
+    /// "1 year ago" / "5 years ago" (localized, plural-aware)
+    var yearsAgoText: String { L.yearsAgo(yearsAgo) }
 
     /// "Lisbon, Portugal" or just the country.
     var placeText: String {

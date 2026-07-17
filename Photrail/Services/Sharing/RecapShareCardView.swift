@@ -44,6 +44,7 @@ struct RecapShareCardView: View {
         }
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: theme == .transparent ? 0 : 36, style: .continuous))
+        .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
     }
 
     // MARK: - Chrome
@@ -283,7 +284,7 @@ struct RecapShareCardView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 Text(slice.category.emoji).font(.system(size: 14))
-                Text(slice.category.title)
+                Text(slice.category.englishTitle)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(primaryText)
                 Spacer()
@@ -371,7 +372,7 @@ struct RecapShareCardView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text(slice.category.emoji).font(.system(size: 18))
-                Text(slice.category.title)
+                Text(slice.category.englishTitle)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(primaryText)
                 Spacer()
@@ -392,7 +393,7 @@ struct RecapShareCardView: View {
 
     private var personalityHeadline: String {
         guard let slice = recap.topSlices.first else { return recap.title }
-        return "\(Int(slice.percentage.rounded()))%\n\(slice.category.title)"
+        return "\(Int(slice.percentage.rounded()))%\n\(slice.category.englishTitle)"
     }
 
     // MARK: - New countries

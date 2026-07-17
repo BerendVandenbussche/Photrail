@@ -21,6 +21,7 @@ enum TravelScore {
 
     /// A human label for a score, so the number means something at a glance.
     /// The score blends countries, trips, wonders, continents and distance for the year.
+    /// Shown only on shareable cards, which stay English by design.
     static func tier(for score: Int) -> String {
         switch score {
         case 85...: return "Globetrotter"

@@ -8,6 +8,7 @@ enum TravelTitle {
                          countries: Int,
                          continents: Int,
                          trips: Int) -> String {
+        // Shown only on shareable cards, which stay English by design.
         if continents >= 4 { return "Continental Hopper" }
         if countries >= 12 { return "Global Explorer" }
 

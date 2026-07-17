@@ -21,6 +21,7 @@ struct CalendarShareCardView: View {
         }
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+        .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
     }
 
     private var content: some View {
@@ -124,7 +125,7 @@ struct CalendarShareCardView: View {
     // MARK: - Helpers
 
     private var monthTitle: String {
-        let f = DateFormatter(); f.dateFormat = "MMMM"
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US"); f.dateFormat = "MMMM"
         return f.string(from: month)
     }
     private var yearText: String {
@@ -162,7 +163,8 @@ struct CalendarShareCardView: View {
         return (weekday - calendar.firstWeekday + 7) % 7
     }
     private var orderedWeekdaySymbols: [String] {
-        let symbols = DateFormatter().veryShortStandaloneWeekdaySymbols ?? ["S", "M", "T", "W", "T", "F", "S"]
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US")
+        let symbols = f.veryShortStandaloneWeekdaySymbols ?? ["S", "M", "T", "W", "T", "F", "S"]
         let shift = calendar.firstWeekday - 1
         return Array(symbols[shift...] + symbols[..<shift])
     }

@@ -29,6 +29,11 @@ struct Trip: Identifiable, Sendable {
         let name: String
         let flag: String
         let photoCount: Int
+
+        /// Name in the app's language (from the ISO code) — OS-provided.
+        var localizedName: String { Locale.current.localizedString(forRegionCode: code) ?? name }
+        /// Always-English name (for share cards, which stay English).
+        var englishName: String { Locale(identifier: "en_US").localizedString(forRegionCode: code) ?? name }
     }
 
     /// A city visited during the trip, with a representative location and arrival date.
@@ -52,10 +57,21 @@ struct Trip: Identifiable, Sendable {
         return countries.count > 6 ? flags + "…" : flags
     }
 
-    /// A human title: the country for single-country trips, else the countries listed.
+    /// Primary country name in the app's language.
+    var localizedCountry: String { Locale.current.localizedString(forRegionCode: countryCode) ?? country }
+
+    /// A human title in the app's language: the country for single-country trips, else the countries listed.
     var displayName: String {
-        guard isMultiCountry else { return country }
-        let names = countries.prefix(3).map(\.name).joined(separator: ", ")
+        guard isMultiCountry else { return localizedCountry }
+        let names = countries.prefix(3).map(\.localizedName).joined(separator: ", ")
+        return countries.count > 3 ? "\(names) +\(countries.count - 3)" : names
+    }
+
+    /// Same as `displayName` but always English — used on share cards.
+    var englishDisplayName: String {
+        let english = Locale(identifier: "en_US").localizedString(forRegionCode: countryCode) ?? country
+        guard isMultiCountry else { return english }
+        let names = countries.prefix(3).map(\.englishName).joined(separator: ", ")
         return countries.count > 3 ? "\(names) +\(countries.count - 3)" : names
     }
 
@@ -85,14 +101,17 @@ struct Trip: Identifiable, Sendable {
         highestAltitude.map { "\(Int($0).formatted()) m" }
     }
 
-    var dateRangeText: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "MMM d, yyyy"
+    var dateRangeText: String { dateRange(locale: .current) }
+
+    /// Always-English date range — for share cards, which stay English.
+    var englishDateRange: String { dateRange(locale: Locale(identifier: "en_US")) }
+
+    private func dateRange(locale: Locale) -> String {
+        let fmt = DateFormatter(); fmt.locale = locale; fmt.dateFormat = "MMM d, yyyy"
         if Calendar.current.isDate(startDate, inSameDayAs: endDate) {
             return fmt.string(from: startDate)
         }
-        let short = DateFormatter()
-        short.dateFormat = "MMM d"
+        let short = DateFormatter(); short.locale = locale; short.dateFormat = "MMM d"
         // Same year → "Apr 3 – Apr 12, 2025"
         if Calendar.current.isDate(startDate, equalTo: endDate, toGranularity: .year) {
             return "\(short.string(from: startDate)) – \(fmt.string(from: endDate))"
@@ -102,6 +121,6 @@ struct Trip: Identifiable, Sendable {
 
     var durationText: String {
         let days = (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
-        return days == 1 ? "1 day" : "\(days) days"
+        return L.days(days)
     }
 }

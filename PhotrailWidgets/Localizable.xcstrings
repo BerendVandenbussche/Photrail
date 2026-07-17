@@ -1,0 +1,195 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "/ 7" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ of the world" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ van de wereld"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld cities · %@ of world" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld steden · %2$@ van wereld"
+          }
+        }
+      }
+    },
+    "%lld countries" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld country"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld countries"
+                }
+              }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld land"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld landen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld landmarks explored" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bezienswaardigheden verkend"
+          }
+        }
+      }
+    },
+    "Cities" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steden"
+          }
+        }
+      }
+    },
+    "Continents" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continenten"
+          }
+        }
+      }
+    },
+    "countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "landen"
+          }
+        }
+      }
+    },
+    "Countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landen"
+          }
+        }
+      }
+    },
+    "country" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "land"
+          }
+        }
+      }
+    },
+    "How many of the 7 World Wonders and famous landmarks you've seen." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoeveel van de 7 wereldwonderen en beroemde bezienswaardigheden je hebt gezien."
+          }
+        }
+      }
+    },
+    "of World" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "van wereld"
+          }
+        }
+      }
+    },
+    "Photrail" : {
+
+    },
+    "Travel Stats" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisstatistieken"
+          }
+        }
+      }
+    },
+    "World Wonders" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wereldwonderen"
+          }
+        }
+      }
+    },
+    "Your countries, cities and continents at a glance." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je landen, steden en continenten in één oogopslag."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

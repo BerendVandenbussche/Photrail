@@ -187,7 +187,7 @@ struct DashboardView: View {
         .padding(.horizontal, 20)
     }
 
-    private func statItem(_ value: String, _ label: String) -> some View {
+    private func statItem(_ value: String, _ label: LocalizedStringKey) -> some View {
         VStack(spacing: 3) {
             Text(value).font(.system(size: 20, weight: .bold, design: .rounded))
             Text(label).font(.caption2).foregroundStyle(.secondary)
@@ -276,7 +276,7 @@ private struct RecentTripRow: View {
             FlagCluster(flags: trip.countries.map(\.flag), size: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(trip.displayName).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text("\(trip.dateRangeText) · \(trip.photoCount) photos")
+                Text("\(trip.dateRangeText) · \(L.photos(trip.photoCount))")
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
@@ -335,7 +335,7 @@ private struct FurthestTripCard: View {
                 Text("Furthest from home")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(furthest.trip.cities.first.map { "\($0), \(furthest.trip.country)" } ?? furthest.trip.country)
+                Text(furthest.trip.cities.first.map { "\($0), \(furthest.trip.localizedCountry)" } ?? furthest.trip.localizedCountry)
                     .font(.title3.weight(.bold))
                     .lineLimit(1)
                 Text("\(Int(furthest.distanceKm).formatted()) km away · \(furthest.trip.dateRangeText)")
@@ -392,7 +392,7 @@ private struct MostVisitedBanner: View {
                 Text("Most photographed")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(country.name)
+                Text(country.localizedName)
                     .font(.title2.weight(.bold))
                 Text("\(country.photoCount) photos · \(country.cityCount) cities")
                     .font(.subheadline)

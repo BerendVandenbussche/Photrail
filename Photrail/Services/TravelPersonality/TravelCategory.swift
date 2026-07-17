@@ -16,17 +16,30 @@ enum TravelCategory: String, CaseIterable, Codable, Sendable, Identifiable {
     /// User-facing explanation of what this score is based on.
     var basis: String {
         switch self {
-        case .urban:     return "Photos taken in towns and cities — close to a populated place."
-        case .coastal:   return "Photos taken near a coastline (within ~50 km of the sea)."
-        case .mountain:  return "Photos taken at high altitude or right by a famous mountain."
-        case .nature:    return "Photos taken far from any city — countryside, parks and wild places."
-        case .culture:   return "Photos taken at famous landmarks, monuments and cultural sites."
-        case .transit:   return "Days you covered large distances — flights and long journeys between places."
-        case .adventure: return "Remote spots, long distances and rugged landscapes, combined."
+        case .urban:     return String(localized: "Photos taken in towns and cities — close to a populated place.")
+        case .coastal:   return String(localized: "Photos taken near a coastline (within ~50 km of the sea).")
+        case .mountain:  return String(localized: "Photos taken at high altitude or right by a famous mountain.")
+        case .nature:    return String(localized: "Photos taken far from any city — countryside, parks and wild places.")
+        case .culture:   return String(localized: "Photos taken at famous landmarks, monuments and cultural sites.")
+        case .transit:   return String(localized: "Days you covered large distances — flights and long journeys between places.")
+        case .adventure: return String(localized: "Remote spots, long distances and rugged landscapes, combined.")
         }
     }
 
     var title: String {
+        switch self {
+        case .urban:     return String(localized: "Urban Explorer")
+        case .coastal:   return String(localized: "Coastal Traveler")
+        case .mountain:  return String(localized: "Mountain Seeker")
+        case .nature:    return String(localized: "Nature Lover")
+        case .culture:   return String(localized: "Cultural Explorer")
+        case .transit:   return String(localized: "Transit Traveler")
+        case .adventure: return String(localized: "Adventurer")
+        }
+    }
+
+    /// Always-English title — used on shareable cards, which stay English by design.
+    var englishTitle: String {
         switch self {
         case .urban:     return "Urban Explorer"
         case .coastal:   return "Coastal Traveler"

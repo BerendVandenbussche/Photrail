@@ -21,6 +21,7 @@ struct YearShareCardView: View {
         }
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+        .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
     }
 
     private var content: some View {
@@ -46,7 +47,8 @@ struct YearShareCardView: View {
                                   accent: accent,
                                   idleColor: .white.opacity(0.12),
                                   titleColor: .white.opacity(0.85),
-                                  cellSize: 10)
+                                  cellSize: 10,
+                                  locale: Locale(identifier: "en_US"))
                 }
             }
 

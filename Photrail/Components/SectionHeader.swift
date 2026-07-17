@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct SectionHeader: View {
-    var title: String
+    var title: LocalizedStringKey
     var systemImage: String? = nil
     var action: (() -> Void)? = nil
-    var actionLabel: String = "See all"
+    var actionLabel: LocalizedStringKey = "See all"
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {

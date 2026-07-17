@@ -20,8 +20,8 @@ enum NotificationService {
                 || settings.authorizationStatus == .provisional else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "\(flag) Welcome to \(name)!"
-        content.body = "A new country for your map — enjoy your trip! ✈️"
+        content.title = String(localized: "\(flag) Welcome to \(name)!")
+        content.body = String(localized: "A new country for your map — enjoy your trip! ✈️")
         content.sound = .default
 
         let request = UNNotificationRequest(
@@ -36,8 +36,8 @@ enum NotificationService {
     static func notifyTripReady(tripID: String, flag: String, country: String) async {
         guard await isAuthorized() else { return }
         let content = UNMutableNotificationContent()
-        content.title = "\(flag) Your \(country) trip is ready"
-        content.body = "Relive your journey and share it ✈️"
+        content.title = String(localized: "\(flag) Your \(country) trip is ready")
+        content.body = String(localized: "Relive your journey and share it ✈️")
         content.sound = .default
         let request = UNNotificationRequest(identifier: "trip-ready-\(tripID)", content: content, trigger: nil)
         try? await UNUserNotificationCenter.current().add(request)
@@ -49,8 +49,8 @@ enum NotificationService {
     static func scheduleYearRecap(year: Int) async {
         guard await isAuthorized() else { return }
         let content = UNMutableNotificationContent()
-        content.title = "✈️ Your \(year) Year in Travel is ready"
-        content.body = "See everywhere you went this year — and share your recap."
+        content.title = String(localized: "✈️ Your \(year) Year in Travel is ready")
+        content.body = String(localized: "See everywhere you went this year — and share your recap.")
         content.sound = .default
 
         var comps = DateComponents()

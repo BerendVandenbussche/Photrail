@@ -95,7 +95,7 @@ extension ShareCardModel {
             let dominantPct = dominant.flatMap { profile?.categoryPercentages[$0] }.map { Int($0.rounded()) }
             let headline: String
             if let dominant, let dominantPct {
-                headline = "\(dominantPct)%\n\(dominant.title)"
+                headline = "\(dominantPct)%\n\(dominant.englishTitle)"
             } else {
                 headline = ""
             }
@@ -128,14 +128,14 @@ extension ShareCardModel {
 
         case .trip:
             let card = trip.map {
-                TripCard(title: "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.displayName)",
-                         dateRange: $0.dateRangeText,
+                TripCard(title: "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.englishDisplayName)",
+                         dateRange: $0.englishDateRange,
                          photoCount: $0.photoCount,
                          cities: $0.cities)
             }
             return ShareCardModel(
                 type: .trip,
-                headline: trip.map { $0.isMultiCountry ? $0.displayName : "\($0.country)\nTrip" } ?? "",
+                headline: trip.map { $0.isMultiCountry ? $0.englishDisplayName : "\($0.englishDisplayName)\nTrip" } ?? "",
                 subheadline: nil,
                 supporting: [], slices: [], wonders: [], wondersSeen: 0, wondersTotal: 0,
                 trip: card,

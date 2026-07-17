@@ -105,7 +105,7 @@ struct ProfileView: View {
             }
             .buttonStyle(.plain)
 
-            Text(profile?.dominantCategory?.title ?? "Traveler")
+            Text(profile?.dominantCategory?.title ?? String(localized: "Traveler"))
                 .font(.title2.weight(.bold))
             if let pct = dominantPercentageText {
                 Text(pct).font(.subheadline).foregroundStyle(.secondary)
@@ -132,7 +132,7 @@ struct ProfileView: View {
                     Text(emoji).font(.system(size: 22))
                     VStack(alignment: .leading, spacing: 1) {
                         Text(value).font(.system(size: 22, weight: .bold, design: .rounded))
-                        Text(label).font(.caption).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(label)).font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                 }
@@ -188,7 +188,7 @@ struct ProfileView: View {
         return VStack(spacing: 0) {
             Button { showHomePicker = true } label: {
                 row(icon: "house.fill", title: "Home",
-                    detail: appVM.homeDisplayName ?? "Not set")
+                    detail: appVM.homeDisplayName ?? String(localized: "Not set"))
             }
             Divider().padding(.leading, 52)
 
@@ -212,7 +212,7 @@ struct ProfileView: View {
         .padding(.horizontal, 20)
     }
 
-    private func row(icon: String, title: String, detail: String?) -> some View {
+    private func row(icon: String, title: LocalizedStringKey, detail: String?) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 17, weight: .semibold))

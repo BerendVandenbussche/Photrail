@@ -18,6 +18,7 @@ struct TripShareCardView: View {
         }
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+        .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
     }
 
     @ViewBuilder
@@ -64,10 +65,10 @@ struct TripShareCardView: View {
 
     private var headline: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(trip.dateRangeText.uppercased())
+            Text(trip.englishDateRange.uppercased())
                 .font(.system(size: 12, weight: .bold)).tracking(1.6)
                 .foregroundStyle(Self.accent)
-            Text(trip.isMultiCountry ? "\(trip.flagsLine)\n\(trip.displayName)" : "\(trip.flag) \(trip.country)")
+            Text(trip.isMultiCountry ? "\(trip.flagsLine)\n\(trip.englishDisplayName)" : "\(trip.flag) \(trip.englishDisplayName)")
                 .font(.system(size: 44, weight: .black, design: .rounded))
                 .foregroundStyle(.white)
                 .lineLimit(3).minimumScaleFactor(0.5)
@@ -106,11 +107,11 @@ struct TripShareCardView: View {
         if trip.isMultiCountry {
             items.append(("\(trip.countries.count)", "Countries"))
         }
+        let days = (Calendar.current.dateComponents([.day], from: trip.startDate, to: trip.endDate).day ?? 0) + 1
         items += [
             ("\(trip.cities.count)", trip.cities.count == 1 ? "City" : "Cities"),
             ("\(trip.photoCount)", "Photos"),
-            (trip.durationText.replacingOccurrences(of: " days", with: "")
-                              .replacingOccurrences(of: " day", with: ""), "Days")
+            ("\(days)", "Days")
         ]
         if trip.routeDistanceKm >= 1 {
             items.insert(("\(Int(trip.routeDistanceKm).formatted())", "km"), at: 2)

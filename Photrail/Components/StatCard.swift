@@ -4,7 +4,7 @@ import SwiftUI
 struct StatCard: View {
     var icon: String
     var value: String
-    var label: String
+    var label: LocalizedStringKey
     var iconColor: Color = .accentColor
 
     var body: some View {
@@ -26,19 +26,6 @@ struct StatCard: View {
         }
         .padding(16)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-    }
-}
-
-/// Two StatCards side-by-side in a horizontal pair.
-struct StatCardPair: View {
-    var left: (icon: String, value: String, label: String, color: Color)
-    var right: (icon: String, value: String, label: String, color: Color)
-
-    var body: some View {
-        HStack(spacing: 12) {
-            StatCard(icon: left.icon, value: left.value, label: left.label, iconColor: left.color)
-            StatCard(icon: right.icon, value: right.value, label: right.label, iconColor: right.color)
-        }
     }
 }
 

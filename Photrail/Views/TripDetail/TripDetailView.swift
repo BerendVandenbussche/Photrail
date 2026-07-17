@@ -81,7 +81,7 @@ struct TripDetailView: View {
                 Text(trip.dateRangeText.uppercased())
                     .font(.system(size: 12, weight: .bold)).tracking(1.2)
                     .foregroundStyle(.white.opacity(0.85))
-                Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(trip.displayName)" : "\(trip.flag) \(trip.country)")
+                Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(trip.displayName)" : "\(trip.flag) \(trip.displayName)")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(2).minimumScaleFactor(0.6)
@@ -122,7 +122,7 @@ struct TripDetailView: View {
                         .foregroundStyle(.tint)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(item.value).font(.subheadline.weight(.bold))
-                        Text(item.label).font(.caption2).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(item.label)).font(.caption2).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 10)
@@ -168,7 +168,7 @@ struct TripDetailView: View {
 
     // MARK: - Wonders
 
-    private var wondersSectionTitle: String {
+    private var wondersSectionTitle: LocalizedStringKey {
         let hasWonder = trip.wonders.contains { $0.isOfficial }
         let hasLandmark = trip.wonders.contains { !$0.isOfficial }
         if hasWonder && hasLandmark { return "Wonders & Landmarks Seen" }

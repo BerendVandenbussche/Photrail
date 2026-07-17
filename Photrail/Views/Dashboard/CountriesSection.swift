@@ -31,7 +31,7 @@ private struct CountryCard: View {
                 .font(.system(size: 40))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(country.name)
+                Text(country.localizedName)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 Text("\(country.photoCount) photos")

@@ -25,6 +25,7 @@ struct ShareCardView: View {
         }
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: background == .transparent ? 0 : 36, style: .continuous))
+        .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
     }
 
     // MARK: - Background
@@ -151,7 +152,7 @@ struct ShareCardView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text(slice.category.emoji).font(.system(size: 18))
-                Text(slice.category.title)
+                Text(slice.category.englishTitle)
                     .font(.system(size: 15, weight: .semibold)).foregroundStyle(primaryText)
                 Spacer()
                 Text("\(Int(slice.percentage.rounded()))%")

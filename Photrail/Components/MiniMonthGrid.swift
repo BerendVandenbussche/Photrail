@@ -10,6 +10,7 @@ struct MiniMonthGrid: View {
     var idleColor: Color = Color.primary.opacity(0.12)
     var titleColor: Color = .primary
     var cellSize: CGFloat = 13
+    var locale: Locale = .current
 
     private let calendar = Calendar.current
     private var columns: [GridItem] {
@@ -36,7 +37,7 @@ struct MiniMonthGrid: View {
     }
 
     private var monthName: String {
-        let f = DateFormatter(); f.dateFormat = "MMM"
+        let f = DateFormatter(); f.locale = locale; f.dateFormat = "MMM"
         return f.string(from: month)
     }
     private var days: [Int] {

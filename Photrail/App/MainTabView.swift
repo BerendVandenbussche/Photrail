@@ -4,6 +4,7 @@ import SwiftUI
 /// Uses the system tab bar, which renders as the translucent "glass" material.
 struct MainTabView: View {
     @Environment(AppViewModel.self) private var appVM
+    private let router = IntentRouter.shared
 
     var body: some View {
         @Bindable var appVM = appVM
@@ -23,6 +24,22 @@ struct MainTabView: View {
             ProfileView()
                 .tabItem { Label("Me", systemImage: "person.fill") }
                 .tag(AppViewModel.AppTab.me)
+        }
+        .sheet(item: $appVM.presentedRecap) { recap in RecapView(recap: recap) }
+        .onAppear { applyPendingIntent() }             // cold launch from an intent
+        .onChange(of: router.pendingTab) { _, _ in applyPendingIntent() }
+        .onChange(of: router.openYearRecap) { _, _ in applyPendingIntent() }
+    }
+
+    /// Apply any navigation an App Intent requested (tab switch / open recap).
+    private func applyPendingIntent() {
+        if let tab = router.pendingTab {
+            appVM.selectedTab = tab
+            router.pendingTab = nil
+        }
+        if router.openYearRecap {
+            router.openYearRecap = false
+            Task { appVM.presentedRecap = await appVM.makeYearRecap() }
         }
     }
 }

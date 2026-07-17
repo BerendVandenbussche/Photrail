@@ -18,7 +18,7 @@ struct WorldMapView: View {
         countries.map { country in
             CountryAnnotation(
                 id: country.id,
-                name: country.name,
+                name: country.localizedName,
                 flag: country.flag,
                 photoCount: country.photoCount,
                 coordinate: CLLocationCoordinate2D(

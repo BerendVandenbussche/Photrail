@@ -18,8 +18,8 @@ struct PersonalityDetailView: View {
                     header
 
                     infoCard(icon: "photo.on.rectangle.angled",
-                             title: photoCount == 1 ? "1 photo" : "\(photoCount) photos",
-                             detail: "contributed to this style")
+                             title: "\(photoCount) photos",
+                             detail: String(localized: "contributed to this style"))
 
                     infoCard(icon: "questionmark.circle",
                              title: "How it's measured",
@@ -54,7 +54,7 @@ struct PersonalityDetailView: View {
         .padding(.vertical, 8)
     }
 
-    private func infoCard(icon: String, title: String, detail: String) -> some View {
+    private func infoCard(icon: String, title: LocalizedStringKey, detail: String) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 20, weight: .semibold))

@@ -17,6 +17,10 @@ struct CountryStat: Identifiable, Sendable, Hashable {
 
     var cityCount: Int { cities.count }
 
+    /// Country name in the app's current language (derived from the ISO code), falling
+    /// back to the stored name. iOS provides these translations — no manual work needed.
+    var localizedName: String { Locale.current.localizedString(forRegionCode: id) ?? name }
+
     // Identity is the ISO code — enough for navigation routing.
     static func == (lhs: CountryStat, rhs: CountryStat) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

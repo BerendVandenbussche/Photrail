@@ -85,6 +85,7 @@ struct RecapModel: Sendable, Identifiable {
     var distanceComparison: String? {
         let earth = 40_075.0, moon = 384_400.0
         guard distanceKm > 100 else { return nil }
+        // Shown only on shareable cards, which stay English by design.
         if distanceKm >= moon { return String(format: "%.1f× the way to the Moon", distanceKm / moon) }
         if distanceKm >= earth { return String(format: "%.1f× around the Earth", distanceKm / earth) }
         return "\(Int((distanceKm / earth * 100).rounded()))% of the way around the Earth"
@@ -125,16 +126,21 @@ extension RecapModel {
         let awayTrips = stats.trips
         let biggest = awayTrips.max { $0.photoCount < $1.photoCount }
 
-        // Superlatives
+        // Superlatives — shown only on shareable cards, which stay English by design.
         let busiest = stats.timelineEntries.max { $0.photoCount < $1.photoCount }?.month
         let monthNameFmt = DateFormatter()
         monthNameFmt.dateFormat = "MMMM"
+        monthNameFmt.locale = Locale(identifier: "en_US")
         let busiestMonth = busiest.map { monthNameFmt.string(from: $0) }
 
         let longest = awayTrips.max {
             ($0.endDate.timeIntervalSince($0.startDate)) < ($1.endDate.timeIntervalSince($1.startDate))
         }
-        let longestTripText = longest.map { "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.displayName) · \($0.durationText)" }
+        let longestTripText = longest.map { trip -> String in
+            let days = (Calendar.current.dateComponents([.day], from: trip.startDate, to: trip.endDate).day ?? 0) + 1
+            let duration = days == 1 ? "1 day" : "\(days) days"
+            return "\(trip.isMultiCountry ? trip.flagsLine : trip.flag) \(trip.englishDisplayName) · \(duration)"
+        }
 
         // Wonders & landmarks actually seen this year, official ones first.
         let seenWonders = stats.wonders
@@ -189,9 +195,9 @@ extension RecapModel {
             distanceKm: distanceKm,
             dominantTitle: profile?.dominantCategory?.title,
             topSlices: Array((profile?.visibleSlices ?? []).prefix(3)),
-            favoriteCountryName: favorite?.name,
+            favoriteCountryName: favorite.map { Locale(identifier: "en_US").localizedString(forRegionCode: $0.id) ?? $0.name },
             favoriteCountryFlag: favorite?.flag,
-            biggestTripTitle: biggest.map { "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.displayName)" },
+            biggestTripTitle: biggest.map { "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.englishDisplayName)" },
             biggestTripSubtitle: biggest.map { "\($0.photoCount) photos · \($0.dateRangeText)" },
             pins: stats.countries
                 .map { $0.representativeCoordinate }

@@ -27,6 +27,7 @@ Photrail automatically turns your photo library into a beautiful travel map. It 
 - **Monthly activity timeline** — Bar chart of your photo activity over time
 - **Premium share system** — Multiple card templates (Personality, Summary, Wonders, Trip) plus the Year Recap cards, with map / transparent / photo backgrounds, exported at Instagram‑story resolution (1080×1920) with Photrail branding
 - **Home‑screen widgets** — A travel‑stats widget and a world‑wonders widget (small / medium / lock‑screen)
+- **Localization (i18n)** — Fully localized UI via String Catalogs, currently **English** and **Dutch (Flemish)**. The device/per‑app language decides automatically (Settings → Photrail → Language). Country names and dates localize from the system; plural forms are grammatically correct in each language. Shareable cards stay in English by design (they're built for an international audience)
 - **Durable, resumable processing** — Every result is persisted to a local SwiftData store as it completes, so closing or killing the app never loses progress
 
 ## Privacy
@@ -79,6 +80,7 @@ Photrail/
 │   ├── CountryCatalog.swift            All countries (name + flag) for manual entry
 │   ├── StatisticsEngine.swift          Pure [GeoPhoto] → TravelStats transformation
 │   ├── MemoriesEngine.swift            Pure [GeoPhoto] → "On This Day" memories
+│   ├── LocalizedCounts.swift           Plural-aware localized count phrases (days/trips/…)
 │   ├── TripCalendar.swift              Pure [Trip] → per-day flags for a month
 │   ├── TripCoverStore.swift            Caches each trip's curated hero photo
 │   ├── NotificationService.swift       Local "new country" notifications
@@ -87,8 +89,8 @@ Photrail/
 │   ├── Recap/                          Year recap model, travel title + travel score
 │   └── Sharing/                        Share cards (templates, recap, collage, trip, calendar), renderer, presenter
 ├── ViewModels/
-│   ├── AppViewModel.swift              @Observable root state + scan pipeline
-│   └── CountryDetailViewModel.swift    PHCachingImageManager for photo grids
+│   └── AppViewModel.swift              @Observable root state + scan pipeline
+├── Localizable.xcstrings               String Catalog (English + Dutch)
 ├── Views/
 │   ├── Onboarding/                     Onboarding + permission denied screen
 │   ├── Dashboard/                      Today feed: mini-map peek, On This Day, recap entry,
@@ -115,6 +117,7 @@ Photrail/
     └── WidgetSharedStats.swift         App Group snapshot (member of app + widget targets)
 
 PhotrailWidgets/                        Widget extension (Travel Stats + World Wonders)
+                                        + its own Localizable.xcstrings (separate target)
 ```
 
 ### Key technical decisions
@@ -190,6 +193,18 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 - **Travel Calendar** — a month grid with a flag on every trip day; tap a day to open the trip, or share the month as a branded card.
 - **Reindex photo library** — rebuilds travel history from scratch. Use it after changing the location or date of photos that were already scanned (a normal incremental scan keeps the original data because the asset id is unchanged), or to backfill altitude onto previously scanned photos.
 - **Recaps** — archive of every year with travel; the current year also has a dedicated entry on the dashboard.
+
+## Localization
+
+Photrail ships in **English** and **Dutch (Flemish)**, using **String Catalogs** (`.xcstrings`). The app and the widget each have their own catalog (they're separate targets). iOS picks the language from the device, and users can override it per‑app in **Settings → Photrail → Language**.
+
+Conventions:
+- SwiftUI `Text("literal")` and `.navigationTitle("…")` localize automatically. Strings passed through reusable components use `LocalizedStringKey`; strings built in code use `String(localized:)`.
+- **Counts** go through `LocalizedCounts` (`L.days`, `L.trips`, …) so plurals are grammatically correct in every language (catalog plural variations).
+- **Country names and dates** come from the system (`Locale`/`DateFormatter`) — no manual translation needed. **City names** are data and stay as captured.
+- **Shareable cards stay English by design** (built for an international audience): each card view forces `\.environment(\.locale, "en_US")` and uses English‑only helpers (`Trip.englishDisplayName`, `TravelCategory.englishTitle`, `Trip.englishDateRange`, `TravelTitle`/`TravelScore.tier`).
+
+**Adding a language:** add it under **Project → Info → Localizations**, then open each `Localizable.xcstrings` in Xcode and fill the new column. Untranslated keys fall back to English automatically.
 
 ## Testing
 

@@ -55,7 +55,7 @@ private struct MemoryCard: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
-                Text("\(memory.photoCount) \(memory.photoCount == 1 ? "photo" : "photos") · \(memory.year.description)")
+                Text("\(L.photos(memory.photoCount)) · \(memory.year.description)")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.8))
             }
