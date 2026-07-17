@@ -19,6 +19,8 @@ struct RecapShareCardView: View {
     let recap: RecapModel
     var theme: RecapTheme = .dark
     var focus: RecapCardFocus = .snapshot
+    /// A pre-loaded mountain photo for the highest-peak card (rendered when present).
+    var peakImage: UIImage? = nil
 
     static let canvasSize = CGSize(width: 360, height: 640)
 
@@ -489,7 +491,6 @@ struct RecapShareCardView: View {
     private var highestPeakBody: some View {
         VStack(alignment: .leading, spacing: 14) {
             eyebrow("Highest point reached")
-            Text("⛰️").font(.system(size: 56))
             hugeNumber(recap.highestAltitudeText ?? "—")
             if let place = recap.highestAltitudePlace {
                 Text(place)
@@ -497,6 +498,16 @@ struct RecapShareCardView: View {
                     .foregroundStyle(accent)
                     .lineLimit(2).minimumScaleFactor(0.6)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            if let peakImage {
+                Image(uiImage: peakImage)
+                    .resizable().scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 210)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            } else {
+                Text("⛰️").font(.system(size: 56))
             }
             Spacer(minLength: 0)
             statBand([("\(recap.countries)", "Countries"),

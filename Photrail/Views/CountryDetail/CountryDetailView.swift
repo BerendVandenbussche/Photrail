@@ -2,38 +2,21 @@ import SwiftUI
 
 struct CountryDetailView: View {
     let country: CountryStat
-    let trips: [Trip]
-    @State private var vm: CountryDetailViewModel
+    var trips: [Trip] = []
     @State private var showAllTrips = false
     @State private var showAllCities = false
-    @State private var selectedPhoto: IdentifiedPhoto?
     @Environment(\.dismiss) private var dismiss
 
     /// Items shown in trips/cities before "Show more" is tapped.
     private let tripPreviewCount = 5
     private let cityPreviewCount = 5
 
-    /// Identifiable wrapper so a tapped photo can drive a fullScreenCover.
-    private struct IdentifiedPhoto: Identifiable { let id: String }
-
-    init(country: CountryStat, trips: [Trip] = []) {
-        self.country = country
-        self.trips = trips
-        _vm = State(initialValue: CountryDetailViewModel(country: country))
-    }
-
-    private let gridColumns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2)
-    ]
-
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
                     // Hero header
-                    headerSection
+                    DetailHeader(glyph: country.flag, title: country.name, subtitle: dateRange)
 
                     // Location
                     if country.representativeCoordinate.latitude != 0 || country.representativeCoordinate.longitude != 0 {
@@ -54,12 +37,12 @@ struct CountryDetailView: View {
                     }
 
                     // Cities list
-                    if !vm.country.cities.isEmpty {
+                    if !country.cities.isEmpty {
                         citiesSection
                     }
 
                     // Photo grid
-                    photoGridSection
+                    PhotoGridSection(photoIDs: country.photoIDs, limit: 60)
                 }
                 .padding(.top, 8)
             }
@@ -69,30 +52,10 @@ struct CountryDetailView: View {
                     Button("Done") { dismiss() }
                 }
             }
-            .fullScreenCover(item: $selectedPhoto) { photo in
-                FullScreenPhotoView(assetID: photo.id)
-            }
-        }
-        .onAppear {
-            vm.loadThumbnails(for: Array(vm.country.photoIDs.prefix(60)))
         }
     }
 
     // MARK: - Sections
-
-    private var headerSection: some View {
-        VStack(spacing: 12) {
-            Text(country.flag)
-                .font(.system(size: 72))
-            Text(country.name)
-                .font(.system(size: 34, weight: .bold, design: .rounded))
-            Text(dateRange)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-    }
 
     private var statsRow: some View {
         HStack(spacing: 12) {
@@ -159,7 +122,7 @@ struct CountryDetailView: View {
     }
 
     private var displayedCities: [CityStat] {
-        showAllCities ? vm.country.cities : Array(vm.country.cities.prefix(cityPreviewCount))
+        showAllCities ? country.cities : Array(country.cities.prefix(cityPreviewCount))
     }
 
     private var citiesSection: some View {
@@ -175,39 +138,16 @@ struct CountryDetailView: View {
                 }
             }
 
-            if vm.country.cities.count > cityPreviewCount {
+            if country.cities.count > cityPreviewCount {
                 Button {
                     withAnimation(.easeInOut(duration: 0.25)) { showAllCities.toggle() }
                 } label: {
-                    Text(showAllCities ? "Show less" : "Show all \(vm.country.cities.count) cities")
+                    Text(showAllCities ? "Show less" : "Show all \(country.cities.count) cities")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.tint)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
-            }
-        }
-    }
-
-    private var photoGridSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Photos")
-                .padding(.horizontal, 20)
-
-            if vm.country.photoIDs.isEmpty {
-                Text("No photos available")
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 20)
-            } else {
-                LazyVGrid(columns: gridColumns, spacing: 2) {
-                    ForEach(vm.country.photoIDs.prefix(60), id: \.self) { id in
-                        Button { selectedPhoto = IdentifiedPhoto(id: id) } label: {
-                            PhotoThumbnail(assetID: id, size: (UIScreen.main.bounds.width - 4) / 3,
-                                           cornerRadius: 0)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
             }
         }
     }

@@ -16,6 +16,7 @@ struct RecapView: View {
     @State private var page: Slide = .intro
     @State private var theme: RecapTheme = .dark
     @State private var collageImages: [UIImage] = []
+    @State private var peakImage: UIImage?
 
     private static let top = Color(red: 0.07, green: 0.09, blue: 0.24)
     private static let bottom = Color(red: 0.22, green: 0.13, blue: 0.42)
@@ -53,7 +54,7 @@ struct RecapView: View {
             topBar
         }
         .preferredColorScheme(.dark)
-        .task { await preloadCollage() }
+        .task { await preloadCollage(); await preloadPeak() }
     }
 
     @ViewBuilder
@@ -61,6 +62,8 @@ struct RecapView: View {
         switch slide {
         case .intro:            intro
         case .mostPhotographed: collagePage
+        case .highestPeak:      cardPage(RecapShareCardView(recap: recap, theme: theme,
+                                                            focus: .highestPeak, peakImage: peakImage))
         case .finale:           finale
         default:                cardPage(RecapShareCardView(recap: recap, theme: theme,
                                                             focus: focus(for: slide)))
@@ -214,7 +217,8 @@ struct RecapView: View {
             return
         }
         if let image = ShareCardRenderer.render(
-            RecapShareCardView(recap: recap, theme: theme, focus: focus(for: page)),
+            RecapShareCardView(recap: recap, theme: theme, focus: focus(for: page),
+                               peakImage: page == .highestPeak ? peakImage : nil),
             baseSize: RecapShareCardView.canvasSize,
             opaque: theme != .transparent
         ) {
@@ -239,6 +243,11 @@ struct RecapView: View {
         guard collageImages.isEmpty, !recap.highlightPhotoIDs.isEmpty else { return }
         collageImages = await loadImages(ids: recap.highlightPhotoIDs,
                                          targetSize: CGSize(width: 600, height: 600))
+    }
+
+    private func preloadPeak() async {
+        guard peakImage == nil, let id = recap.highestPeakPhotoID else { return }
+        peakImage = await loadImages(ids: [id], targetSize: CGSize(width: 900, height: 700)).first
     }
 
     private func loadImages(ids: [String], targetSize: CGSize) async -> [UIImage] {

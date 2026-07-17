@@ -13,7 +13,8 @@ struct ContinentDetailView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 24) {
-                    headerSection
+                    DetailHeader(glyph: stat.continent.emoji, title: stat.continent.rawValue,
+                                 subtitle: stat.visited ? "Visited" : "Not yet visited")
                     statsRow
                         .padding(.horizontal, 20)
                     countriesSection
@@ -33,20 +34,6 @@ struct ContinentDetailView: View {
     }
 
     // MARK: - Sections
-
-    private var headerSection: some View {
-        VStack(spacing: 12) {
-            Text(stat.continent.emoji)
-                .font(.system(size: 72))
-            Text(stat.continent.rawValue)
-                .font(.system(size: 34, weight: .bold, design: .rounded))
-            Text(stat.visited ? "Visited" : "Not yet visited")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-    }
 
     private var statsRow: some View {
         HStack(spacing: 12) {

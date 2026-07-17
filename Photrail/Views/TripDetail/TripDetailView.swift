@@ -6,17 +6,8 @@ import Photos
 struct TripDetailView: View {
     let trip: Trip
 
-    @State private var selectedPhoto: IdentifiedPhoto?
     @State private var coverImage: UIImage?
     @State private var showSharePreview = false
-
-    private struct IdentifiedPhoto: Identifiable { let id: String }
-
-    private let gridColumns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2)
-    ]
 
     var body: some View {
         ScrollView {
@@ -41,7 +32,7 @@ struct TripDetailView: View {
 
                 if !trip.wonders.isEmpty { wondersSection }
 
-                photoGridSection
+                PhotoGridSection(photoIDs: trip.photoIDs, limit: 90)
             }
             .padding(.bottom, 8)
         }
@@ -51,9 +42,6 @@ struct TripDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showSharePreview = true } label: { Image(systemName: "square.and.arrow.up") }
             }
-        }
-        .fullScreenCover(item: $selectedPhoto) { photo in
-            FullScreenPhotoView(assetID: photo.id)
         }
         .sheet(isPresented: $showSharePreview) {
             TripSharePreview(trip: trip, cover: coverImage)
@@ -200,10 +188,7 @@ struct TripDetailView: View {
             ForEach(trip.wonders) { wonder in
                 HStack(spacing: 14) {
                     if let id = wonder.photoID {
-                        Button { selectedPhoto = IdentifiedPhoto(id: id) } label: {
-                            PhotoThumbnail(assetID: id, size: 48, cornerRadius: 10)
-                        }
-                        .buttonStyle(.plain)
+                        TappablePhotoThumbnail(assetID: id, size: 48, cornerRadius: 10)
                     } else {
                         Text(wonder.emoji)
                             .font(.system(size: 30))
@@ -222,35 +207,18 @@ struct TripDetailView: View {
         }
     }
 
-    // MARK: - Photos
-
-    private var photoGridSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Photos")
-                .padding(.horizontal, 20)
-
-            if trip.photoIDs.isEmpty {
-                Text("No photos available")
-                    .foregroundStyle(.secondary).padding(.horizontal, 20)
-            } else {
-                LazyVGrid(columns: gridColumns, spacing: 2) {
-                    ForEach(trip.photoIDs.prefix(90), id: \.self) { id in
-                        Button { selectedPhoto = IdentifiedPhoto(id: id) } label: {
-                            PhotoThumbnail(assetID: id, size: (UIScreen.main.bounds.width - 4) / 3,
-                                           cornerRadius: 0)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-    }
-
     // MARK: - Cover + Share
 
     private func loadCover() async {
-        let best = await PhotoCurator().bestPhotos(candidateIDs: trip.photoIDs, category: nil, limit: 1)
-        let id = best.first ?? trip.photoIDs.first
+        // Reuse the remembered cover if we've curated this trip before — instant, no Vision pass.
+        let id: String?
+        if let cached = TripCoverStore.coverID(for: trip.id) {
+            id = cached
+        } else {
+            let best = await PhotoCurator().bestPhotos(candidateIDs: trip.photoIDs, category: nil, limit: 1)
+            id = best.first ?? trip.photoIDs.first
+            if let chosen = id { TripCoverStore.setCoverID(chosen, for: trip.id) }
+        }
         guard let id else { return }
         coverImage = await loadImage(id: id, target: CGSize(width: 1080, height: 1080))
     }
