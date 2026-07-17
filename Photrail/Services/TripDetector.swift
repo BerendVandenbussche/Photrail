@@ -112,6 +112,13 @@ struct TripDetector: Sendable {
         let start = photos.map(\.date).min() ?? first.date
         let end = photos.map(\.date).max() ?? first.date
 
+        // Stable id keyed on the start *day*. Trips are sequential and non-overlapping,
+        // so the start day identifies a trip uniquely — and, unlike a country+timestamp
+        // key, it doesn't drift when photo counts change or the primary country flips,
+        // so per-trip data (notes, cover) stays attached.
+        let d = Calendar.current.dateComponents([.year, .month, .day], from: start)
+        let id = String(format: "trip-%04d-%02d-%02d", d.year ?? 0, d.month ?? 0, d.day ?? 0)
+
         let highestAltitude = photos.compactMap(\.altitude).max()
 
         let wonders = WonderDetector().detect(photos: photos)
@@ -122,7 +129,7 @@ struct TripDetector: Sendable {
                                   photoID: $0.representativePhotoID) }
 
         return Trip(
-            id: "\(primary.code)-\(Int(start.timeIntervalSince1970))",
+            id: id,
             countryCode: primary.code,
             country: primary.name,
             flag: primary.flag,
