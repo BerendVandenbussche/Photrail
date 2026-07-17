@@ -6,6 +6,7 @@ struct DashboardView: View {
     @State private var showShareCard = false
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
+    @State private var showWonders = false
 
     private var stats: TravelStats { appVM.stats }
     private var scanProgress: AppViewModel.ScanProgress { appVM.scanProgress }
@@ -68,6 +69,8 @@ struct DashboardView: View {
                         .buttonStyle(.plain)
                         .padding(.horizontal, 20)
 
+                        wondersCard
+
                         highlightsSection
 
                         recentTripsSection
@@ -101,7 +104,8 @@ struct DashboardView: View {
             }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
-                                  trips: stats.trips.filter { $0.countryCodes.contains(country.id) })
+                                  trips: stats.trips.filter { $0.countryCodes.contains(country.id) },
+                                  wonders: stats.wonders)
             }
             .sheet(isPresented: $showShareCard) {
                 ShareComposerView(stats: stats, profile: appVM.personalityProfile, trips: stats.trips)
@@ -109,6 +113,59 @@ struct DashboardView: View {
             .sheet(item: $yearRecap) { recap in
                 RecapView(recap: recap)
             }
+            .sheet(isPresented: $showWonders) {
+                WondersListView(wonders: stats.wonders)
+            }
+        }
+    }
+
+    // MARK: - World Wonders progress
+
+    private var officialWonders: [WonderStat] {
+        stats.wonders
+            .filter { $0.wonder.category == .sevenWonders }
+            .sorted { ($0.seen ? 0 : 1, $0.wonder.name) < ($1.seen ? 0 : 1, $1.wonder.name) }
+    }
+
+    @ViewBuilder
+    private var wondersCard: some View {
+        let seen = officialWonders.filter(\.seen).count
+        let total = officialWonders.count
+        // Only surface the card once at least one wonder has been seen.
+        if seen > 0 {
+            Button { showWonders = true } label: {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Label("World Wonders", systemImage: "star.circle.fill")
+                            .font(.headline).foregroundStyle(.primary)
+                        Spacer()
+                        Text("\(seen) of \(total)")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                    }
+                    HStack(spacing: 8) {
+                        ForEach(officialWonders) { stat in
+                            Text(stat.wonder.emoji)
+                                .font(.system(size: 22))
+                                .grayscale(stat.seen ? 0 : 1)
+                                .opacity(stat.seen ? 1 : 0.35)
+                        }
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(0.1))
+                            Capsule().fill(Color.accentColor)
+                                .frame(width: max(6, geo.size.width * CGFloat(seen) / CGFloat(total)))
+                        }
+                    }
+                    .frame(height: 8)
+                }
+                .padding(AppCard.padding)
+                .card()
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
         }
     }
 

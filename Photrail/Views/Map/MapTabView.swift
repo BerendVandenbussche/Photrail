@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Map tab — a full-screen interactive world map. Tapping a pin opens the country.
+/// The Map tab — a full-screen interactive world map. Tapping a country pin opens the country.
 struct MapTabView: View {
     @Environment(AppViewModel.self) private var appVM
     @State private var selectedCountry: CountryStat?
@@ -15,7 +15,8 @@ struct MapTabView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .sheet(item: $selectedCountry) { country in
                     CountryDetailView(country: country,
-                                      trips: stats.trips.filter { $0.countryCodes.contains(country.id) })
+                                      trips: stats.trips.filter { $0.countryCodes.contains(country.id) },
+                                      wonders: stats.wonders)
                 }
         }
     }

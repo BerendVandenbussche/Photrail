@@ -41,7 +41,8 @@ struct PlacesView: View {
             .sheet(isPresented: $showAddCountry) { ManualCountryPickerView() }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
-                                  trips: stats.trips.filter { $0.countryCodes.contains(country.id) })
+                                  trips: stats.trips.filter { $0.countryCodes.contains(country.id) },
+                                  wonders: stats.wonders)
             }
             .sheet(item: $selectedContinent) { ContinentDetailView(stat: $0) }
             .sheet(item: $selectedWonder) { wonder in

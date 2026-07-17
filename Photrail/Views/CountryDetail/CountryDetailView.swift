@@ -3,9 +3,19 @@ import SwiftUI
 struct CountryDetailView: View {
     let country: CountryStat
     var trips: [Trip] = []
+    var wonders: [WonderStat] = []
     @State private var showAllTrips = false
     @State private var showAllCities = false
+    @State private var selectedWonder: WonderStat?
     @Environment(\.dismiss) private var dismiss
+
+    /// Wonders & landmarks the user has photographed in this country.
+    private var seenWonders: [WonderStat] {
+        wonders
+            .filter { $0.wonder.countryCode == country.id && $0.seen }
+            .sorted { ($0.wonder.category == .sevenWonders ? 0 : 1, $0.wonder.name)
+                    < ($1.wonder.category == .sevenWonders ? 0 : 1, $1.wonder.name) }
+    }
 
     /// Items shown in trips/cities before "Show more" is tapped.
     private let tripPreviewCount = 5
@@ -36,6 +46,11 @@ struct CountryDetailView: View {
                         tripsSection
                     }
 
+                    // Wonders & landmarks seen in this country
+                    if !seenWonders.isEmpty {
+                        wondersSection
+                    }
+
                     // Cities list
                     if !country.cities.isEmpty {
                         citiesSection
@@ -52,7 +67,16 @@ struct CountryDetailView: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .sheet(item: $selectedWonder) { wonder in
+                WonderDetailView(stat: wonder, trip: tripFor(wonder))
+            }
         }
+    }
+
+    private func tripFor(_ stat: WonderStat) -> Trip? {
+        trips
+            .filter { trip in trip.wonders.contains { $0.id == stat.wonder.id } }
+            .max { $0.startDate < $1.startDate }
     }
 
     // MARK: - Sections
@@ -117,6 +141,45 @@ struct CountryDetailView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
+            }
+        }
+    }
+
+    private var wondersTitle: String {
+        let hasWonder = seenWonders.contains { $0.wonder.category == .sevenWonders }
+        let hasLandmark = seenWonders.contains { $0.wonder.category == .landmark }
+        if hasWonder && hasLandmark { return "Wonders & Landmarks" }
+        if hasWonder { return seenWonders.count == 1 ? "Wonder" : "Wonders" }
+        return seenWonders.count == 1 ? "Landmark" : "Landmarks"
+    }
+
+    private var wondersSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: wondersTitle)
+                .padding(.horizontal, 20)
+
+            ForEach(seenWonders) { stat in
+                Button { selectedWonder = stat } label: {
+                    HStack(spacing: 14) {
+                        Text(stat.wonder.emoji)
+                            .font(.system(size: 30))
+                            .frame(width: 44, height: 44)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(stat.wonder.name).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                            Text(stat.wonder.category == .sevenWonders ? "New 7 Wonder" : "Landmark")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text("\(stat.photoCount)")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                    }
+                    .padding(.horizontal, 20)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                if stat.id != seenWonders.last?.id { Divider().padding(.leading, 78) }
             }
         }
     }
