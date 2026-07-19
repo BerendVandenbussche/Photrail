@@ -23,7 +23,7 @@ Photrail turns your photo library into a beautiful travel map. It reads the GPS 
 - **World map** — Interactive map with a pin for every country you've visited
 - **Travel statistics** — Countries visited, cities explored, percentage of the world covered, most photographed country
 - **Continents overview** — How many of the 6 inhabited continents you've visited, with a per‑continent country list (Antarctica appears as a bonus when visited)
-- **Trips** — Photos are grouped into trips: a continuous journey away from home that can **span several countries**. A trip ends when you return to your home town (within 50 km of home) or after a gap of more than a week — unless the next photo is in the same country within ~30 days (so a long single‑country stay isn't split). A country's "trip count" is how many trips included it
+- **Trips** — Photos are grouped into trips: a continuous journey away from home that can **span several countries**. A trip ends when you return to your home town (within 50 km of home), or when the next photo is unlikely to belong to the same journey. That likelihood is a **same‑trip probability score** — instead of a flat time cutoff, each candidate is weighed by the distance between the two places, whether they share a continent, the size of the time gap, and whether *home sits between them* (a natural round trip). So a Prague weekend and a Canada holiday a few days apart stay **separate**, while a European road trip or a direct long‑haul flight leg stays **whole**. A country's "trip count" is how many trips included it
 - **Trip detail** — Tap any trip for a dedicated page: a Vision‑curated hero cover photo, a MapKit map with a numbered pin per city joined by a line in visit order, a key‑stats row (distance traveled, duration, countries, cities, photos, highest point), an itinerary (with per‑stop flags across borders), wonders & landmarks seen on that trip, and the trip's photos — with a live share‑card preview before sharing
 - **Manual countries** — Deleted the photos for a trip? Add a country by hand (Places → Countries) so your map and stats stay accurate. Manual entries count toward totals and appear on the map, but can't produce photo‑based share cards
 - **On This Day** — Resurfaces photos taken on today's calendar day in past years ("5 years ago · 🇵🇹 Lisbon"), away from home; tap to see that day's photos. Excludes everyday photos within 50 km of home
@@ -90,7 +90,7 @@ Photrail/
 │   ├── WonderCatalog.swift             Static catalog of wonders & landmarks
 │   ├── WonderDetector.swift            Location-based wonder matching (image-recog ready)
 │   ├── TripDetector.swift              Groups photos into multi-country journeys (home-town
-│   │                                   + time-gap boundaries); builds stops, route, wonders
+│   │                                   boundary + same-trip probability); builds stops, route, wonders
 │   ├── CountryCatalog.swift            All countries (name + flag) for manual entry
 │   ├── StatisticsEngine.swift          Pure [GeoPhoto] → TravelStats transformation
 │   ├── MemoriesEngine.swift            Pure [GeoPhoto] → "On This Day" memories
@@ -139,7 +139,7 @@ PhotrailWidgets/                        Widget extension (Travel Stats + World W
 | Decision | Reason |
 |---|---|
 | Offline geocoding (country / coastline / places GeoJSON + point-in-polygon / nearest-point) | Instant, private, no rate limit, no third-party TOS; only city *names* need the network |
-| Multi-country trips (home-town + time-gap boundaries) | Models real journeys — a Euro-trip is one trip across countries, not several; domestic trips far from home still count |
+| Multi-country trips scored by same-trip probability (distance, continent, gap, home-between) | Models real journeys — a Euro-trip is one trip across countries; but a Prague weekend and a Canada holiday days apart don't merge just because they're within a week |
 | Two-pass scan (countries offline → cities online) | Core features complete in seconds; city names enrich after |
 | SwiftData (`@Model` + `@ModelActor`) | Per-photo row upserts — geocoding is written incrementally and survives an abrupt exit |
 | `actor` for all services | Prevents data races when processing large libraries off the main thread |
