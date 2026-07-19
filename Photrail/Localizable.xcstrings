@@ -2445,6 +2445,56 @@
           }
         }
       }
+    },
+    "Search cities": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steden zoeken"
+          }
+        }
+      }
+    },
+    "No cities here yet.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen steden hier."
+          }
+        }
+      }
+    },
+    "No cities match “%@”.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen steden komen overeen met “%@”."
+          }
+        }
+      }
+    },
+    "Still finding your cities… A city only appears here once it's been resolved, which takes a little longer than the rest of the scan. Check back in a moment if yours isn't listed yet.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je steden worden nog gezocht… Een stad verschijnt hier pas nadat ze is herkend, wat iets langer duurt dan de rest van de scan. Kom zo terug als de jouwe er nog niet bij staat."
+          }
+        }
+      }
+    },
+    "A city only appears here once it's been resolved. City names are resolved after the main scan, so if yours is missing, give it a moment or reindex from the Me tab.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een stad verschijnt hier pas nadat ze is herkend. Stadsnamen worden na de hoofdscan herkend, dus als de jouwe ontbreekt, geef het even tijd of herindexeer via het tabblad Ik."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
