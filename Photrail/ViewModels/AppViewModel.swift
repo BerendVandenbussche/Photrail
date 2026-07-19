@@ -250,6 +250,13 @@ final class AppViewModel {
         manualCountries.contains { $0.code == code }
     }
 
+    /// Give a trip a custom name (or clear it with an empty string) and recompute so the
+    /// new title shows everywhere — lists, detail, and share cards.
+    func renameTrip(_ name: String, tripID: String) {
+        TripNameStore.setName(name, for: tripID)
+        Task { await refreshStatsWithManual() }
+    }
+
     private func refreshStatsWithManual() async {
         let photos = (try? await store.allPhotos()) ?? []
         stats = statsEngine.compute(from: photos, homeCountryCode: homeCountryCode,

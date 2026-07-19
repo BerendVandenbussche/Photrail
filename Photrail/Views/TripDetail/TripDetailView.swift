@@ -12,6 +12,16 @@ struct TripDetailView: View {
     @State private var note: String = ""
     @State private var showNoteEditor = false
     @State private var selectedWonder: WonderStat?
+    @State private var customName: String?
+    @State private var showRenameEditor = false
+
+    /// The trip with any just-edited custom name applied, so a rename shows immediately
+    /// in this view (header, title, share preview) without waiting for the recompute.
+    private var displayTrip: Trip {
+        var t = trip
+        t.customName = customName
+        return t
+    }
 
     var body: some View {
         ScrollView {
@@ -44,15 +54,25 @@ struct TripDetailView: View {
             }
             .padding(.bottom, 8)
         }
-        .navigationTitle(trip.displayName)
+        .navigationTitle(displayTrip.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showSharePreview = true } label: { Image(systemName: "square.and.arrow.up") }
+                Menu {
+                    Button { showRenameEditor = true } label: {
+                        Label(trip.hasCustomName ? "Rename Trip" : "Name This Trip",
+                              systemImage: "pencil")
+                    }
+                    Button { showSharePreview = true } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
             }
         }
         .sheet(isPresented: $showSharePreview) {
-            TripSharePreview(trip: trip, cover: coverImage)
+            TripSharePreview(trip: displayTrip, cover: coverImage)
         }
         .sheet(isPresented: $showNoteEditor) {
             TripNoteEditor(text: note) { saved in
@@ -60,9 +80,19 @@ struct TripDetailView: View {
                 TripNoteStore.setNote(saved, for: trip.id)
             }
         }
+        .sheet(isPresented: $showRenameEditor) {
+            TripNameEditor(name: customName ?? "", defaultName: trip.englishDisplayName) { saved in
+                let trimmed = saved.trimmingCharacters(in: .whitespacesAndNewlines)
+                customName = trimmed.isEmpty ? nil : trimmed
+                appVM.renameTrip(trimmed, tripID: trip.id)
+            }
+        }
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
         .task { await loadCover() }
-        .onAppear { note = TripNoteStore.note(for: trip.id) }
+        .onAppear {
+            note = TripNoteStore.note(for: trip.id)
+            customName = trip.customName
+        }
     }
 
     private var tripTypeBadge: some View {
@@ -141,7 +171,7 @@ struct TripDetailView: View {
                 Text(trip.dateRangeText.uppercased())
                     .font(.system(size: 12, weight: .bold)).tracking(1.2)
                     .foregroundStyle(.white.opacity(0.85))
-                Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(trip.displayName)" : "\(trip.flag) \(trip.displayName)")
+                Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(displayTrip.displayName)" : "\(trip.flag) \(displayTrip.displayName)")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(2).minimumScaleFactor(0.6)
@@ -366,6 +396,54 @@ private struct TripSharePreview: View {
         ) {
             SharePresenter.present([image])
         }
+    }
+}
+
+// MARK: - Name editor
+
+private struct TripNameEditor: View {
+    @State var name: String
+    /// The auto-generated name (country list), shown as the placeholder + reset target.
+    let defaultName: String
+    let onSave: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(defaultName, text: $name)
+                        .focused($focused)
+                        .submitLabel(.done)
+                        .onSubmit { onSave(name); dismiss() }
+                } footer: {
+                    Text("Give this trip your own name, like \u{201C}Summer in Italy\u{201D}. Leave it empty to use the default (\(defaultName)).")
+                }
+
+                if !name.trimmingCharacters(in: .whitespaces).isEmpty {
+                    Section {
+                        Button(role: .destructive) {
+                            name = ""
+                            onSave("")
+                            dismiss()
+                        } label: {
+                            Label("Reset to default name", systemImage: "arrow.uturn.backward")
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Trip Name")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { onSave(name); dismiss() }.fontWeight(.semibold)
+                }
+            }
+            .onAppear { focused = true }
+        }
+        .presentationDetents([.medium])
     }
 }
 

@@ -46,6 +46,9 @@ struct Trip: Identifiable, Sendable {
     let highestAltitude: Double?
     /// World wonders / landmarks photographed on the trip.
     let wonders: [WonderHit]
+    /// A user-chosen name for the trip; when set it replaces the country list as the
+    /// title (in the app and on share cards). Persisted in `TripNameStore`, keyed by id.
+    var customName: String? = nil
 
     /// A country visited during the trip.
     struct TripCountry: Identifiable, Sendable {
@@ -85,20 +88,27 @@ struct Trip: Identifiable, Sendable {
     /// Primary country name in the app's language.
     var localizedCountry: String { Locale.current.localizedString(forRegionCode: countryCode) ?? country }
 
-    /// A human title in the app's language: the country for single-country trips, else the countries listed.
+    /// A human title in the app's language: a custom name if the user set one, otherwise
+    /// the country for single-country trips, else the countries listed.
     var displayName: String {
+        if let customName, !customName.isEmpty { return customName }
         guard isMultiCountry else { return localizedCountry }
         let names = countries.prefix(3).map(\.localizedName).joined(separator: ", ")
         return countries.count > 3 ? "\(names) +\(countries.count - 3)" : names
     }
 
-    /// Same as `displayName` but always English — used on share cards.
+    /// Same as `displayName` but always English — used on share cards. A custom name is
+    /// user-chosen and language-neutral, so it's used verbatim here too.
     var englishDisplayName: String {
+        if let customName, !customName.isEmpty { return customName }
         let english = Locale(identifier: "en_US").localizedString(forRegionCode: countryCode) ?? country
         guard isMultiCountry else { return english }
         let names = countries.prefix(3).map(\.englishName).joined(separator: ", ")
         return countries.count > 3 ? "\(names) +\(countries.count - 3)" : names
     }
+
+    /// Whether the user has given this trip a custom name.
+    var hasCustomName: Bool { !(customName ?? "").isEmpty }
 
     /// A wonder/landmark seen on the trip (lightweight projection of WonderStat).
     struct WonderHit: Identifiable, Sendable {

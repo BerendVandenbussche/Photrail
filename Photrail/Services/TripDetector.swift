@@ -210,7 +210,8 @@ struct TripDetector: Sendable {
             photoIDs: photos.map(\.id),
             coordinate: .init(latitude: lat, longitude: lon),
             highestAltitude: highestAltitude,
-            wonders: wonders
+            wonders: wonders,
+            customName: TripNameStore.name(for: id)
         )
     }
 }
