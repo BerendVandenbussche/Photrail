@@ -53,7 +53,8 @@ struct TravelPersonalityEngine: Sendable {
                      cityDistanceByPhoto: [String: Double] = [:],
                      trips: [Trip] = [],
                      home: GeoPhoto.Coordinate? = nil,
-                     homeRadiusKm: Double = 50) -> TravelPersonalityProfile {
+                     homeRadiusKm: Double = 50,
+                     healthDirectionByTrip: [String: TravelCategoryScores] = [:]) -> TravelPersonalityProfile {
         var valid = photos
             .filter { $0.coordinate.latitude != 0 || $0.coordinate.longitude != 0 }
             .sorted { $0.date < $1.date }
@@ -84,7 +85,44 @@ struct TravelPersonalityEngine: Sendable {
             scored.append(.init(id: photo.id, scores: scores))
         }
 
-        return aggregator.aggregate(scored, trips: trips, photoCount: valid.count)
+        return aggregator.aggregate(scored, trips: trips, photoCount: valid.count,
+                                    healthDirectionByTrip: healthDirectionByTrip)
+    }
+
+    // MARK: - Health signals (optional; only when the user opted into Insights)
+
+    /// A per-trip *direction* vector from HealthKit signals, tilting the trip toward active /
+    /// mountain / coastal styles. Magnitude is relative — the aggregator scales it against the
+    /// trip's photo scores — so this shifts proportions without overwhelming photo evidence.
+    /// Returns an empty vector (no effect) when there are no health signals.
+    static func healthDirection(flightsClimbed: Int?,
+                                averageStepsPerDay: Double?,
+                                workoutActivityKeys: [String]) -> TravelCategoryScores {
+        var s = TravelCategoryScores()
+
+        if let flights = flightsClimbed, flights > 0 {
+            let meters = Double(flights) * 3
+            if meters >= 300 {
+                s.add(.mountain, min(3, meters / 300))
+                s.add(.adventure, min(1.5, meters / 600))
+            }
+        }
+
+        if let avg = averageStepsPerDay {
+            if avg >= 12_000 { s.add(.adventure, 1.5); s.add(.nature, 0.5) }
+            else if avg >= 8_000 { s.add(.adventure, 0.8) }
+        }
+
+        for key in workoutActivityKeys {
+            switch key {
+            case "hiking", "climbing":       s.add(.mountain, 1.2); s.add(.adventure, 1.0)
+            case "skiing", "snowboarding":   s.add(.mountain, 1.5); s.add(.adventure, 0.8)
+            case "running", "cycling", "walking": s.add(.adventure, 0.8)
+            case "swimming":                 s.add(.coastal, 1.0)
+            default:                         s.add(.adventure, 0.4)
+            }
+        }
+        return s
     }
 
     // MARK: - Per-photo scoring (pure / testable)

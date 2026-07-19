@@ -7,6 +7,9 @@ struct PhotoGridSection: View {
     var title: LocalizedStringKey = "Photos"
     let photoIDs: [String]
     var limit: Int = 90
+    /// Optional heart-rate "vibe" per photo, from the Trip Insights module. When present,
+    /// a small badge is overlaid on the tile and carried into the full-screen viewer.
+    var excitementByPhotoID: [String: ExcitementSample] = [:]
 
     @State private var selected: IdentifiedPhoto?
     private struct IdentifiedPhoto: Identifiable { let id: String }
@@ -33,12 +36,23 @@ struct PhotoGridSection: View {
                             PhotoThumbnail(assetID: id,
                                            size: (UIScreen.main.bounds.width - 4) / 3,
                                            cornerRadius: 0)
+                                .overlay(alignment: .topTrailing) {
+                                    if let sample = excitementByPhotoID[id] {
+                                        Text(sample.badge.emoji)
+                                            .font(.system(size: 13))
+                                            .padding(4)
+                                            .background(Circle().fill(.black.opacity(0.35)))
+                                            .padding(4)
+                                    }
+                                }
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
         }
-        .fullScreenCover(item: $selected) { FullScreenPhotoView(assetID: $0.id) }
+        .fullScreenCover(item: $selected) {
+            FullScreenPhotoView(assetID: $0.id, excitement: excitementByPhotoID[$0.id])
+        }
     }
 }

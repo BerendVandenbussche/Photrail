@@ -14,6 +14,8 @@ struct TripDetailView: View {
     @State private var selectedWonder: WonderStat?
     @State private var customName: String?
     @State private var showRenameEditor = false
+    /// Per-photo heart-rate "vibe", filled by the insights section, used to badge the grid.
+    @State private var excitement: [String: ExcitementSample] = [:]
 
     /// The trip with any just-edited custom name applied, so a rename shows immediately
     /// in this view (header, title, share preview) without waiting for the recompute.
@@ -34,6 +36,8 @@ struct TripDetailView: View {
 
                 notesSection
 
+                TripInsightsSection(trip: trip, excitement: $excitement)
+
                 if !trip.stops.isEmpty {
                     TripMapView(stops: trip.stops)
                         .frame(height: 280)
@@ -50,7 +54,8 @@ struct TripDetailView: View {
 
                 if !trip.wonders.isEmpty { wondersSection }
 
-                PhotoGridSection(photoIDs: trip.photoIDs, limit: 90)
+                PhotoGridSection(photoIDs: trip.photoIDs, limit: 90,
+                                 excitementByPhotoID: excitement)
             }
             .padding(.bottom, 8)
         }

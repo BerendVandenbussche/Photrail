@@ -4,6 +4,8 @@ import Photos
 /// A full-screen, zoomable viewer for a single photo asset, with a Share action.
 struct FullScreenPhotoView: View {
     let assetID: String
+    /// Optional heart-rate "vibe" for this photo, from the Trip Insights module.
+    var excitement: ExcitementSample? = nil
     @Environment(\.dismiss) private var dismiss
 
     @State private var image: UIImage?
@@ -42,6 +44,16 @@ struct FullScreenPhotoView: View {
                             .padding(10).background(Circle().fill(.white.opacity(0.18)))
                     }
                     Spacer()
+                    if let excitement {
+                        HStack(spacing: 6) {
+                            Text(excitement.badge.emoji)
+                            Text("\(Int(excitement.bpm)) bpm")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .background(Capsule().fill(.white.opacity(0.18)))
+                    }
                 }
                 .padding(20)
                 Spacer()

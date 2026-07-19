@@ -230,6 +230,21 @@ struct ProfileView: View {
             .padding(14)
             Divider().padding(.leading, 52)
 
+            HStack(spacing: 14) {
+                Image(systemName: "heart.text.square.fill")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .frame(width: 24)
+                Text("Trip Insights").foregroundStyle(.primary)
+                Spacer()
+                Toggle("", isOn: $appVM.insightsEnabled).labelsHidden()
+            }
+            .padding(14)
+            .onChange(of: appVM.insightsEnabled) { _, on in
+                if on { Task { _ = await appVM.enableInsights() } }
+            }
+            Divider().padding(.leading, 52)
+
             Button { showReindexConfirm = true } label: {
                 row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
             }

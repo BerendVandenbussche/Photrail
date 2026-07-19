@@ -34,8 +34,10 @@ Photrail turns your photo library into a beautiful travel map. It reads the GPS 
 - **Most visited countries** — Countries ranked by number of distinct trips
 - **Furthest from home** — Set a home city/country in Settings and see which trip took you furthest away
 - **World Wonders & Landmarks** — Detects, by location, which of the New 7 Wonders and other famous landmarks you've photographed; tap any to see your photos of it
-- **Travel Personality** — An on‑device profile of your travel style (Urban / Coastal / Mountain / Nature / Culture / Transit / Adventure) as percentages, with a dominant type. Daily‑life photos within 50 km of home are excluded so the profile reflects travel
-- **Me tab** — A profile page with an emoji avatar, your lifetime snapshot, travel personality, home location, reindex, the Travel Calendar, and the Recaps archive
+- **Travel Personality** — An on‑device profile of your travel style (Urban / Coastal / Mountain / Nature / Culture / Transit / Adventure) as percentages, with a dominant type. Daily‑life photos within 50 km of home are excluded so the profile reflects travel. When **Trip Insights** is enabled (below), each trip's Health signals (climbs, steps, workouts) gently tilt its flavour — scaled to that trip's photo evidence so it shifts proportions without overwhelming them, and degrading to photo‑only whenever Health has no data
+- **Trip Insights (Apple Health)** — An **optional, opt‑in** module that cross‑references Apple Health with your trip's photos, entirely on‑device. Enable it from any trip (or the Me tab) — a contextual "late opt‑in", so onboarding is untouched. It adds, per trip: an **Excitement Meter** (heart rate matched to the moment each photo was taken → a per‑photo "vibe" badge), **Vertical Exploration** (flights climbed → fun landmark milestones, e.g. "1.4× the Eiffel Tower"), **Travel Fuel** (active energy → locally‑themed food equivalents, e.g. croissants in France), **Workout Chapters** (any `HKWorkout` — including third‑party writes like Strava — whose window overlaps the trip becomes a sub‑album with its route map and stats), and a **Travel Persona** (steps/pace vs. photo volume → an archetype like *The Flâneur* or *The Mission Traveler*). Health is **read‑only**; every field degrades gracefully when data is missing
+- **Photo authorship guard** — The Excitement Meter only badges photos you likely **took yourself**. Rather than fragile device‑identity checks (which break when you upgrade/transfer, and can't tell your iPhone from a friend's), it rules out screenshots, shared‑album/synced assets, and messaging‑app filenames — so biometrics are never attributed to a picture someone else took
+- **Me tab** — A profile page with an emoji avatar, your lifetime snapshot, travel personality, home location, Trip Insights toggle, reindex, the Travel Calendar, and the Recaps archive
 - **Year in Travel recap** — A paged, Spotify‑Wrapped‑style story (distance with relatable comparisons, most‑photographed country, chronological route map, first‑ever‑visited countries, personality, wonders & landmarks seen, biggest trip, highest peak, superlatives, Vision‑curated "best shots", year summary, hero finale). **Every slide is individually shareable** as its own branded card; the finale also exports light / dark / transparent themes. The finale shows a year‑specific stat set (new countries, highest peak, distance) and a labelled **Travel Score** tier (Getaway → Wanderer → Explorer → Adventurer → Globetrotter)
 - **Vision‑curated best shots** — On‑device image aesthetics + scene classification pick the year's most beautiful photos, matched to your personality and time‑spaced, skipping screenshots and people/pet shots
 - **New‑country notifications** — When a photo taken *today* is your first ever in a country, you get a "Welcome to …" notification (works in the background)
@@ -50,6 +52,7 @@ Photrail turns your photo library into a beautiful travel map. It reads the GPS 
 - No backend, no accounts, no analytics
 - **Country, continent, coastline, city‑remoteness, wonder, trip, "On This Day" and personality detection all run 100% on‑device** using bundled geographic datasets — no network, no third‑party service
 - City **names** are the only thing resolved online (via Apple's `CLGeocoder`); only coordinates are sent, and only for the optional city‑enrichment pass
+- **Apple Health** (Trip Insights) is **opt‑in and read‑only**, queried entirely on‑device; nothing is written back and no health data ever leaves the phone. It's off until you enable it, and revocable in the Health app / Settings
 - Image data is only loaded when displaying thumbnails; all travel data lives in a local on‑device SwiftData database
 - Photo library access is **read‑only** and can be revoked at any time in Settings
 - Ships an Apple **privacy manifest** (`PrivacyInfo.xcprivacy`, app + widget): no tracking, no data collected, `UserDefaults` declared with reason `CA92.1`. App Store privacy label is **Data Not Collected**
@@ -78,7 +81,9 @@ Photrail/
 │   │                                   countries, stops, route distance, altitude, wonders)
 │   ├── ManualCountry.swift             A hand-added, photo-less country (keeps stats accurate)
 │   ├── Memory.swift                    An "On This Day" memory (past-year photos for today)
-│   └── TravelStats.swift              Full stats snapshot + widget snapshot + mocks
+│   ├── TravelStats.swift              Full stats snapshot + widget snapshot + mocks
+│   ├── TripInsights.swift             Per-trip HealthKit insights result (cached, Codable)
+│   └── HealthMetrics.swift            Insight sub-types (excitement, milestone, food, workout, persona)
 ├── Services/
 │   ├── PhotoScanService.swift          Extracts GPS metadata from PHAsset library
 │   ├── OfflineCountryGeocoder.swift    On-device coordinate → country (bundled GeoJSON)
@@ -100,7 +105,11 @@ Photrail/
 │   ├── TripCoverStore.swift            Caches each trip's curated hero photo
 │   ├── NotificationService.swift       Local "new country" notifications
 │   ├── BackgroundTaskService.swift     BGProcessingTask scheduling and execution
-│   ├── TravelPersonality/              Pure scoring engine (category → score → profile)
+│   ├── TravelPersonality/              Pure scoring engine (category → score → profile;
+│   │                                   optional Health direction folded in per trip)
+│   ├── HealthKit/                      Opt-in Insights: HealthKitService (actor, only file
+│   │                                   importing HealthKit), TravelInsightsEngine (pure),
+│   │                                   TripInsightsStore (cache), PhotoAuthorship (capture guard)
 │   ├── Recap/                          Year recap model, travel title + travel score
 │   └── Sharing/                        Share cards (templates, recap, collage, trip, calendar), renderer, presenter
 ├── ViewModels/
@@ -117,6 +126,7 @@ Photrail/
 │   │                                   + full-screen zoomable photo viewer
 │   ├── TripDetail/                     Hero cover + trip map + stats + itinerary + wonders
 │   │                                   + photos + share-card preview
+│   ├── Insights/                       Trip Insights section, workout-chapter sheet, opt-in prompt
 │   ├── Calendar/                       Travel calendar: month grid of trip-day flags + share
 │   ├── ContinentDetail/               Per-continent country list
 │   ├── Wonders/                        Wonders & landmarks list + mini map + photo grid
@@ -148,7 +158,11 @@ PhotrailWidgets/                        Widget extension (Travel Stats + World W
 | CLGeocoder throttled only on cache miss | Cities resolve at ~1 req/s; cache hits and all offline work are instant |
 | `BGProcessingTask` (not `BGAppRefreshTask`) | City geocoding can run for minutes on large libraries; refresh tasks cap at ~30s |
 | Dataset version flags | Bumping `countryDatasetVersion` / the personality signature silently re-resolves when data or scoring logic improves |
-| Pure scoring engines (personality, score, title) | Decoupled from SwiftUI, deterministic, unit-tested |
+| Pure scoring engines (personality, score, title, insights) | Decoupled from SwiftUI, deterministic, unit-tested |
+| HealthKit isolated behind one `actor`; `TravelInsightsEngine` stays pure | Only `HealthKitService` imports HealthKit; the engine takes raw sample arrays, so all insight logic is unit-testable without entitlements or a device |
+| Per-trip insights cached (`TripInsightsStore`, keyed by trip id + photo signature) | HealthKit queries are slow; compute once and reuse — the Insights UI and the personality tilt share the same cache |
+| Photo authorship by capture heuristics, not device identity | EXIF device model can't tell your iPhone from a friend's and is meaningless after an upgrade/transfer; ruling out screenshots/shared/messaging files keeps biometrics off photos you didn't take |
+| Health folds into personality as a per-trip *direction*, scaled to photo evidence | Lets climbs/steps/workouts shift a trip's flavour without overwhelming the photos; fully gated on the Insights opt-in and degrades to photo-only |
 | EXIF altitude captured at scan | Drives the Mountain personality and the recap's highest-peak slide, no dataset needed |
 | Vision best-shots (aesthetics + classification) | On-device curation of the recap's photo collage; matched to personality, time-spaced, skips people/pets/screenshots |
 | High-res image requests (network allowed) | Optimized-Storage libraries fetch full-res originals from iCloud instead of blurry local thumbnails |
@@ -178,7 +192,14 @@ App launch
                     └── Resolve cities via CLGeocoder (rate-limited)     → city lists fill in
                             │  each result persisted row-by-row → fully resumable
                             └── App backgrounded → BGProcessingTask resumes the city pass
-            └── Personality profile recomputed off-main and cached (home photos excluded)
+            └── Personality profile recomputed off-main and cached (home photos excluded;
+                    Health signals folded in per trip when Trip Insights is enabled)
+
+Trip Insights (opt-in, lazy — computed when a trip is opened, never during the scan)
+    └── Enable from a trip / the Me tab → read-only Health permission sheet
+            └── Query the trip's date window (heart rate, flights, energy, steps, workouts)
+                    └── TravelInsightsEngine assembles the result (pure)
+                            └── cached in TripInsightsStore, keyed by trip id + photo signature
 ```
 
 ## Branding
@@ -190,6 +211,7 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 1. Clone the repo and open `Photrail.xcodeproj`.
 2. **Widgets (optional):** the project includes a `PhotrailWidgets` extension. Both the app and the widget target must have the **App Group** `group.com.berend.photrail` enabled (Signing & Capabilities). The shared snapshot is published there after each scan.
 3. Select your team in **Signing & Capabilities** and run on a **physical device** (photo library + geocoding are unreliable in the Simulator).
+4. **Trip Insights (optional):** the app target needs the **HealthKit** capability (Signing & Capabilities) — the entitlement is already in `Photrail/Photrail.entitlements`, so confirm it's shown and let automatic signing regenerate the profile. The feature is opt‑in at runtime; without Health access the rest of the app is unaffected.
 
 > The geographic datasets above are committed and bundle automatically — no setup needed.
 
@@ -204,6 +226,7 @@ A single vector mark (`Components/LogoView.swift`) — a flowing "trail" ending 
 
 - **Avatar** — pick an emoji as your profile picture.
 - **Travel personality** + lifetime snapshot (countries / cities / continents / trips).
+- **Trip Insights** — a toggle for the optional Apple Health module (heart rate, climbs, energy, workouts, personas). Off by default; flipping it on presents the read‑only Health permission sheet and folds Health signals into your travel personality.
 - **Home** — pick a country and optionally a city. Used for the furthest‑trip calculation, as the trip‑detection boundary (a photo within 50 km of home ends a trip), and to exclude everyday photos within 50 km of home from your travel personality.
 - **Travel Calendar** — a month grid with a flag on every trip day; tap a day to open the trip, or share the month as a branded card.
 - **Reindex photo library** — rebuilds travel history from scratch. Use it after changing the location or date of photos that were already scanned (a normal incremental scan keeps the original data because the asset id is unchanged), or to backfill altitude onto previously scanned photos.
@@ -223,7 +246,12 @@ Conventions:
 
 ## Testing
 
-`⌘U` runs the unit tests, including the travel personality scoring engine (`PhotrailTests/TravelPersonalityEngineTests.swift`): urban/nature/culture/transit classification, the home‑radius exclusion, percentage normalization, and confidence scaling.
+`⌘U` runs the unit tests, including:
+
+- **Travel personality** (`PhotrailTests/TravelPersonalityEngineTests.swift`): urban/nature/culture/transit classification, the home‑radius exclusion, percentage normalization, and confidence scaling.
+- **Trip Insights** (`PhotrailTests/TravelInsightsEngineTests.swift`): elevation‑milestone selection, food‑equivalent math, persona thresholds, heart‑rate‑to‑photo window matching, workout grouping, the photo‑authorship filename heuristic, and the Health→personality direction vectors. The engine is pure, so these run without HealthKit entitlements or a device.
+
+> Trip Insights requires the **HealthKit** capability (Signing & Capabilities) and a device or a simulator seeded with Health data; the on‑device UI can't be exercised in unit tests.
 
 ## License
 

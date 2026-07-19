@@ -62,6 +62,18 @@ final class AppViewModel {
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .today
 
+    /// Master switch for the (optional) HealthKit Insights module. Off by default —
+    /// the user opts in contextually from a trip. Enabling it triggers the Health
+    /// permission sheet via `enableInsights()`.
+    var insightsEnabled: Bool = false {
+        didSet {
+            UserDefaults.standard.set(insightsEnabled, forKey: "insightsEnabled")
+            // Turning it off strips Health influence from the personality. Turning it on
+            // recomputes via `enableInsights()` once permission has been resolved.
+            if !insightsEnabled { Task { await recomputePersonality() } }
+        }
+    }
+
     /// Master switch for all travel nudges (new-country, trip-ready, year recap). Default on.
     var travelNudgesEnabled: Bool = true {
         didSet {
@@ -163,6 +175,8 @@ final class AppViewModel {
     private let photoCurator = PhotoCurator()
     private let store: PhotoStore
     private let statsEngine = StatisticsEngine()
+    private let healthKit = HealthKitService()
+    private let insightsEngine = TravelInsightsEngine()
 
     private let changeTokenKey = "lastChangeToken"
     private let countryDatasetVersionKey = "countryDatasetVersion"
@@ -200,6 +214,7 @@ final class AppViewModel {
         if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
             self.travelNudgesEnabled = enabled
         }
+        self.insightsEnabled = UserDefaults.standard.bool(forKey: "insightsEnabled")
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
@@ -255,6 +270,88 @@ final class AppViewModel {
     func renameTrip(_ name: String, tripID: String) {
         TripNameStore.setName(name, for: tripID)
         Task { await refreshStatsWithManual() }
+    }
+
+    // MARK: - HealthKit Insights
+
+    /// A signature of the trip's photo set, so cached insights are invalidated when it changes.
+    static func insightsSignature(for trip: Trip) -> String {
+        "v1-\(trip.photoIDs.count)-\(Int(trip.startDate.timeIntervalSince1970))-\(Int(trip.endDate.timeIntervalSince1970))"
+    }
+
+    /// Fresh cached insights for a trip, or nil if none / stale.
+    func cachedInsights(for trip: Trip) -> TripInsights? {
+        TripInsightsStore.insights(for: trip.id, signature: Self.insightsSignature(for: trip))
+    }
+
+    /// Turn on the Insights module and present the Health permission sheet.
+    /// Returns whether the authorization request completed (not whether reads were granted —
+    /// HealthKit hides that; callers detect denial as "no data").
+    func enableInsights() async -> Bool {
+        insightsEnabled = true
+        let granted = await healthKit.requestAuthorization()
+        // Fold the newly-available Health signals into the lifetime personality.
+        await recomputePersonality()
+        return granted
+    }
+
+    /// Compute (or reuse cached) insights for a trip. HealthKit queries run inside the
+    /// service actor, off the main actor; the pure engine assembles the result.
+    func computeInsights(for trip: Trip) async -> TripInsights {
+        let signature = Self.insightsSignature(for: trip)
+        if let cached = cachedInsights(for: trip) { return cached }
+
+        let now = Date()
+        guard HealthKitService.isAvailable, insightsEnabled else {
+            return .empty(tripID: trip.id, signature: signature, authorized: false, at: now)
+        }
+
+        // The trip's photos (dates + coordinates) for HR matching and workout grouping.
+        let idSet = Set(trip.photoIDs)
+        let photos = ((try? await store.allPhotos()) ?? []).filter { idSet.contains($0.id) }
+
+        // Query the full calendar span of the trip (pads to whole days for morning workouts etc.).
+        let cal = Calendar.current
+        let windowStart = cal.startOfDay(for: trip.startDate)
+        let windowEnd = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: trip.endDate)) ?? trip.endDate
+
+        let heartRate = await healthKit.heartRateSamples(start: windowStart, end: windowEnd)
+        let flights = await healthKit.flightsClimbed(start: windowStart, end: windowEnd)
+        let energy = await healthKit.activeEnergyKcal(start: windowStart, end: windowEnd)
+        let steps = await healthKit.steps(start: windowStart, end: windowEnd)
+        let workouts = await healthKit.workouts(start: windowStart, end: windowEnd)
+
+        // Restrict the Excitement Meter to photos the user likely captured themselves.
+        let authored = await PhotoAuthorship().likelyAuthored(assetIDs: Array(idSet))
+
+        let insights = insightsEngine.build(
+            trip: trip, signature: signature, authorized: true, photos: photos,
+            heartRate: heartRate, flightsClimbed: flights, activeEnergyKcal: energy,
+            steps: steps, workouts: workouts, authoredPhotoIDs: authored, now: now)
+        TripInsightsStore.save(insights)
+        return insights
+    }
+
+    /// A trip's Health "direction" for the lifetime personality tilt. Cheap by design —
+    /// three statistics queries + a route-less workout fetch, all on the HealthKit actor
+    /// (off the main thread). No photos, heart rate, routes, or authorship. Returns nil when
+    /// Health has nothing for the trip's dates.
+    private func healthDirection(for trip: Trip) async -> TravelCategoryScores? {
+        let cal = Calendar.current
+        let windowStart = cal.startOfDay(for: trip.startDate)
+        let windowEnd = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: trip.endDate)) ?? trip.endDate
+
+        let flights = await healthKit.flightsClimbed(start: windowStart, end: windowEnd)
+        let steps = await healthKit.steps(start: windowStart, end: windowEnd)
+        let workouts = await healthKit.workouts(start: windowStart, end: windowEnd, includeRoutes: false)
+
+        let days = max(1, (cal.dateComponents([.day], from: trip.startDate, to: trip.endDate).day ?? 0) + 1)
+        let avgSteps = steps.map { Double($0) / Double(days) }
+        let activityKeys = workouts.map { TravelInsightsEngine.activity(for: $0.activityRawValue).key }
+
+        let direction = TravelPersonalityEngine.healthDirection(
+            flightsClimbed: flights, averageStepsPerDay: avgSteps, workoutActivityKeys: activityKeys)
+        return direction.total > 0 ? direction : nil
     }
 
     private func refreshStatsWithManual() async {
@@ -448,6 +545,7 @@ final class AppViewModel {
         Task {
             try? await store.deleteAll()
             UserDefaults.standard.removeObject(forKey: changeTokenKey)
+            TripInsightsStore.clearAll()
             stats = .empty
             startForegroundScan()
         }
@@ -761,7 +859,8 @@ final class AppViewModel {
         let geocodedCount = photos.lazy.filter { $0.isGeocoded }.count
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
-        let signature = "v8-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")"
+        // `insightsEnabled` is part of the signature so toggling Health opt-in recomputes.
+        let signature = "v9-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")-hk\(insightsEnabled ? 1 : 0)"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {
@@ -797,13 +896,28 @@ final class AppViewModel {
         UserDefaults.standard.set(explorerRarity, forKey: "explorerRarity")
 
         let trips = stats.trips
+
+        // When the user opted into Insights, fold each trip's Health signals (climbs, steps,
+        // workouts) into its personality flavour. This uses a lightweight, off-main path —
+        // only three cheap aggregates + workout types per trip, no photos / heart rate /
+        // routes / authorship — so it never blocks the UI. Degrades to photo-only with no data.
+        var healthDirectionByTrip: [String: TravelCategoryScores] = [:]
+        if insightsEnabled, HealthKitService.isAvailable {
+            for trip in trips {
+                if let direction = await healthDirection(for: trip) {
+                    healthDirectionByTrip[trip.id] = direction
+                }
+            }
+        }
+
         let profile = await Task.detached(priority: .utility) {
             TravelPersonalityEngine().makeProfile(photos: photos,
                                                   wonderIDByPhoto: wonderByPhoto,
                                                   coastalDistanceByPhoto: coastByPhoto,
                                                   cityDistanceByPhoto: cityByPhoto,
                                                   trips: trips,
-                                                  home: home)
+                                                  home: home,
+                                                  healthDirectionByTrip: healthDirectionByTrip)
         }.value
 
         personalityProfile = profile

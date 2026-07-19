@@ -12,7 +12,12 @@ struct TravelPersonalityAggregator: Sendable {
         let scores: TravelCategoryScores
     }
 
-    func aggregate(_ scored: [ScoredPhoto], trips: [Trip], photoCount: Int) -> TravelPersonalityProfile {
+    /// How strongly HealthKit signals may tilt a trip's flavour, relative to its photo
+    /// evidence (0 = ignore health, 1 = health can weigh as much as all photos in the trip).
+    private static let healthInfluence = 0.5
+
+    func aggregate(_ scored: [ScoredPhoto], trips: [Trip], photoCount: Int,
+                   healthDirectionByTrip: [String: TravelCategoryScores] = [:]) -> TravelPersonalityProfile {
         guard !scored.isEmpty else { return .empty }
 
         // Map each photo to a trip bucket (photos outside any trip share one bucket).
@@ -30,11 +35,20 @@ struct TravelPersonalityAggregator: Sendable {
             buckets[key] = bucket
         }
 
-        // Combine normalized, dampened trip vectors into a lifetime vector.
+        // Combine normalized, dampened trip vectors into a lifetime vector. When the user
+        // opted into Insights, a per-trip Health direction tilts that trip's flavour —
+        // scaled to the trip's own photo evidence so it shifts proportions, not magnitude.
         var lifetime = TravelCategoryScores()
-        for bucket in buckets.values {
+        for (key, bucket) in buckets {
+            var scores = bucket.scores
+            if let direction = healthDirectionByTrip[key], direction.total > 0 {
+                let bucketTotal = bucket.scores.total
+                if bucketTotal > 0 {
+                    scores = scores + direction.normalized(to: bucketTotal * Self.healthInfluence)
+                }
+            }
             let weight = (Double(bucket.count)).squareRoot()
-            lifetime = lifetime + bucket.scores.normalized(to: weight)
+            lifetime = lifetime + scores.normalized(to: weight)
         }
 
         // Integer percentages that sum to exactly 100 (largest-remainder rounding),
