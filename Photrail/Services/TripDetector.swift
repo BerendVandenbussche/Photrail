@@ -20,8 +20,10 @@ struct TripDetector: Sendable {
     ///   - directTravelDays: a move within this many days is treated as active travel and
     ///     always continues the trip, however far (a direct long‑haul flight leg counts).
     ///   - sameTripThreshold: the minimum probability [0,1] to keep the same trip.
-    ///   - homeCoordinate / homeRadiusKm: a photo within this radius of home ends the trip.
-    ///   - homeCountryCode: fallback home boundary when no home coordinate is known.
+    ///   - homeCountryCode: any photo in this country ends the trip (you're back home).
+    ///   - homeCoordinate / homeRadiusKm: a photo within this radius of home also ends the
+    ///     trip — used when no home country is known, or for a home town in a country you
+    ///     also travel within.
     func detect(from photos: [GeoPhoto],
                 maxGapDays: Int = 7,
                 hardMaxGapDays: Int = 30,
@@ -30,18 +32,44 @@ struct TripDetector: Sendable {
                 homeCoordinate: GeoPhoto.Coordinate? = nil,
                 homeCountryCode: String? = nil,
                 homeRadiusKm: Double = 50) -> [Trip] {
-        let relevant = photos
+        let sorted = photos
             .filter { $0.isGeocoded && $0.countryCode != nil }
             .sorted { $0.date < $1.date }
-        guard !relevant.isEmpty else { return [] }
+        guard !sorted.isEmpty else { return [] }
+
+        // Drop GPS "spikes": a photo thousands of km from BOTH its neighbours while those
+        // neighbours are close to each other can't be a real move — it's a screenshot, a
+        // saved/received image, or a photo whose location defaulted to home. Left in, such
+        // a point splits one continuous trip in two (or merges two), so it's excluded from
+        // trip grouping. Real trip boundaries are one‑way jumps (prev near A, next near B,
+        // A far from B) and are NOT flagged.
+        func isSpike(_ prev: GeoPhoto, _ mid: GeoPhoto, _ next: GeoPhoto) -> Bool {
+            let toPrev = mid.coordinate.clLocation.distance(from: prev.coordinate.clLocation) / 1000
+            let toNext = mid.coordinate.clLocation.distance(from: next.coordinate.clLocation) / 1000
+            let prevNext = prev.coordinate.clLocation.distance(from: next.coordinate.clLocation) / 1000
+            return toPrev > 1000 && toNext > 1000 && prevNext < 500
+        }
+        var relevant: [GeoPhoto] = []
+        for (i, photo) in sorted.enumerated() {
+            // Photos taken at an international hub are transit, not a destination — dropping
+            // them keeps a layover country (e.g. a Frankfurt stopover) out of the trip.
+            if AirportCatalog.isAtAirport(photo.coordinate) { continue }
+            if i > 0, i < sorted.count - 1, isSpike(sorted[i - 1], photo, sorted[i + 1]) {
+                continue
+            }
+            relevant.append(photo)
+        }
 
         let homeLocation = homeCoordinate?.clLocation
 
         func isHome(_ photo: GeoPhoto) -> Bool {
+            // Anywhere in the home country counts as home — a journey is time spent *abroad*,
+            // so returning to your own country ends the current trip even if it's a different
+            // city than your exact home town (e.g. flying Prague → Belgium → Canada).
+            if let homeCountryCode, photo.countryCode == homeCountryCode { return true }
             if let homeLocation {
                 return photo.coordinate.clLocation.distance(from: homeLocation) <= homeRadiusKm * 1000
             }
-            if let homeCountryCode { return photo.countryCode == homeCountryCode }
             return false
         }
 
@@ -86,14 +114,37 @@ struct TripDetector: Sendable {
                              home: CLLocation?,
                              maxGapDays: Int = 7,
                              directTravelDays: Double = 1.5) -> Double {
+        let distanceKm = last.coordinate.clLocation.distance(from: next.coordinate.clLocation) / 1000
+
+        // Round‑trip through home. If home sits roughly *between* the two places, going
+        // home in the gap barely lengthens the path — a strong hint you broke the journey
+        // (Prague → home → Canada). This is checked *before* the "direct travel" and
+        // "same country" shortcuts on purpose: a quick hop that passes through home
+        // (e.g. flew home overnight, then flew out again the next day) is two trips, not
+        // one, even though it happened fast. Only applies when a home location is known.
+        if let home {
+            let lastFromHome = last.coordinate.clLocation.distance(from: home) / 1000
+            let nextFromHome = next.coordinate.clLocation.distance(from: home) / 1000
+            if lastFromHome > 100, nextFromHome > 100, distanceKm > 1,
+               lastFromHome + nextFromHome <= distanceKm * 1.35 {
+                return 0.2   // below threshold → a new trip
+            }
+        }
+
         // Actively travelling: a same‑/next‑day move is one continuous journey, however far.
         if gapDays <= directTravelDays { return 1 }
+
+        // A short physical hop is the same journey even across a border — border towns
+        // (Sault Ste. Marie), day trips over the line, or a photo that simply geocoded a
+        // few hundred metres onto the wrong side. Without this a lone foreign‑labelled
+        // photo in the middle of a trip can start a spurious new one. The round‑trip‑
+        // through‑home case is already ruled out above, so a nearby place is safe to keep.
+        if distanceKm < 300 { return 0.9 }
 
         // A longer stay within the *same* country is still one trip.
         if last.countryCode == next.countryCode { return 0.9 }
 
         // Country changed after a multi‑day gap — judge how plausible one journey is.
-        let distanceKm = last.coordinate.clLocation.distance(from: next.coordinate.clLocation) / 1000
 
         // Nearer hops are far likelier to be the same trip.
         let distanceScore: Double
@@ -116,19 +167,8 @@ struct TripDetector: Sendable {
         // The longer the gap, the more time there was to break the journey (e.g. go home).
         let gapFactor = max(0.4, 1 - 0.5 * min(1, gapDays / Double(maxGapDays)))
 
-        var score = distanceScore * continentFactor * gapFactor
-
-        // If home sits roughly *between* the two places, going home in the gap barely
-        // lengthens the path — a strong hint these are two trips (Prague → home → Canada).
-        if let home {
-            let lastFromHome = last.coordinate.clLocation.distance(from: home) / 1000
-            let nextFromHome = next.coordinate.clLocation.distance(from: home) / 1000
-            if lastFromHome > 100, nextFromHome > 100, distanceKm > 1,
-               lastFromHome + nextFromHome <= distanceKm * 1.35 {
-                score *= 0.4
-            }
-        }
-        return score
+        // (The round‑trip‑through‑home case is handled up front, before the shortcuts.)
+        return distanceScore * continentFactor * gapFactor
     }
 
     private func makeTrip(_ photos: [GeoPhoto]) -> Trip {
