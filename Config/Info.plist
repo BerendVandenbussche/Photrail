@@ -37,6 +37,8 @@
 	<string>Photrail reads location metadata from your photos to map your travel history. Your photos never leave your device.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Photrail reads your workouts, heart rate, steps, climbs, and energy during your trips to show activity insights. Your health data stays on your device and is never uploaded.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Photrail never writes to Health — it only reads your activity to show trip insights, and your health data stays on your device.</string>
 
 	<!-- Export compliance: only standard HTTPS is used (exempt) -->
 	<key>ITSAppUsesNonExemptEncryption</key>
