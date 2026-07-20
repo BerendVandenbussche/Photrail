@@ -1,0 +1,8 @@
+// Single source of truth for app + extension versions.
+// Both the Photrail app and the PhotrailWidgets extension inherit these (they no longer
+// set MARKETING_VERSION / CURRENT_PROJECT_VERSION per target), so the two can never drift
+// and Apple's "extension version must match the app" check always passes.
+// Bump these two lines for a release.
+
+MARKETING_VERSION = 2.0.1
+CURRENT_PROJECT_VERSION = 4
