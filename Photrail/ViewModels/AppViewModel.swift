@@ -74,6 +74,13 @@ final class AppViewModel {
         }
     }
 
+    /// Whether the user dismissed the contextual "Enable Insights" card. Once dismissed,
+    /// the opt-in prompt no longer appears on any trip (they can still enable Insights from
+    /// the Me tab). Reset to `false` if they ever enable it.
+    var insightsPromptDismissed: Bool = false {
+        didSet { UserDefaults.standard.set(insightsPromptDismissed, forKey: "insightsPromptDismissed") }
+    }
+
     /// Master switch for all travel nudges (new-country, trip-ready, year recap). Default on.
     var travelNudgesEnabled: Bool = true {
         didSet {
@@ -215,6 +222,7 @@ final class AppViewModel {
             self.travelNudgesEnabled = enabled
         }
         self.insightsEnabled = UserDefaults.standard.bool(forKey: "insightsEnabled")
+        self.insightsPromptDismissed = UserDefaults.standard.bool(forKey: "insightsPromptDismissed")
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
@@ -276,12 +284,18 @@ final class AppViewModel {
 
     /// A signature of the trip's photo set, so cached insights are invalidated when it changes.
     static func insightsSignature(for trip: Trip) -> String {
-        "v1-\(trip.photoIDs.count)-\(Int(trip.startDate.timeIntervalSince1970))-\(Int(trip.endDate.timeIntervalSince1970))"
+        "v4-\(trip.photoIDs.count)-\(Int(trip.startDate.timeIntervalSince1970))-\(Int(trip.endDate.timeIntervalSince1970))"
     }
 
     /// Fresh cached insights for a trip, or nil if none / stale.
     func cachedInsights(for trip: Trip) -> TripInsights? {
         TripInsightsStore.insights(for: trip.id, signature: Self.insightsSignature(for: trip))
+    }
+
+    /// The trip's display "vibe": the workout-derived activity when it's known (from cached
+    /// insights), otherwise the location-inferred type. Matches the trip share card's theme.
+    func vibe(for trip: Trip) -> TripType {
+        TripShareTheme.decide(trip: trip, insights: cachedInsights(for: trip)).tripTypeOverride ?? trip.tripType
     }
 
     /// Turn on the Insights module and present the Health permission sheet.

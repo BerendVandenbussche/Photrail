@@ -107,10 +107,24 @@ private struct MemoryCover: View {
 private struct MemoryDetailView: View {
     let memory: Memory
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppViewModel.self) private var appVM
 
     private let columns = [GridItem(.flexible(), spacing: 3),
                            GridItem(.flexible(), spacing: 3),
                            GridItem(.flexible(), spacing: 3)]
+
+    @State private var selected: IdentifiedPhoto?
+    private struct IdentifiedPhoto: Identifiable { let id: String }
+
+    /// The trip these memory photos belong to (the one sharing the most photo IDs).
+    private var trip: Trip? {
+        let ids = Set(memory.photoIDs)
+        return appVM.stats.trips
+            .map { (trip: $0, overlap: $0.photoIDs.reduce(0) { ids.contains($1) ? $0 + 1 : $0 }) }
+            .filter { $0.overlap > 0 }
+            .max { $0.overlap < $1.overlap }?
+            .trip
+    }
 
     var body: some View {
         NavigationStack {
@@ -125,9 +139,36 @@ private struct MemoryDetailView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
 
+                if let trip {
+                    NavigationLink { TripDetailView(trip: trip) } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "map")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.tint)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("View trip").font(.subheadline.weight(.semibold))
+                                Text(trip.displayName).font(.caption).foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(14)
+                        .card(cornerRadius: AppCard.chipRadius)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                }
+
                 LazyVGrid(columns: columns, spacing: 3) {
                     ForEach(memory.photoIDs, id: \.self) { id in
-                        PhotoThumbnail(assetID: id, size: tileSize, cornerRadius: 4)
+                        Button { selected = IdentifiedPhoto(id: id) } label: {
+                            PhotoThumbnail(assetID: id, size: tileSize, cornerRadius: 4)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, 3)
@@ -135,6 +176,7 @@ private struct MemoryDetailView: View {
             .navigationTitle("On This Day")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+            .fullScreenCover(item: $selected) { FullScreenPhotoView(assetID: $0.id) }
         }
     }
 

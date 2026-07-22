@@ -13,20 +13,32 @@ struct TripInsightsSection: View {
     @State private var loading = false
     @State private var selectedChapter: WorkoutChapter?
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "Trip Insights").padding(.horizontal, 20)
+    /// Once the user dismisses the opt-in card, hide the whole section on every trip so
+    /// they're greeted with useful content instead. They can still enable it from the Me tab.
+    private var isHidden: Bool { !appVM.insightsEnabled && appVM.insightsPromptDismissed }
 
-            if !appVM.insightsEnabled {
-                InsightsPermissionPrompt { Task { await enable() } }
-            } else if let insights {
-                if !insights.authorized || !insights.hasAnyContent {
-                    InsightsEmptyState { appVM.openSettings() }
-                } else {
-                    content(insights)
-                }
+    var body: some View {
+        Group {
+            if isHidden {
+                EmptyView()
             } else {
-                loadingCard
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionHeader(title: "Trip Insights").padding(.horizontal, 20)
+
+                    if !appVM.insightsEnabled {
+                        InsightsPermissionPrompt(
+                            onEnable: { Task { await enable() } },
+                            onDismiss: { appVM.insightsPromptDismissed = true })
+                    } else if let insights {
+                        if !insights.authorized || !insights.hasAnyContent {
+                            InsightsEmptyState { appVM.openSettings() }
+                        } else {
+                            content(insights)
+                        }
+                    } else {
+                        loadingCard
+                    }
+                }
             }
         }
         .task { if appVM.insightsEnabled, insights == nil { await load() } }
@@ -176,6 +188,8 @@ struct TripInsightsSection: View {
         case "climbing":     return "Climb"
         case "snowboarding": return "Snowboard"
         case "skiing":       return "Ski"
+        case "snowSports":   return "Snow Sports"
+        case "skating":      return "Skating"
         default:             return "Workout"
         }
     }

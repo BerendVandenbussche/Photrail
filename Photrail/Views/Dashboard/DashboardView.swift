@@ -270,13 +270,15 @@ struct DashboardView: View {
 
 private struct RecentTripRow: View {
     let trip: Trip
+    @Environment(AppViewModel.self) private var appVM
 
     var body: some View {
+        let vibe = appVM.vibe(for: trip)
         HStack(spacing: 14) {
             FlagCluster(flags: trip.countries.map(\.flag), size: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(trip.displayName).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text("\(trip.tripType.emoji) \(trip.tripType.title) · \(trip.dateRangeText)")
+                Text("\(vibe.emoji) \(vibe.title) · \(trip.dateRangeText)")
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()

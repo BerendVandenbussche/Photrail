@@ -4,6 +4,8 @@ import SwiftUI
 /// "Enable Insights" flips the flag and presents the native Health permission sheet.
 struct InsightsPermissionPrompt: View {
     var onEnable: () -> Void
+    /// Dismiss the card for good — it won't appear on any trip afterwards.
+    var onDismiss: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -15,6 +17,16 @@ struct InsightsPermissionPrompt: View {
                     Text("Trip Insights").font(.headline)
                     Text("Powered by Apple Health").font(.caption).foregroundStyle(.secondary)
                 }
+                Spacer()
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .padding(6)
+                        .background(Circle().fill(.gray.opacity(0.15)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Dismiss"))
             }
 
             Text("See your heart rate, climbs, workouts, and energy from this trip. Everything is read from Apple Health and stays on your device.")
@@ -28,6 +40,10 @@ struct InsightsPermissionPrompt: View {
                     .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 12))
                     .foregroundStyle(.white)
             }
+
+            Text("You can turn this on anytime from the Me tab.")
+                .font(.caption).foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(AppCard.padding)
         .card()

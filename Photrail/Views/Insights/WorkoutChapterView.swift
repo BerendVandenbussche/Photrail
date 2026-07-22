@@ -30,10 +30,8 @@ struct WorkoutChapterView: View {
                     }
 
                     if !chapter.photoIDs.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            SectionHeader(title: "Photos from this workout").padding(.horizontal, 20)
-                            PhotoGridSection(photoIDs: chapter.photoIDs, limit: 60)
-                        }
+                        PhotoGridSection(title: "Photos from this workout",
+                                         photoIDs: chapter.photoIDs, limit: 60)
                     }
                 }
                 .padding(.vertical, 16)
@@ -94,6 +92,8 @@ struct WorkoutChapterView: View {
         case "climbing":     return "Climb"
         case "snowboarding": return "Snowboard"
         case "skiing":       return "Ski"
+        case "snowSports":   return "Snow Sports"
+        case "skating":      return "Skating"
         default:             return "Workout"
         }
     }

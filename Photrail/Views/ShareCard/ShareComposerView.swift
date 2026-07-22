@@ -31,7 +31,9 @@ struct ShareComposerView: View {
             case .summary:     return stats.countryCount > 0
             case .personality: return profile?.isMeaningful ?? false
             case .wonders:     return !stats.wonders.isEmpty
-            case .trip:        return !trips.isEmpty
+            // Trips have their own richer, photo-backed share card in Trip Detail, so the
+            // generic "Trip" template is intentionally not offered here.
+            case .trip:        return false
             }
         }
     }

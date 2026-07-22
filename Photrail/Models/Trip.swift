@@ -3,7 +3,11 @@ import CoreLocation
 
 /// A light "vibe" for a trip, shown as a badge. Titles are localized for the app.
 enum TripType: Sendable {
+    // Location-inferred vibes.
     case cityBreak, roadTrip, mountains, culture, getaway
+    // Activity vibes, inferred from the trip's workouts (Health). These take precedence
+    // over the location vibes when present, and match the trip share card's theme.
+    case ski, hike, cycling, running, water
 
     var emoji: String {
         switch self {
@@ -12,6 +16,11 @@ enum TripType: Sendable {
         case .mountains: return "🏔"
         case .culture:   return "🏛"
         case .getaway:   return "✈️"
+        case .ski:       return "⛷️"
+        case .hike:      return "🥾"
+        case .cycling:   return "🚴"
+        case .running:   return "🏃"
+        case .water:     return "🏊"
         }
     }
 
@@ -22,6 +31,11 @@ enum TripType: Sendable {
         case .mountains: return String(localized: "Mountains")
         case .culture:   return String(localized: "Culture")
         case .getaway:   return String(localized: "Getaway")
+        case .ski:       return String(localized: "Ski trip")
+        case .hike:      return String(localized: "Hiking trip")
+        case .cycling:   return String(localized: "Cycling trip")
+        case .running:   return String(localized: "Running trip")
+        case .water:     return String(localized: "Water trip")
         }
     }
 }

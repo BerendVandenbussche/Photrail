@@ -16,6 +16,15 @@ struct TripDetailView: View {
     @State private var showRenameEditor = false
     /// Per-photo heart-rate "vibe", filled by the insights section, used to badge the grid.
     @State private var excitement: [String: ExcitementSample] = [:]
+    /// Cached Health insights for this trip — drives the activity "vibe" pill and the
+    /// share card's theme so the two always agree.
+    @State private var insights: TripInsights?
+
+    /// The trip's "vibe" pill: the workout-derived activity when there's a strong signal,
+    /// otherwise the location-inferred type.
+    private var tripType: TripType {
+        TripShareTheme.decide(trip: trip, insights: insights).tripTypeOverride ?? trip.tripType
+    }
 
     /// The trip with any just-edited custom name applied, so a rename shows immediately
     /// in this view (header, title, share preview) without waiting for the recompute.
@@ -36,8 +45,6 @@ struct TripDetailView: View {
 
                 notesSection
 
-                TripInsightsSection(trip: trip, excitement: $excitement)
-
                 if !trip.stops.isEmpty {
                     TripMapView(stops: trip.stops)
                         .frame(height: 280)
@@ -54,6 +61,10 @@ struct TripDetailView: View {
 
                 if !trip.wonders.isEmpty { wondersSection }
 
+                // Health-powered insights come after the trip's own itinerary — the trip
+                // itself leads, activity context follows.
+                TripInsightsSection(trip: trip, excitement: $excitement)
+
                 PhotoGridSection(photoIDs: trip.photoIDs, limit: 90,
                                  excitementByPhotoID: excitement)
             }
@@ -63,21 +74,14 @@ struct TripDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button { showRenameEditor = true } label: {
-                        Label(trip.hasCustomName ? "Rename Trip" : "Name This Trip",
-                              systemImage: "pencil")
-                    }
-                    Button { showSharePreview = true } label: {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
+                Button { showSharePreview = true } label: {
+                    Image(systemName: "square.and.arrow.up")
                 }
+                .accessibilityLabel(Text("Share"))
             }
         }
         .sheet(isPresented: $showSharePreview) {
-            TripSharePreview(trip: displayTrip, cover: coverImage)
+            TripSharePreview(trip: displayTrip, cover: coverImage, insights: insights)
         }
         .sheet(isPresented: $showNoteEditor) {
             TripNoteEditor(text: note) { saved in
@@ -94,6 +98,7 @@ struct TripDetailView: View {
         }
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
         .task { await loadCover() }
+        .task { await loadInsights() }
         .onAppear {
             note = TripNoteStore.note(for: trip.id)
             customName = trip.customName
@@ -102,8 +107,8 @@ struct TripDetailView: View {
 
     private var tripTypeBadge: some View {
         HStack(spacing: 6) {
-            Text(trip.tripType.emoji)
-            Text(trip.tripType.title).font(.subheadline.weight(.semibold))
+            Text(tripType.emoji)
+            Text(tripType.title).font(.subheadline.weight(.semibold))
         }
         .padding(.horizontal, 12).padding(.vertical, 6)
         .background(Capsule().fill(Color.accentColor.opacity(0.12)))
@@ -176,10 +181,20 @@ struct TripDetailView: View {
                 Text(trip.dateRangeText.uppercased())
                     .font(.system(size: 12, weight: .bold)).tracking(1.2)
                     .foregroundStyle(.white.opacity(0.85))
-                Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(displayTrip.displayName)" : "\(trip.flag) \(displayTrip.displayName)")
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .lineLimit(2).minimumScaleFactor(0.6)
+                // Tapping the name renames the trip (with a subtle pencil affordance).
+                Button { showRenameEditor = true } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(trip.isMultiCountry ? "\(trip.flagsLine)  \(displayTrip.displayName)" : "\(trip.flag) \(displayTrip.displayName)")
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .lineLimit(2).minimumScaleFactor(0.6)
+                            .multilineTextAlignment(.leading)
+                        Image(systemName: "pencil")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                .buttonStyle(.plain)
             }
             .padding(20)
         }
@@ -332,6 +347,13 @@ struct TripDetailView: View {
         coverImage = await loadImage(id: id, target: CGSize(width: 1080, height: 1080))
     }
 
+    /// Resolve the activity vibe/theme source: cached insights, or a compute if enabled.
+    private func loadInsights() async {
+        if let cached = appVM.cachedInsights(for: trip) { insights = cached; return }
+        guard appVM.insightsEnabled else { return }
+        insights = await appVM.computeInsights(for: trip)
+    }
+
     private func loadImage(id: String, target: CGSize) async -> UIImage? {
         await withCheckedContinuation { continuation in
             guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject
@@ -366,13 +388,25 @@ struct TripDetailView: View {
 private struct TripSharePreview: View {
     let trip: Trip
     let cover: UIImage?
+    /// Cached Health insights, if any — lets the card pick an activity theme (ski, hike…).
+    let insights: TripInsights?
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppViewModel.self) private var appVM
+    /// Resolved insights: the cached value, refined once computed on appear.
+    @State private var resolved: TripInsights?
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
                 SharePreviewCanvas(size: TripShareCardView.canvasSize) {
-                    TripShareCardView(trip: trip, cover: cover)
+                    TripShareCardView(trip: trip, cover: cover, insights: resolved)
+                }
+                .task {
+                    resolved = insights
+                    // Fill the theme in even if the (lazy) insights section hasn't loaded yet.
+                    if resolved == nil, appVM.insightsEnabled {
+                        resolved = await appVM.computeInsights(for: trip)
+                    }
                 }
 
                 Button { share() } label: {
@@ -395,7 +429,7 @@ private struct TripSharePreview: View {
 
     private func share() {
         if let image = ShareCardRenderer.render(
-            TripShareCardView(trip: trip, cover: cover),
+            TripShareCardView(trip: trip, cover: cover, insights: resolved),
             baseSize: TripShareCardView.canvasSize,
             opaque: true
         ) {

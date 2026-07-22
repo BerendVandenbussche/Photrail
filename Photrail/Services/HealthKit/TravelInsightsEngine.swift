@@ -176,10 +176,13 @@ struct TravelInsightsEngine: Sendable {
         case 13: return ("cycling", "🚴")
         case 24: return ("hiking", "🥾")
         case 46: return ("swimming", "🏊")
-        case 63: return ("yoga", "🧘")
-        case 3:  return ("climbing", "🧗")   // .climbing
-        case 59: return ("snowboarding", "🏂")
-        case 19: return ("skiing", "⛷️")      // .downhillSkiing
+        case 57: return ("yoga", "🧘")        // .yoga
+        case 9:  return ("climbing", "🧗")    // .climbing
+        case 61: return ("skiing", "⛷️")       // .downhillSkiing
+        case 60: return ("skiing", "⛷️")       // .crossCountrySkiing
+        case 40: return ("snowSports", "🎿")  // .snowSports (generic)
+        case 67: return ("snowboarding", "🏂") // .snowboarding
+        case 39: return ("skating", "⛸️")      // .skatingSports
         default: return ("other", "💪")
         }
     }
