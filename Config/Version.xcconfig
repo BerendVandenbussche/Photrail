@@ -6,3 +6,8 @@
 
 MARKETING_VERSION = 2.1.0
 CURRENT_PROJECT_VERSION = 5
+
+// Bump when any bundled geo dataset (countries.geojson, cities1000.tsv, …) or the
+// resolution logic changes, to force a one-time re-resolution of every photo's country
+// and city on the next scan. Surfaced to Swift via the DatasetVersion key in Info.plist.
+DATASET_VERSION = 3

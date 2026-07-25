@@ -106,32 +106,45 @@ final class AppViewModel {
         }
     }
 
-    /// Optional home city (CityStat.id) for a more precise origin in large countries.
-    var homeCityID: String? {
-        didSet {
-            UserDefaults.standard.set(homeCityID, forKey: "homeCityID")
-            Task { await recomputePersonality() }
-        }
+    /// Display name for the configured home (e.g. "Paris, France"), chosen via Maps search.
+    var homeName: String? {
+        didSet { UserDefaults.standard.set(homeName, forKey: "homeName") }
+    }
+
+    /// Precise home coordinate, resolved from an Apple Maps search result.
+    private var homeLatitude: Double? {
+        didSet { UserDefaults.standard.set(homeLatitude, forKey: "homeLatitude") }
+    }
+    private var homeLongitude: Double? {
+        didSet { UserDefaults.standard.set(homeLongitude, forKey: "homeLongitude") }
     }
 
     struct FurthestTrip { let trip: Trip; let distanceKm: Double }
 
-    /// Display name for the configured home (city + country, or just country).
-    var homeDisplayName: String? {
-        if let cityID = homeCityID, let city = stats.allCities.first(where: { $0.id == cityID }) {
-            return "\(city.name), \(city.country)"
-        }
-        if let code = homeCountryCode, let country = stats.countries.first(where: { $0.id == code }) {
-            return country.name
-        }
-        return nil
+    /// Set the user's home from an Apple Maps search result.
+    func setHome(name: String, latitude: Double, longitude: Double, countryCode: String?) {
+        homeName = name
+        homeLatitude = latitude
+        homeLongitude = longitude
+        homeCountryCode = countryCode   // triggers recomputePersonality()
     }
 
-    /// Coordinate used as the origin for distance calculations — the home city if set,
-    /// otherwise the home country's representative coordinate.
+    /// Clear the configured home.
+    func clearHome() {
+        homeName = nil
+        homeLatitude = nil
+        homeLongitude = nil
+        homeCountryCode = nil            // triggers recomputePersonality()
+    }
+
+    /// Display name for the configured home.
+    var homeDisplayName: String? { homeName }
+
+    /// Coordinate used as the origin for distance calculations — the precise home
+    /// location if set, otherwise the home country's representative coordinate.
     var homeCoordinate: GeoPhoto.Coordinate? {
-        if let cityID = homeCityID, let city = stats.allCities.first(where: { $0.id == cityID }) {
-            return city.representativeCoordinate
+        if let lat = homeLatitude, let lon = homeLongitude {
+            return GeoPhoto.Coordinate(latitude: lat, longitude: lon)
         }
         if let code = homeCountryCode, let country = stats.countries.first(where: { $0.id == code }) {
             return country.representativeCoordinate
@@ -175,7 +188,7 @@ final class AppViewModel {
     }
 
     private let scanService = PhotoScanService()
-    private let geocodingService = GeocodingService()
+    private let offlineCityGeocoder = OfflineCityGeocoder()
     private let offlineGeocoder = OfflineCountryGeocoder()
     private let offlineCoastline = OfflineCoastline()
     private let offlinePlaces = OfflinePlaces()
@@ -186,10 +199,12 @@ final class AppViewModel {
     private let insightsEngine = TravelInsightsEngine()
 
     private let changeTokenKey = "lastChangeToken"
-    private let countryDatasetVersionKey = "countryDatasetVersion"
-    // Bump this whenever the bundled countries.geojson (or resolution logic) changes,
-    // to force a one-time silent re-resolution of all photos' countries on next scan.
-    private static let countryDatasetVersion = 2
+    private let datasetVersionKey = "datasetVersion"
+    // Single version for all bundled geo datasets (countries.geojson, cities1000.tsv, …).
+    // Lives in Version.xcconfig (DATASET_VERSION), read from Info.plist; bumping it forces a
+    // one-time re-resolution of every photo's country and city on the next scan.
+    private static let datasetVersion =
+        (Bundle.main.object(forInfoDictionaryKey: "DatasetVersion") as? String).flatMap(Int.init) ?? 1
 
     // Tracks the active foreground scan task so we can cancel it on background
     private var foregroundScanTask: Task<Void, Never>?
@@ -208,7 +223,19 @@ final class AppViewModel {
     init(store: PhotoStore) {
         self.store = store
         self.homeCountryCode = UserDefaults.standard.string(forKey: "homeCountryCode")
-        self.homeCityID = UserDefaults.standard.string(forKey: "homeCityID")
+        self.homeName = UserDefaults.standard.string(forKey: "homeName")
+        self.homeLatitude = (UserDefaults.standard.object(forKey: "homeLatitude") as? Double)
+        self.homeLongitude = (UserDefaults.standard.object(forKey: "homeLongitude") as? Double)
+        UserDefaults.standard.removeObject(forKey: "homeCityID")   // retired: home is now a Maps coordinate
+        // Clean cutover: the legacy home only stored a country code (no coordinate). Clear it
+        // fully so the user re-picks via Maps search — otherwise the dangling code hides the
+        // "set home" prompt while the display name shows nothing.
+        if homeCountryCode != nil && (homeLatitude == nil || homeLongitude == nil) {
+            homeCountryCode = nil
+            homeName = nil
+            homeLatitude = nil
+            homeLongitude = nil
+        }
         self.profileEmoji = UserDefaults.standard.string(forKey: "profileEmoji") ?? "🧭"
         if let data = UserDefaults.standard.data(forKey: personalityCacheKey),
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
@@ -648,15 +675,19 @@ final class AppViewModel {
 
             let statsEngine = self.statsEngine   // Sendable; captured so we can compute off-main
 
-            // Phase 2a: if the boundary dataset changed, silently re-resolve countries for
-            // all already-geocoded photos so stale codes from an older dataset are corrected.
-            // Cities are kept as-is.
-            let storedVersion = UserDefaults.standard.integer(forKey: countryDatasetVersionKey)
-            if storedVersion != Self.countryDatasetVersion {
+            // Did any bundled dataset change since this install last resolved? Checked once
+            // up front; drives both the country re-resolution (Phase 2a) and the city reset
+            // (Phase 3a). The new version is persisted only after both complete, so a
+            // cancelled scan safely re-runs the migration next time.
+            let datasetChanged =
+                UserDefaults.standard.integer(forKey: datasetVersionKey) != Self.datasetVersion
+
+            // Phase 2a: if a dataset changed, silently re-resolve countries for all
+            // already-geocoded photos so stale codes from an older dataset are corrected.
+            if datasetChanged {
                 let resolved = ((try? await store.allPhotos()) ?? []).filter { $0.isGeocoded }
                 try await resolveCountries(resolved, generation: generation,
                                            statsEngine: statsEngine, homeCode: homeCountryCode, notify: false)
-                UserDefaults.standard.set(Self.countryDatasetVersion, forKey: countryDatasetVersionKey)
             }
 
             // Seed the set of countries already known so new-country detection starts clean.
@@ -669,8 +700,20 @@ final class AppViewModel {
             try await resolveCountries(pending, generation: generation,
                                        statsEngine: statsEngine, homeCode: homeCountryCode, notify: true)
 
-            // Phase 3: enrich with city names via CLGeocoder (rate-limited, optional).
+            // Phase 3a: if a dataset changed, reset every photo's city so the offline resolver
+            // re-runs for all of them below (replacing any stale names, e.g. from the old
+            // online CLGeocoder pass).
+            if datasetChanged {
+                try await store.resetCityResolution()
+            }
+
+            // Phase 3: enrich with city names offline from the bundled cities1000 dataset.
             try await resolveCities(generation: generation, statsEngine: statsEngine, homeCode: homeCountryCode)
+
+            // Both dataset migrations are complete — record the version so they don't re-run.
+            if datasetChanged {
+                UserDefaults.standard.set(Self.datasetVersion, forKey: datasetVersionKey)
+            }
 
             await completeScan()
 
@@ -737,28 +780,32 @@ final class AppViewModel {
         publishWidgetStats()
     }
 
-    /// Phase 3 — optional city enrichment via CLGeocoder (rate-limited).
+    /// Phase 3 — offline city enrichment from the bundled `cities1000` dataset.
+    /// No network, no rate limit: every photo is matched to its nearest city in memory,
+    /// so even very large libraries resolve near-instantly.
     private func resolveCities(generation: Int, statsEngine: StatisticsEngine, homeCode: String?) async throws {
         let store = self.store
-        let manual = manualCountries   // capture copies; the batch closure runs off the main actor
-        let home = homeCoordinate
         let pending = (try? await store.photosNeedingCity()) ?? []
         guard !pending.isEmpty else { return }
 
         let total = pending.count
         scanProgress = .geocoding(progress: 0, total: total)
 
-        await geocodingService.cityBatch(pending) { [weak self] done, id, result in
-            try? await store.applyCity(id: id, city: result.city, hasLocality: result.hasLocality)
-            var refreshed: TravelStats?
-            if done % 25 == 0 || done == total {
-                refreshed = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: home, manualCountries: manual)
+        var done = 0
+        for chunk in pending.chunked(into: 1000) {
+            try Task.checkCancellation()
+            let input = chunk.map { (id: $0.id, latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
+            let results = await offlineCityGeocoder.resolve(input)
+            for result in results {
+                try? await store.applyCity(id: result.id, city: result.city, hasLocality: result.hasLocality)
             }
-            let snapshot = refreshed
+            done += chunk.count
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+            let progress = Double(done) / Double(total)
             await MainActor.run {
-                guard let self, self.scanGeneration == generation else { return }
-                self.scanProgress = .geocoding(progress: Double(done) / Double(total), total: total)
-                if let snapshot { self.stats = snapshot }
+                guard self.scanGeneration == generation else { return }
+                self.scanProgress = .geocoding(progress: progress, total: total)
+                self.stats = snapshot
             }
         }
 
@@ -874,7 +921,7 @@ final class AppViewModel {
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
         // `insightsEnabled` is part of the signature so toggling Health opt-in recomputes.
-        let signature = "v9-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeCityID ?? "")-hk\(insightsEnabled ? 1 : 0)"
+        let signature = "v9-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeName ?? "")-hk\(insightsEnabled ? 1 : 0)"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {

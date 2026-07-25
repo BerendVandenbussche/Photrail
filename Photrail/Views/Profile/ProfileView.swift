@@ -50,6 +50,12 @@ struct ProfileView: View {
 
                     settingsCard
 
+                    Text("City data © GeoNames (CC BY 4.0)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 4)
+
                     Spacer(minLength: 30)
                 }
                 .padding(.top, 12)

@@ -661,6 +661,7 @@
       }
     },
     "A city only appears here once it's been resolved. City names are resolved after the main scan, so if yours is missing, give it a moment or reindex from the Me tab.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -896,6 +897,7 @@
       }
     },
     "Choose your home country": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -942,6 +944,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stedentrip"
+          }
+        }
+      }
+    },
+    "City data © GeoNames (CC BY 4.0)": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stadgegevens © GeoNames (CC BY 4.0)"
           }
         }
       }
@@ -1639,6 +1651,7 @@
       }
     },
     "No cities here yet.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -1649,6 +1662,7 @@
       }
     },
     "No cities match “%@”.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -1669,6 +1683,7 @@
       }
     },
     "No countries yet — scan your photos first.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -2015,6 +2030,7 @@
       }
     },
     "Pick a country, then optionally a city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -2196,6 +2212,16 @@
         }
       }
     },
+    "Results": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resultaten"
+          }
+        }
+      }
+    },
     "Ride": {
       "extractionState": "manual",
       "localizations": {
@@ -2268,6 +2294,7 @@
       }
     },
     "Search cities": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -2283,6 +2310,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zoek landen"
+          }
+        }
+      }
+    },
+    "Search for a city": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek een stad"
+          }
+        }
+      }
+    },
+    "Search for your home city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek je thuisstad. Gebruikt voor de berekening van je verste reis en om alledaagse foto's dicht bij huis uit te sluiten van je reispersoonlijkheid."
           }
         }
       }
@@ -2330,6 +2377,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bekijk je hartslag, beklimmingen, workouts en energie van deze reis. Alles wordt uit Apple Health gelezen en blijft op je toestel."
+          }
+        }
+      }
+    },
+    "Set your home city": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel je thuisstad in"
           }
         }
       }
@@ -2540,6 +2597,7 @@
       }
     },
     "Still finding your cities… A city only appears here once it's been resolved, which takes a little longer than the rest of the scan. Check back in a moment if yours isn't listed yet.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -3005,6 +3063,7 @@
       }
     },
     "Whole country": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {

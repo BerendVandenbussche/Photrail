@@ -58,7 +58,7 @@ e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWith
 
 ## How it works
 
-Photrail is a pipeline: **photos → GPS → offline geocoding → stats/trips/personality → UI**. Everything runs on-device; only city *names* touch the network.
+Photrail is a pipeline: **photos → GPS → offline geocoding → stats/trips/personality → UI**. Everything runs on-device — nothing touches the network, not even city names.
 
 ### Scanning pipeline
 
@@ -69,9 +69,9 @@ App launch
                     └── (Boundary dataset version changed? → silently re-resolve all countries)
                     └── Resolve countries OFFLINE for new photos        → core features appear
                             └── fires "new country" notifications, publishes widgets
-                    └── Resolve cities via CLGeocoder (rate-limited)     → city lists fill in
-                            │  each result persisted row-by-row → fully resumable
-                            └── App backgrounded → BGProcessingTask resumes the city pass
+                    └── Resolve cities OFFLINE (bundled cities1000)      → city lists fill in
+                            │  nearest-city lookup, no network, no rate limit
+                            └── each result persisted row-by-row → fully resumable
             └── Personality profile recomputed off-main and cached (home photos excluded;
                     Health signals folded in per trip when Trip Insights is enabled)
 
@@ -82,13 +82,13 @@ Trip Insights (opt-in, lazy — computed when a trip is opened, never during the
                             └── cached in TripInsightsStore, keyed by trip id + photo signature
 ```
 
-Every result is persisted to a local SwiftData store as it completes, so closing or killing the app never loses progress. A two-pass design (countries offline, then cities online) means the core features appear in seconds and city names enrich after.
+Every result is persisted to a local SwiftData store as it completes, so closing or killing the app never loses progress. A two-pass design (countries first, then cities) means the core features appear in seconds and city names enrich right after — both passes are fully offline, so even very large libraries resolve quickly.
 
 ### Trip detection
 
 `TripDetector` groups photos, in time order, into trips — a continuous journey away from home that can **span several countries**. A trip ends when:
 
-- **You're back in your home country** — any photo in `homeCountryCode` ends the trip (also a photo within `homeRadiusKm` of a set home city). A journey is time spent *abroad*.
+- **You're back in your home country** — any photo in `homeCountryCode` ends the trip (also a photo within `homeRadiusKm` of your set home coordinate). A journey is time spent *abroad*.
 - **The next photo is unlikely to belong to the same journey** — scored by a **same-trip probability** rather than a flat time cutoff. It weighs the distance between the two places, whether they share a continent, the size of the time gap, and whether *home sits between them* (a natural round trip). A short hop stays in one trip even across a border; a quick flight back through home splits into two.
 
 Two inputs are cleaned out **before** grouping so they can't corrupt a trip:
@@ -100,15 +100,18 @@ Both are excluded from *trip grouping* only; the photos still count toward overa
 
 ### Bundled datasets
 
-Committed under `Photrail/` and bundled automatically (Natural Earth, public domain):
+Committed under `Photrail/` and bundled automatically:
 
-| File | Source | Purpose |
-|---|---|---|
-| `countries.geojson` | `ne_10m_admin_0_countries` | coordinate → country |
-| `coastline.geojson` | `ne_50m_coastline` | distance to nearest coast (Coastal personality) |
-| `places.geojson` | `ne_10m_populated_places_simple` | distance to nearest city (Urban vs. Nature) |
+| File | Source | License | Purpose |
+|---|---|---|---|
+| `countries.geojson` | `ne_10m_admin_0_countries` | Natural Earth (public domain) | coordinate → country |
+| `coastline.geojson` | `ne_50m_coastline` | Natural Earth (public domain) | distance to nearest coast (Coastal personality) |
+| `places.geojson` | `ne_10m_populated_places_simple` | Natural Earth (public domain) | distance to nearest city (Urban vs. Nature) |
+| `cities1000.tsv` | GeoNames `cities1000` | CC BY 4.0 | coordinate → nearest city name (offline city resolution) |
 
-Keep bundled versions lightly simplified (≥30%) — over-simplifying borders misplaces towns near boundaries. When swapping a dataset, bump the relevant version (`AppViewModel.countryDatasetVersion`, or the personality signature) so existing installs recompute.
+`cities1000.tsv` is every place with a population of ≥1,000 (~170k rows), trimmed to `name · lat · lon · countryCode · population`. GeoNames is **CC BY 4.0**, so it requires attribution — credited in the Me tab.
+
+Keep the GeoJSON versions lightly simplified (≥30%) — over-simplifying borders misplaces towns near boundaries. When swapping **any** geo dataset, bump the single **`DATASET_VERSION` in `Config/Version.xcconfig`** — existing installs re-resolve both countries and cities on the next scan. (Scoring-only changes still use the personality signature.)
 
 ## Project structure
 
@@ -137,8 +140,9 @@ Photrail/
 │   ├── OfflineCountryGeocoder.swift    On-device coordinate → country (bundled GeoJSON)
 │   ├── OfflineCoastline.swift          On-device distance to nearest coast (bundled GeoJSON)
 │   ├── OfflinePlaces.swift             On-device distance to nearest city (bundled GeoJSON)
+│   ├── OfflineCityGeocoder.swift       On-device coordinate → nearest city name (bundled cities1000.tsv)
+│   ├── LocalSearchCompleter.swift      Apple Maps city autocomplete for setting home
 │   ├── PhotoCurator.swift              Vision aesthetics + scene classification → best shots
-│   ├── GeocodingService.swift          City names via CLGeocoder (rate-limited, cached)
 │   ├── PhotoStore.swift                @ModelActor — serialized SwiftData access
 │   ├── ContinentMapper.swift           ISO country code → continent
 │   ├── WonderCatalog.swift             Static catalog of wonders & landmarks
@@ -205,23 +209,24 @@ Guiding principles, and why they hold:
 - **Pure scoring engines.** Personality, travel score, title, and insights are plain value-in/value-out types with no SwiftUI or framework dependencies — deterministic and unit-testable.
 - **Actors for I/O.** Every service that touches the photo library, SwiftData, or HealthKit is an `actor`, so large libraries process off the main thread without data races.
 - **SwiftData as a rebuildable cache.** Per-photo row upserts mean geocoding is written incrementally and survives an abrupt exit; on a migration failure the store is wiped and recreated, never crashing.
-- **On-device by default.** Only city names use the network.
+- **Fully on-device.** No geocoding step touches the network — countries and cities both resolve from bundled datasets.
 
 ### Key decisions
 
 | Decision | Reason |
 |---|---|
-| Offline geocoding (country / coastline / places GeoJSON + point-in-polygon / nearest-point) | Instant, private, no rate limit, no third-party TOS; only city *names* need the network |
+| Fully offline geocoding (country / coastline / places GeoJSON + cities1000 nearest-city + point-in-polygon / nearest-point) | Instant, private, no rate limit, no third-party TOS, no network at all — countries *and* city names resolve on-device |
 | Multi-country trips scored by same-trip probability (distance, continent, gap, home-between) | Models real journeys — a Euro-trip is one trip across countries; two separate holidays days apart don't merge just because they fall within a week |
 | GPS-spike + airport-transit filtering before grouping | A stray home-GPS photo or a layover can't split a trip or inject a transit country; excluded from grouping only, still counted in overall stats |
 | Home country (not just a 50 km radius) ends a trip | A journey is time abroad; passing back through your own country — any city — correctly closes the trip |
-| Two-pass scan (countries offline → cities online) | Core features complete in seconds; city names enrich after |
+| Two-pass scan (countries → cities, both offline) | Core features complete in seconds; city names enrich right after, with no network wait |
 | SwiftData (`@Model` + `@ModelActor`) | Per-photo row upserts — geocoding is written incrementally and survives an abrupt exit |
 | `actor` for all services | Prevents data races when processing large libraries off the main thread |
 | Archived `PHPhotoLibrary` change token | Reliably skips re-enumerating an unchanged library on launch |
-| CLGeocoder throttled only on cache miss | Cities resolve at ~1 req/s; cache hits and all offline work are instant |
-| `BGProcessingTask` (not `BGAppRefreshTask`) | City geocoding can run for minutes on large libraries; refresh tasks cap at ~30s |
-| Dataset version flags | Bumping `countryDatasetVersion` / the personality signature silently re-resolves when data or scoring logic improves |
+| Cities resolved offline from bundled `cities1000` (nearest-city over a 1° grid index) | Replaces the old rate-limited `CLGeocoder` pass — the bottleneck on large libraries; now instant and network-free |
+| Home set via Apple Maps search (`MKLocalSearchCompleter`) → stored coordinate | Any city, not just those found in photos; a precise origin for the furthest-trip and home-exclusion logic |
+| `BGProcessingTask` (not `BGAppRefreshTask`) | Enumerating and geocoding a large library can run for minutes; refresh tasks cap at ~30s |
+| Single `DATASET_VERSION` flag (Version.xcconfig) for all geo datasets | Bumping one number re-resolves countries and cities together; the personality signature covers scoring-only changes |
 | Pure scoring engines (personality, score, title, insights) | Decoupled from SwiftUI, deterministic, unit-tested |
 | HealthKit isolated behind one `actor`; `TravelInsightsEngine` stays pure | Only `HealthKitService` imports HealthKit; the engine takes raw sample arrays, so all insight logic is unit-testable without entitlements or a device |
 | Per-trip insights cached (`TripInsightsStore`, keyed by trip id + photo signature) | HealthKit queries are slow; compute once and reuse — the Insights UI and the personality tilt share the same cache |
@@ -250,7 +255,7 @@ Conventions:
 
 - SwiftUI `Text("literal")` / `.navigationTitle("…")` localize automatically. Strings passed through reusable components use `LocalizedStringKey`; strings built in code use `String(localized:)`.
 - **Counts** go through `LocalizedCounts` (`L.days`, `L.trips`, …) for grammatically correct plurals.
-- **Country names and dates** come from the system (`Locale` / `DateFormatter`). **City names** are data and stay as captured.
+- **Country names and dates** come from the system (`Locale` / `DateFormatter`). **City names** are data (from the bundled `cities1000` dataset) and stay as-is.
 - **Shareable cards stay English by design** (international audience): each card forces `\.environment(\.locale, "en_US")` and uses the English-only helpers (`Trip.englishDisplayName`, `TravelCategory.englishTitle`, `Trip.englishDateRange`, `TravelTitle` / `TravelScore.tier`).
 
 **Adding a language:** add it under **Project → Info → Localizations**, then fill the new column in each `Localizable.xcstrings`. Untranslated keys fall back to English.
@@ -258,8 +263,8 @@ Conventions:
 ## Privacy
 
 - No backend, no accounts, no analytics.
-- **Country, continent, coastline, city-remoteness, wonder, trip, "On This Day" and personality detection all run 100% on-device** using bundled datasets — no network, no third party.
-- City **names** are the only thing resolved online (Apple's `CLGeocoder`); only coordinates are sent, and only for the optional city-enrichment pass.
+- **Country, city, continent, coastline, city-remoteness, wonder, trip, "On This Day" and personality detection all run 100% on-device** using bundled datasets — no network, no third party.
+- **Nothing is geocoded online.** City names now come from the bundled GeoNames `cities1000` dataset, so no coordinates ever leave the device. (Setting your home uses Apple Maps search — a coordinate lookup you initiate, not photo data.)
 - **Apple Health** (Trip Insights) is **opt-in and read-only**, queried entirely on-device; nothing is written back and no health data leaves the phone. Revocable in the Health app / Settings.
 - Image data is only loaded when displaying thumbnails; all travel data lives in a local SwiftData database. Photo library access is **read-only** and revocable anytime.
 - Ships an Apple **privacy manifest** (`PrivacyInfo.xcprivacy`, app + widget): no tracking, no data collected, `UserDefaults` declared with reason `CA92.1`. App Store label: **Data Not Collected**.
@@ -274,18 +279,20 @@ Issues and pull requests are welcome. A few house rules that keep the codebase c
 - **Add tests** for engine changes — `TripDetectorTests`, `TravelPersonalityEngineTests`, `TravelInsightsEngineTests` are the patterns to follow.
 - **Run on a device.** Photos + geocoding don't work well in the Simulator.
 - **Extending the airport list:** add hub coordinates to `AirportCatalog.hubs` — it only needs the international connecting hubs where layovers happen, not every airstrip.
-- **When scoring/data logic changes,** bump the relevant version flag (`AppViewModel.countryDatasetVersion` or the personality signature) so existing installs recompute.
+- **When scoring/data logic changes,** bump the relevant version flag (`DATASET_VERSION` in `Config/Version.xcconfig` for any geo dataset, or the personality signature for scoring) so existing installs recompute.
 
 ### Versioning
 
 App and widget versions come from a single file — **`Config/Version.xcconfig`**:
 
 ```
-MARKETING_VERSION = 2.0.1
-CURRENT_PROJECT_VERSION = 4
+MARKETING_VERSION = 2.1.0
+CURRENT_PROJECT_VERSION = 5
+
+DATASET_VERSION = 3
 ```
 
-Both targets inherit these (no per-target overrides), so the app and its extension can never drift and Apple's "extension version must match the app" check always passes. **Bump these two lines to cut a release.**
+Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-target overrides), so the app and its extension can never drift and Apple's "extension version must match the app" check always passes. **Bump those two lines to cut a release.** `DATASET_VERSION` is separate: bump it whenever a bundled geo dataset (`countries.geojson`, `cities1000.tsv`, …) changes, to force a one-time re-resolution of every photo's country and city on the next scan (surfaced to Swift via the `DatasetVersion` Info.plist key).
 
 ## What it does
 
@@ -297,7 +304,7 @@ Both targets inherit these (no per-target overrides), so the app and its extensi
 - **Travel statistics** — countries, cities, % of the world covered, most-photographed country.
 - **Continents overview** — inhabited continents visited, per-continent country list (Antarctica is a bonus).
 - **Most visited countries** — ranked by distinct trips.
-- **Furthest from home** — set a home city/country; see which trip took you furthest.
+- **Furthest from home** — set your home by searching Apple Maps for any city; see which trip took you furthest.
 - **Monthly activity timeline** — bar chart of photo activity over time.
 
 **Trips**

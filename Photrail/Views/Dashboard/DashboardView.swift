@@ -200,7 +200,7 @@ struct DashboardView: View {
     private var highlightsSection: some View {
         let top = stats.mostPhotographedCountry
         let furthest = appVM.furthestTrip
-        if top != nil || furthest != nil || appVM.homeCountryCode == nil {
+        if top != nil || furthest != nil || appVM.homeName == nil {
             VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(title: "Highlights", systemImage: "sparkles")
                     .padding(.horizontal, 20)
@@ -219,7 +219,7 @@ struct DashboardView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(.horizontal, 20)
-                } else if appVM.homeCountryCode == nil {
+                } else if appVM.homeName == nil {
                     Button { appVM.selectedTab = .me } label: {
                         SetHomeCTACard()
                     }
@@ -364,7 +364,7 @@ private struct SetHomeCTACard: View {
                 Text("Furthest from home")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text("Set your home country")
+                Text("Set your home city")
                     .font(.title3.weight(.bold))
                 Text("See which trip took you the furthest")
                     .font(.subheadline)

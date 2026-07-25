@@ -55,6 +55,17 @@ actor PhotoStore {
         try modelContext.save()
     }
 
+    /// Clear every photo's city result so the next scan re-resolves them all. Used when the
+    /// bundled city dataset version changes. Country resolution is left untouched.
+    func resetCityResolution() throws {
+        for row in try modelContext.fetch(FetchDescriptor<StoredPhoto>()) {
+            row.city = nil
+            row.cityChecked = false
+            row.localityResolved = nil
+        }
+        try modelContext.save()
+    }
+
     /// All stored photos as Sendable value types.
     func allPhotos() throws -> [GeoPhoto] {
         try modelContext.fetch(FetchDescriptor<StoredPhoto>()).map(\.geoPhoto)
