@@ -222,20 +222,25 @@ final class AppViewModel {
 
     init(store: PhotoStore) {
         self.store = store
-        self.homeCountryCode = UserDefaults.standard.string(forKey: "homeCountryCode")
-        self.homeName = UserDefaults.standard.string(forKey: "homeName")
-        self.homeLatitude = (UserDefaults.standard.object(forKey: "homeLatitude") as? Double)
-        self.homeLongitude = (UserDefaults.standard.object(forKey: "homeLongitude") as? Double)
+        let loadedCountry = UserDefaults.standard.string(forKey: "homeCountryCode")
+        let loadedName = UserDefaults.standard.string(forKey: "homeName")
+        let loadedLat = UserDefaults.standard.object(forKey: "homeLatitude") as? Double
+        let loadedLon = UserDefaults.standard.object(forKey: "homeLongitude") as? Double
         UserDefaults.standard.removeObject(forKey: "homeCityID")   // retired: home is now a Maps coordinate
         // Clean cutover: the legacy home only stored a country code (no coordinate). Clear it
         // fully so the user re-picks via Maps search — otherwise the dangling code hides the
-        // "set home" prompt while the display name shows nothing.
-        if homeCountryCode != nil && (homeLatitude == nil || homeLongitude == nil) {
-            homeCountryCode = nil
-            homeName = nil
-            homeLatitude = nil
-            homeLongitude = nil
+        // "set home" prompt while the display name shows nothing. (Property observers don't
+        // fire during init, so the stale keys are removed from UserDefaults explicitly.)
+        let legacyHome = loadedCountry != nil && (loadedLat == nil || loadedLon == nil)
+        if legacyHome {
+            for key in ["homeCountryCode", "homeName", "homeLatitude", "homeLongitude"] {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
         }
+        self.homeCountryCode = legacyHome ? nil : loadedCountry
+        self.homeName = legacyHome ? nil : loadedName
+        self.homeLatitude = legacyHome ? nil : loadedLat
+        self.homeLongitude = legacyHome ? nil : loadedLon
         self.profileEmoji = UserDefaults.standard.string(forKey: "profileEmoji") ?? "🧭"
         if let data = UserDefaults.standard.data(forKey: personalityCacheKey),
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {

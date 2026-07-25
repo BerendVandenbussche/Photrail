@@ -5,7 +5,7 @@ import SwiftUI
 struct PlacesView: View {
     @Environment(AppViewModel.self) private var appVM
 
-    @State private var segment: Segment = .countries
+    @State private var segment: Segment = .trips
     @State private var selectedCountry: CountryStat?
     @State private var selectedContinent: ContinentStat?
     @State private var selectedWonder: WonderStat?
@@ -14,9 +14,9 @@ struct PlacesView: View {
     private var stats: TravelStats { appVM.stats }
 
     private enum Segment: String, CaseIterable, Identifiable {
-        case countries = "Countries"
         case trips = "Trips"
         case continents = "Continents"
+        case countries = "Countries"
         case wonders = "Wonders"
         var id: String { rawValue }
     }
