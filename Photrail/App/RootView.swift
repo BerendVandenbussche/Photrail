@@ -27,6 +27,9 @@ struct RootView: View {
             }
         }
         .animation(.spring(response: 0.45, dampingFraction: 0.85), value: appVM.navState.id)
+        .overlay(alignment: .top) {
+            if appVM.navState.id == "dashboard" { AchievementToastHost() }
+        }
         .onAppear {
             appVM.startOnboarding()
         }

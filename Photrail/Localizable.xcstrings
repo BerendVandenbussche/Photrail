@@ -1,373 +1,367 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "": {},
-    "%": {},
-    "%@\n%@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@\n%2$@"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "???" : {
+
+    },
+    "· travel history, automatically" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· reisgeschiedenis, automatisch"
           }
         }
       }
     },
-    "%@  %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@  %2$@"
+    "· Travel Score" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· reisscore"
           }
         }
       }
     },
-    "%@ %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ %2$@"
+    "/ %lld seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/ %lld gezien"
           }
         }
       }
     },
-    "%@ %@ · %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ %2$@ · %3$@"
+    "/100" : {
+
+    },
+    "%" : {
+
+    },
+    "%@\n%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@\n%2$@"
           }
         }
       }
     },
-    "%@ %lld%@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ %2$lld%3$@"
+    "%@  %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@  %2$@"
           }
         }
       }
     },
-    "%@ Peak %lld bpm — tap a photo to see its vibe": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ Peak %2$lld bpm — tap a photo to see its vibe"
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "%@ · %lld photos" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$lld photos"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ Piek %2$lld bpm — tik op een foto voor de sfeer"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld foto's"
           }
         }
       }
     },
-    "%@ That's %@× the %@!": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ That's %2$@× the %3$@!"
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "%@ %lld%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$lld%3$@"
+          }
+        }
+      }
+    },
+    "%@ ≈ %lld " : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ≈ %2$lld "
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ Dat is %2$@× de %3$@!"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ≈ %2$lld "
           }
         }
       }
     },
-    "%@ Welcome to %@!": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ Welkom in %2$@!"
-          }
-        }
-      }
+    "%@ km away" : {
+
     },
-    "%@ Your %@ trip is ready": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ Je reis naar %2$@ is klaar"
-          }
-        }
-      }
-    },
-    "%@ km away": {},
-    "%@ km away · %@": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ km away · %2$@"
+    "%@ km away · %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ km away · %2$@"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ km van huis · %2$@"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ km van huis · %2$@"
           }
         }
       }
     },
-    "%@ of %lld · %lld%% seen": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ van %2$lld · %3$lld%% gezien"
+    "%@ of %lld · %lld%% seen" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ van %2$lld · %3$lld%% gezien"
           }
         }
       }
     },
-    "%@ of the way around the Earth": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ van de weg rond de aarde"
+    "%@ of the way around the Earth" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ van de weg rond de aarde"
           }
         }
       }
     },
-    "%@ steps": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ steps"
+    "%@ Peak %lld bpm — tap a photo to see its vibe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Peak %2$lld bpm — tap a photo to see its vibe"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ stappen"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Piek %2$lld bpm — tik op een foto voor de sfeer"
           }
         }
       }
     },
-    "%@ · %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ · %2$@"
-          }
-        }
-      }
-    },
-    "%@ · %@ · %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ · %2$@ · %3$@"
-          }
-        }
-      }
-    },
-    "%@ · %lld photos": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ · %2$lld photos"
+    "%@ steps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ steps"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$lld foto's"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ stappen"
           }
         }
       }
     },
-    "%@ ≈ %lld ": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ≈ %2$lld "
+    "%@ That's %@× the %@!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ That's %2$@× the %3$@!"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ≈ %2$lld "
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Dat is %2$@× de %3$@!"
           }
         }
       }
     },
-    "%@× around the Earth": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@× rond de aarde"
+    "%@ Welcome to %@!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Welkom in %2$@!"
           }
         }
       }
     },
-    "%@× the way to the Moon": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@× de weg naar de maan"
+    "%@ Your %@ trip is ready" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Je reis naar %2$@ is klaar"
           }
         }
       }
     },
-    "%lld": {},
-    "%lld %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld %2$@"
+    "%@× around the Earth" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@× rond de aarde"
           }
         }
       }
     },
-    "%lld %@ · %@": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld %2$@ · %3$@"
+    "%@× the way to the Moon" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@× de weg naar de maan"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
+          }
+        }
+      }
+    },
+    "%lld %@ · %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@ · %3$@"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld %2$@ · %3$@"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld %2$@ · %3$@"
           }
         }
       }
     },
-    "%lld Trips": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld reizen"
-          }
-        }
-      }
-    },
-    "%lld bpm": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld bpm"
+    "%lld bpm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bpm"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld bpm"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld bpm"
           }
         }
       }
     },
-    "%lld cities": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld city"
+    "%lld cities" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld city"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld cities"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld cities"
                 }
               }
             }
           }
         },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld stad"
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld stad"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld steden"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld countries": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld country"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld countries"
-                }
-              }
-            }
-          }
-        },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld land"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld landen"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld steden"
                 }
               }
             }
@@ -375,79 +369,39 @@
         }
       }
     },
-    "%lld days": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld day"
+    "%lld countries" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld country"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld days"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld countries"
                 }
               }
             }
           }
         },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld dag"
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld land"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld dagen"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld days away": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld day away"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld days away"
-                }
-              }
-            }
-          }
-        },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld dag weg"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld dagen weg"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld landen"
                 }
               }
             }
@@ -455,82 +409,39 @@
         }
       }
     },
-    "%lld flights climbed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld flights climbed"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld verdiepingen beklommen"
-          }
-        }
-      }
-    },
-    "%lld of %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld of %2$lld"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld van %2$lld"
-          }
-        }
-      }
-    },
-    "%lld of %lld countries": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld van %lld landen"
-          }
-        }
-      }
-    },
-    "%lld photos": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld photo"
+    "%lld days" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld photos"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days"
                 }
               }
             }
           }
         },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld foto"
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dag"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld foto's"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dagen"
                 }
               }
             }
@@ -538,72 +449,39 @@
         }
       }
     },
-    "%lld photos · %@": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld photos · %2$@"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld foto's · %2$@"
-          }
-        }
-      }
-    },
-    "%lld photos · %lld cities": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$lld photos · %2$lld cities"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld foto's · %2$lld steden"
-          }
-        }
-      }
-    },
-    "%lld trips": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld trip"
+    "%lld days away" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day away"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld trips"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days away"
                 }
               }
             }
           }
         },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld reis"
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dag weg"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld reizen"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dagen weg"
                 }
               }
             }
@@ -611,39 +489,92 @@
         }
       }
     },
-    "%lld years ago": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld year ago"
+    "%lld flights climbed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld flights climbed"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld verdiepingen beklommen"
+          }
+        }
+      }
+    },
+    "%lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld van %2$lld"
+          }
+        }
+      }
+    },
+    "%lld of %lld countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld van %lld landen"
+          }
+        }
+      }
+    },
+    "%lld of %lld unlocked" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld van %lld ontgrendeld"
+          }
+        }
+      }
+    },
+    "%lld photos" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld photo"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld years ago"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld photos"
                 }
               }
             }
           }
         },
-        "nl": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld jaar geleden"
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld foto"
                 }
               },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld jaar geleden"
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld foto's"
                 }
               }
             }
@@ -651,3320 +582,3672 @@
         }
       }
     },
-    "%lld%%": {},
-    "%lld%% of the world's icons visited": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld%% van 's werelds iconen bezocht"
+    "%lld photos · %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld photos · %2$@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld foto's · %2$@"
+          }
+        }
+      }
+    },
+    "%lld photos · %lld cities" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld photos · %2$lld cities"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld foto's · %2$lld steden"
+          }
+        }
+      }
+    },
+    "%lld trips" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld trip"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld trips"
+                }
+              }
+            }
           }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reis"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reizen"
+                }
+              }
+            }
+          }
         }
       }
     },
-    "%lld%% seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld%% gezien"
+    "%lld Trips" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld reizen"
           }
         }
       }
     },
-    "+%lld": {},
-    "/ %lld seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "/ %lld gezien"
+    "%lld years ago" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld year ago"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld years ago"
+                }
+              }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld jaar geleden"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld jaar geleden"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/100": {},
-    "1 Trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 reis"
+    "%lld%%" : {
+
+    },
+    "%lld%% of the world's icons visited" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%% van 's werelds iconen bezocht"
           }
         }
       }
     },
-    "1 trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 reis"
+    "%lld%% seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%% gezien"
           }
         }
       }
+    },
+    "+%lld" : {
+
     },
-    "A city only appears here once it's been resolved. City names are resolved after the main scan, so if yours is missing, give it a moment or reindex from the Me tab.": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Een stad verschijnt hier pas nadat ze is herkend. Stadsnamen worden na de hoofdscan herkend, dus als de jouwe ontbreekt, geef het even tijd of herindexeer via het tabblad Ik."
+    "⛰️" : {
+
+    },
+    "✈️ Your %lld Year in Travel is ready" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "✈️ Jouw reisjaar %lld is klaar"
           }
         }
       }
     },
-    "A new country for your map — enjoy your trip! ✈️": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Een nieuw land voor je kaart — geniet van je reis! ✈️"
+    "🏆" : {
+
+    },
+    "📅 Busiest month · %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📅 Drukste maand · %@"
           }
         }
       }
     },
-    "A steady balance of walking and snapping.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A steady balance of walking and snapping."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Een gelijkmatige balans tussen wandelen en fotograferen."
+    "🧭" : {
+
+    },
+    "🧳 Longest · %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🧳 Langste · %@"
           }
         }
       }
     },
-    "Activity": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activiteit"
+    "1 trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 reis"
           }
         }
       }
     },
-    "Add Countries": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Landen toevoegen"
+    "1 Trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 reis"
           }
         }
       }
     },
-    "Add a country": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Land toevoegen"
+    "A city only appears here once it's been resolved. City names are resolved after the main scan, so if yours is missing, give it a moment or reindex from the Me tab." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een stad verschijnt hier pas nadat ze is herkend. Stadsnamen worden na de hoofdscan herkend, dus als de jouwe ontbreekt, geef het even tijd of herindexeer via het tabblad Ik."
           }
         }
       }
     },
-    "Add a country manually": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voeg handmatig een land toe"
+    "A new country for your map — enjoy your trip! ✈️" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een nieuw land voor je kaart — geniet van je reis! ✈️"
           }
         }
       }
     },
-    "Add a note": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voeg een notitie toe"
+    "A steady balance of walking and snapping." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A steady balance of walking and snapping."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een gelijkmatige balans tussen wandelen en fotograferen."
           }
         }
       }
     },
-    "Added manually": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Handmatig toegevoegd"
+    "Achievement unlocked" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prestatie ontgrendeld"
           }
         }
       }
     },
-    "Adventurer": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avonturier"
+    "Achievements" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prestaties"
           }
         }
       }
     },
-    "Africa": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afrika"
+    "Activity" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activiteit"
           }
         }
       }
     },
-    "Allow Photo Access": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fototoegang toestaan"
+    "Add a country" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Land toevoegen"
           }
         }
       }
     },
-    "Antarctica": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Antarctica"
+    "Add a country manually" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg handmatig een land toe"
           }
         }
       }
     },
-    "Asia": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Azië"
+    "Add a note" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg een notitie toe"
           }
         }
       }
     },
-    "Away the entire month! 🌍": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De hele maand weg! 🌍"
+    "Add Countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landen toevoegen"
           }
         }
       }
     },
-    "BONUS": {},
-    "Background": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Achtergrond"
+    "Added manually" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Handmatig toegevoegd"
           }
         }
       }
     },
-    "Beyond the crowds": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Weg van de massa"
+    "Adventurer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avonturier"
           }
         }
       }
     },
-    "Bucket list": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verlanglijst"
+    "Africa" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afrika"
           }
         }
       }
     },
-    "Calendar": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalender"
+    "Allow Photo Access" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fototoegang toestaan"
           }
         }
       }
     },
-    "Calm": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calm"
+    "Antarctica" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antarctica"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rustig"
-          }
         }
       }
     },
-    "Cancel": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annuleer"
+    "Around the World" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De wereld rond"
           }
         }
       }
     },
-    "Choose a trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kies een reis"
+    "Asia" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Azië"
           }
         }
       }
     },
-    "Choose an emoji": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kies een emoji"
+    "Away the entire month! 🌍" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De hele maand weg! 🌍"
           }
         }
       }
     },
-    "Choose your home country": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kies je thuisland"
+    "Background" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Achtergrond"
           }
         }
       }
     },
-    "Cities": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Steden"
+    "Beyond the crowds" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weg van de massa"
           }
         }
       }
+    },
+    "BONUS" : {
+
     },
-    "Cities visited": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezochte steden"
+    "Bucket list" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlanglijst"
           }
         }
       }
     },
-    "City": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stad"
+    "burgers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "burgers"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "burgers"
+          }
         }
       }
     },
-    "City break": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stedentrip"
+    "Calendar" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalender"
           }
         }
       }
     },
-    "City data © GeoNames (CC BY 4.0)": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stadgegevens © GeoNames (CC BY 4.0)"
+    "Calm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calm"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rustig"
           }
         }
       }
     },
-    "Clear": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wissen"
+    "Cancel" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Annuleer"
           }
         }
       }
     },
-    "Climb": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Climb"
+    "chocolate bars" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chocolate bars"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klimmen"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chocoladerepen"
           }
         }
       }
     },
-    "Coastal Adventurer": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kustavonturier"
+    "Choose a trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies een reis"
           }
         }
       }
     },
-    "Coastal Traveler": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kustreiziger"
+    "Choose an emoji" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies een emoji"
           }
         }
       }
     },
-    "Continent": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continent"
+    "Choose your home country" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies je thuisland"
           }
         }
       }
     },
-    "Continental Hopper": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continentenhopper"
+    "Cities" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steden"
           }
         }
       }
     },
-    "Continents": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continenten"
+    "Cities visited" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezochte steden"
           }
         }
       }
     },
-    "Continue": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ga door"
+    "City" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stad"
           }
         }
       }
     },
-    "Countries": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Landen"
+    "City break" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stedentrip"
           }
         }
       }
     },
-    "Countries visited": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezochte landen"
+    "City data © GeoNames (CC BY 4.0)" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stadgegevens © GeoNames (CC BY 4.0)"
           }
         }
       }
     },
-    "Country": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Land"
+    "City Slicker" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stadsmens"
           }
         }
       }
     },
-    "Cultural Explorer": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cultuurontdekker"
+    "Clear" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wissen"
           }
         }
       }
     },
-    "Culture": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cultuur"
+    "Climb" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Climb"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klimmen"
           }
         }
       }
     },
-    "Culture Hunter": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cultuurjager"
+    "Coastal Adventurer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kustavonturier"
           }
         }
       }
     },
-    "Cycling trip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cycling trip"
+    "Coastal Traveler" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kustreiziger"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fietsreis"
+        }
+      }
+    },
+    "Continent" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continent"
           }
         }
       }
     },
-    "Days you covered large distances — flights and long journeys between places.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dagen waarop je grote afstanden aflegde — vluchten en lange reizen tussen plaatsen."
+    "Continent Hopper" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continenthopper"
           }
         }
       }
     },
-    "Dismiss": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dismiss"
+    "Continental Hopper" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continentenhopper"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sluiten"
+        }
+      }
+    },
+    "Continents" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continenten"
           }
         }
       }
     },
-    "Distance": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Distance"
+    "Continue" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ga door"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afstand"
+        }
+      }
+    },
+    "contributed to this style" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "draagt bij aan deze stijl"
+          }
+        }
+      }
+    },
+    "Countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landen"
           }
         }
       }
     },
-    "Done": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gereed"
+    "Countries visited" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezochte landen"
           }
         }
       }
     },
-    "Duration": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Duur"
+    "Country" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Land"
           }
         }
       }
     },
-    "Enable Insights": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enable Insights"
+    "croissants" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "croissants"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inzichten inschakelen"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "croissants"
           }
         }
       }
     },
-    "Energy": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Energy"
+    "Cultural Explorer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cultuurontdekker"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Energie"
+        }
+      }
+    },
+    "Culture" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cultuur"
           }
         }
       }
     },
-    "Europe": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Europa"
+    "Culture Hunter" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cultuurjager"
           }
         }
       }
     },
-    "Excited": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Excited"
+    "custard tarts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "custard tarts"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enthousiast"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "custardtaartjes"
           }
         }
       }
     },
-    "Excitement Meter": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Excitement Meter"
+    "Cycling trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cycling trip"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spanningsmeter"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fietsreis"
           }
         }
       }
     },
-    "Explorer": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ontdekker"
+    "Days you covered large distances — flights and long journeys between places." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dagen waarop je grote afstanden aflegde — vluchten en lange reizen tussen plaatsen."
           }
         }
       }
     },
-    "Explorer rarity": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ontdekkersscore"
+    "Dismiss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sluiten"
+          }
         }
       }
     },
-    "Furthest from home": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verst van huis"
+    "Distance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afstand"
           }
         }
       }
     },
-    "Geotagged photos": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's met locatie"
+    "Done" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gereed"
           }
         }
       }
     },
-    "Getaway": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uitstapje"
+    "Duration" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duur"
           }
         }
       }
     },
-    "Give this trip your own name, like “Summer in Italy”. Leave it empty to use the default (%@).": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geef deze reis een eigen naam, zoals “Zomer in Italië”. Laat leeg om de standaardnaam te gebruiken (%@)."
+    "Enable Insights" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Insights"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inzichten inschakelen"
+          }
         }
       }
     },
-    "Global Explorer": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wereldontdekker"
+    "Energy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energy"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energie"
           }
         }
       }
     },
-    "Globe Collector": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wereldverzamelaar"
+    "Europe" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Europa"
           }
         }
       }
     },
-    "Globetrotter": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Globetrotter"
+    "Excited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excited"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enthousiast"
           }
         }
       }
     },
-    "Heart rate matched to %lld photos": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Heart rate matched to %lld photos"
+    "Excitement Meter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excitement Meter"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hartslag gekoppeld aan %lld foto's"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spanningsmeter"
           }
         }
       }
     },
-    "Highest": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoogste"
+    "Explored 50 cities" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "50 steden verkend"
           }
         }
       }
     },
-    "Highlights": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoogtepunten"
+    "Explorer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontdekker"
           }
         }
       }
     },
-    "Hike": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hike"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trektocht"
+    "Explorer rarity" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontdekkersscore"
           }
         }
       }
     },
-    "Hiking trip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hiking trip"
+    "fish & chips" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fish & chips"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wandelreis"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fish & chips"
           }
         }
       }
     },
-    "Home": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thuis"
+    "Frequent Flyer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veelvlieger"
           }
         }
       }
     },
-    "How it's measured": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoe het wordt gemeten"
+    "Furthest from home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verst van huis"
           }
         }
       }
     },
-    "If you expected insights here, check that Photrail has access in the Health app.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "If you expected insights here, check that Photrail has access in the Health app."
+    "Geotagged 10,000 photos" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10.000 foto's met locatie"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Als je hier inzichten verwachtte, controleer dan of Photrail toegang heeft in de Gezondheid-app."
+        }
+      }
+    },
+    "Geotagged photos" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's met locatie"
           }
         }
       }
     },
-    "Itinerary": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reisschema"
+    "Getaway" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uitstapje"
           }
         }
       }
     },
-    "Just Getting Started": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Net begonnen"
+    "Give this trip your own name, like “Summer in Italy”. Leave it empty to use the default (%@)." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geef deze reis een eigen naam, zoals “Zomer in Italië”. Laat leeg om de standaardnaam te gebruiken (%@)."
           }
         }
       }
     },
-    "Landmark": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezienswaardigheid"
+    "Global Explorer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wereldontdekker"
           }
         }
       }
     },
-    "Landmark Seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezienswaardigheid gezien"
+    "Globe Collector" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wereldverzamelaar"
           }
         }
       }
     },
-    "Landmarks": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezienswaardigheden"
+    "Globetrotter" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globetrotter"
           }
         }
       }
     },
-    "Landmarks Seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezienswaardigheden gezien"
+    "gyros" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gyros"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gyros"
           }
         }
       }
     },
-    "Legend": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Legende"
+    "Half the World" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halve wereld"
           }
         }
       }
     },
-    "Lots of steps and lots of photos — always on the move.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lots of steps and lots of photos — always on the move."
+    "Heart rate matched to %lld photos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heart rate matched to %lld photos"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Veel stappen en veel foto's — altijd onderweg."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hartslag gekoppeld aan %lld foto's"
           }
         }
       }
     },
-    "MY TRAVEL MONTH": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MIJN REISMAAND"
+    "Hemisphere Hopper" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halfrondhopper"
           }
         }
       }
     },
-    "MY YEAR IN TRAVEL": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MIJN REISJAAR"
+    "Highest" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoogste"
           }
         }
       }
     },
-    "Made with Photrail": {},
-    "Map": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kaart"
+    "Highlights" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoogtepunten"
           }
         }
       }
     },
-    "Me": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mij"
+    "Hike" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hike"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trektocht"
           }
         }
       }
     },
-    "Month": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maand"
+    "Hiking trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiking trip"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wandelreis"
+          }
         }
       }
     },
-    "Most photographed": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meest gefotografeerd"
+    "Home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thuis"
           }
         }
       }
     },
-    "Mountain Seeker": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bergzoeker"
+    "How it's measured" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoe het wordt gemeten"
           }
         }
       }
     },
-    "Mountains": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bergen"
+    "If you expected insights here, check that Photrail has access in the Health app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you expected insights here, check that Photrail has access in the Health app."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als je hier inzichten verwachtte, controleer dan of Photrail toegang heeft in de Gezondheid-app."
           }
         }
       }
     },
-    "My %@ in photos": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mijn %@ in foto's"
+    "Itinerary" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisschema"
           }
         }
       }
     },
-    "Name This Trip": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deze reis benoemen"
+    "Just Getting Started" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Net begonnen"
           }
         }
       }
     },
-    "Nature Lover": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Natuurliefhebber"
+    "Keep exploring to reveal more" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blijf ontdekken om meer te onthullen"
           }
         }
       }
     },
-    "New 7 Wonder": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nieuw Wereldwonder"
+    "Keep exploring to unlock" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blijf ontdekken om te ontgrendelen"
           }
         }
       }
     },
-    "New 7 Wonders + more": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nieuwe 7 wereldwonderen + meer"
+    "Landmark" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezienswaardigheid"
           }
         }
       }
     },
-    "No cities here yet.": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog geen steden hier."
+    "Landmark Seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezienswaardigheid gezien"
           }
         }
       }
     },
-    "No cities match “%@”.": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen steden komen overeen met “%@”."
+    "Landmarks" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezienswaardigheden"
           }
         }
       }
     },
-    "No countries visited on this continent yet.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog geen landen bezocht op dit continent."
+    "Landmarks Seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezienswaardigheden gezien"
           }
         }
       }
     },
-    "No countries yet — scan your photos first.": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog geen landen — scan eerst je foto's."
+    "Legend" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legende"
           }
         }
       }
     },
-    "No geotagged photos found": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen foto's met locatie gevonden"
+    "Lots of steps and lots of photos — always on the move." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lots of steps and lots of photos — always on the move."
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veel stappen en veel foto's — altijd onderweg."
+          }
         }
       }
+    },
+    "Made with Photrail" : {
+
     },
-    "No health data for these dates": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No health data for these dates"
+    "Map" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaart"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen gezondheidsgegevens voor deze data"
+        }
+      }
+    },
+    "Me" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mij"
           }
         }
       }
     },
-    "No home set": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen thuis ingesteld"
+    "meals" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "meals"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "maaltijden"
+          }
         }
       }
     },
-    "No photos available": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen foto's beschikbaar"
+    "Month" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maand"
           }
         }
       }
     },
-    "No timeline data yet": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog geen tijdlijngegevens"
+    "Most photographed" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meest gefotografeerd"
           }
         }
       }
     },
-    "No travel data available": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen reisgegevens beschikbaar"
+    "Mountain Seeker" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bergzoeker"
           }
         }
       }
     },
-    "No travels recorded in %@ yet": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog geen reizen vastgelegd in %@"
+    "Mountains" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bergen"
           }
         }
       }
     },
-    "No trips in %@": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen reizen in %@"
+    "My %@ in photos" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mijn %@ in foto's"
           }
         }
       }
     },
-    "No trips this month": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geen reizen deze maand"
+    "MY TRAVEL MONTH" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIJN REISMAAND"
           }
         }
       }
     },
-    "No trips yet": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog geen reizen"
+    "MY YEAR IN TRAVEL" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIJN REISJAAR"
           }
         }
       }
     },
-    "North America": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Noord-Amerika"
+    "Name This Trip" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze reis benoemen"
           }
         }
       }
     },
-    "Not set": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Niet ingesteld"
+    "Nature Lover" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Natuurliefhebber"
           }
         }
       }
     },
-    "Not yet": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog niet"
+    "New 7 Wonder" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieuw Wereldwonder"
           }
         }
       }
     },
-    "Not yet visited": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog niet bezocht"
+    "New 7 Wonders + more" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieuwe 7 wereldwonderen + meer"
           }
         }
       }
     },
-    "Note": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notitie"
+    "No cities here yet." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen steden hier."
           }
         }
       }
     },
-    "Notes": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notities"
+    "No cities match “%@”." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen steden komen overeen met “%@”."
           }
         }
       }
     },
-    "Nothing here yet": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nog niets hier"
+    "No countries visited on this continent yet." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen landen bezocht op dit continent."
           }
         }
       }
     },
-    "Oceania": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oceanië"
+    "No countries yet — scan your photos first." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen landen — scan eerst je foto's."
           }
         }
       }
     },
-    "Off the map": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Van de kaart"
+    "No geotagged photos found" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen foto's met locatie gevonden"
           }
         }
       }
     },
-    "On This Day": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Op deze dag"
+    "No health data for these dates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No health data for these dates"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen gezondheidsgegevens voor deze data"
           }
         }
       }
     },
-    "Open Settings": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Instellingen"
+    "No home set" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen thuis ingesteld"
           }
         }
       }
     },
-    "Open map": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kaart openen"
+    "No photos available" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen foto's beschikbaar"
           }
         }
       }
     },
-    "Open my Year in Travel": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open mijn reisjaar"
+    "No timeline data yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen tijdlijngegevens"
           }
         }
       }
     },
-    "PHOTRAIL": {},
-    "Photo Access Required": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fototoegang vereist"
+    "No travel data available" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen reisgegevens beschikbaar"
           }
         }
       }
     },
-    "Photos": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's"
+    "No travels recorded in %@ yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen reizen vastgelegd in %@"
           }
         }
       }
     },
-    "Photos from this workout": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Photos from this workout"
+    "No trips in %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen reizen in %@"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's van deze workout"
+        }
+      }
+    },
+    "No trips this month" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen reizen deze maand"
           }
         }
       }
     },
-    "Photos need location data enabled in your camera settings to appear here.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's moeten locatiegegevens hebben (in je camera-instellingen) om hier te verschijnen."
+    "No trips yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen reizen"
           }
         }
       }
     },
-    "Photos taken at famous landmarks, monuments and cultural sites.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's genomen bij beroemde bezienswaardigheden, monumenten en culturele plekken."
+    "North America" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noord-Amerika"
           }
         }
       }
     },
-    "Photos taken at high altitude or right by a famous mountain.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's genomen op grote hoogte of vlak bij een beroemde berg."
+    "Not set" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niet ingesteld"
           }
         }
       }
     },
-    "Photos taken far from any city — countryside, parks and wild places.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's genomen ver van elke stad — platteland, parken en wilde plekken."
+    "Not yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog niet"
           }
         }
       }
     },
-    "Photos taken in towns and cities — close to a populated place.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's genomen in dorpen en steden — dicht bij een bewoonde plaats."
+    "Not yet visited" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog niet bezocht"
           }
         }
       }
     },
-    "Photos taken near a coastline (within ~50 km of the sea).": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foto's genomen nabij een kustlijn (binnen ~50 km van de zee)."
+    "Note" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notitie"
           }
         }
       }
     },
-    "Photrail": {},
-    "Photrail needs access to your photo library to read location data. Your photos stay on your device.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Photrail heeft toegang tot je fotobibliotheek nodig om locatiegegevens te lezen. Je foto's blijven op je toestel."
+    "Notes" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notities"
           }
         }
       }
     },
-    "Pick a country, then optionally a city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kies een land en eventueel een stad. Wordt gebruikt om je verste reis te berekenen en om alledaagse foto's dicht bij huis uit je reispersoonlijkheid te weren."
+    "Nothing here yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog niets hier"
           }
         }
       }
     },
-    "Places": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plaatsen"
+    "Oceania" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oceanië"
           }
         }
       }
     },
-    "Powered by Apple Health": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Powered by Apple Health"
+    "of %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "van %lld"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mogelijk gemaakt door Apple Health"
+        }
+      }
+    },
+    "of the world explored" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "van de wereld verkend"
           }
         }
       }
     },
-    "Reading your Health data…": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reading your Health data…"
+    "Off the map" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Van de kaart"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je gezondheidsgegevens worden gelezen…"
+        }
+      }
+    },
+    "On This Day" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Op deze dag"
           }
         }
       }
     },
-    "Rebuilds your travel history from scratch. Use this if you changed the location or date of photos that were already scanned. City names will be looked up again.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bouwt je reisgeschiedenis volledig opnieuw op. Gebruik dit als je de locatie of datum van al gescande foto's hebt gewijzigd. Stadsnamen worden opnieuw opgezocht."
+    "Open map" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaart openen"
           }
         }
       }
     },
-    "Recaps": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Overzichten"
+    "Open my Year in Travel" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open mijn reisjaar"
           }
         }
       }
     },
-    "Recent Trips": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recente reizen"
+    "Open Settings" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Instellingen"
           }
         }
       }
     },
-    "Reindex": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opnieuw indexeren"
+    "pad thai plates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pad thai plates"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "borden pad thai"
+          }
         }
       }
     },
-    "Reindex photo library": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fotobibliotheek opnieuw indexeren"
+    "Photo Access Required" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fototoegang vereist"
           }
         }
       }
     },
-    "Reindex photo library?": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fotobibliotheek opnieuw indexeren?"
+    "Photos" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's"
           }
         }
       }
     },
-    "Relaxed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Relaxed"
+    "Photos from this workout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos from this workout"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ontspannen"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's van deze workout"
+          }
+        }
+      }
+    },
+    "Photos need location data enabled in your camera settings to appear here." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's moeten locatiegegevens hebben (in je camera-instellingen) om hier te verschijnen."
+          }
+        }
+      }
+    },
+    "Photos taken at famous landmarks, monuments and cultural sites." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's genomen bij beroemde bezienswaardigheden, monumenten en culturele plekken."
           }
         }
       }
     },
-    "Relive your journey and share it ✈️": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Herbeleef je reis en deel ze ✈️"
+    "Photos taken at high altitude or right by a famous mountain." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's genomen op grote hoogte of vlak bij een beroemde berg."
           }
         }
       }
     },
-    "Relive your year and share your snapshot": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Herbeleef je jaar en deel je overzicht"
+    "Photos taken far from any city — countryside, parks and wild places." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's genomen ver van elke stad — platteland, parken en wilde plekken."
           }
         }
       }
     },
-    "Remote spots, long distances and rugged landscapes, combined.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afgelegen plekken, lange afstanden en ruige landschappen, gecombineerd."
+    "Photos taken in towns and cities — close to a populated place." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's genomen in dorpen en steden — dicht bij een bewoonde plaats."
           }
         }
       }
     },
-    "Rename Trip": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reis hernoemen"
+    "Photos taken near a coastline (within ~50 km of the sea)." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's genomen nabij een kustlijn (binnen ~50 km van de zee)."
           }
         }
       }
+    },
+    "Photrail" : {
+
     },
-    "Reset to default name": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Standaardnaam herstellen"
+    "PHOTRAIL" : {
+
+    },
+    "Photrail needs access to your photo library to read location data. Your photos stay on your device." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail heeft toegang tot je fotobibliotheek nodig om locatiegegevens te lezen. Je foto's blijven op je toestel."
           }
         }
       }
     },
-    "Results": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resultaten"
+    "Pick a country, then optionally a city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies een land en eventueel een stad. Wordt gebruikt om je verste reis te berekenen en om alledaagse foto's dicht bij huis uit je reispersoonlijkheid te weren."
           }
         }
       }
     },
-    "Ride": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ride"
+    "pizza slices" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pizza slices"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rit"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pizzapunten"
+          }
+        }
+      }
+    },
+    "Places" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plaatsen"
           }
         }
       }
     },
-    "Road trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Roadtrip"
+    "Polar Pioneer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poolpionier"
           }
         }
       }
     },
-    "Run": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Run"
+    "Powered by Apple Health" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powered by Apple Health"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hardlopen"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mogelijk gemaakt door Apple Health"
           }
         }
       }
     },
-    "Running trip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Running trip"
+    "pretzels" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pretzels"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hardloopreis"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pretzels"
           }
         }
       }
     },
-    "Scan your photos to create a shareable card.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan je foto's om een deelbare kaart te maken."
+    "Reached Antarctica" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antarctica bereikt"
           }
         }
       }
     },
-    "Search cities": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Steden zoeken"
+    "Reading your Health data…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading your Health data…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je gezondheidsgegevens worden gelezen…"
           }
         }
       }
     },
-    "Search countries": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zoek landen"
+    "Rebuilds your travel history from scratch. Use this if you changed the location or date of photos that were already scanned. City names will be looked up again." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bouwt je reisgeschiedenis volledig opnieuw op. Gebruik dit als je de locatie of datum van al gescande foto's hebt gewijzigd. Stadsnamen worden opnieuw opgezocht."
           }
         }
       }
     },
-    "Search for a city": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zoek een stad"
+    "Recaps" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overzichten"
           }
         }
       }
     },
-    "Search for your home city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zoek je thuisstad. Gebruikt voor de berekening van je verste reis en om alledaagse foto's dicht bij huis uit te sluiten van je reispersoonlijkheid."
+    "Recent Trips" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recente reizen"
           }
         }
       }
     },
-    "See all": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon alles"
+    "Reindex" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opnieuw indexeren"
           }
         }
       }
     },
-    "See everywhere you went this year — and share your recap.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zie overal waar je dit jaar was — en deel je overzicht."
+    "Reindex photo library" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotobibliotheek opnieuw indexeren"
           }
         }
       }
     },
-    "See which trip took you the furthest": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ontdek welke reis je het verst bracht"
+    "Reindex photo library?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotobibliotheek opnieuw indexeren?"
           }
         }
       }
     },
-    "See your heart rate, climbs, workouts, and energy from this trip. Everything is read from Apple Health and stays on your device.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "See your heart rate, climbs, workouts, and energy from this trip. Everything is read from Apple Health and stays on your device."
+    "Relaxed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaxed"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bekijk je hartslag, beklimmingen, workouts en energie van deze reis. Alles wordt uit Apple Health gelezen en blijft op je toestel."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontspannen"
           }
         }
       }
     },
-    "Seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gezien"
+    "Relive your journey and share it ✈️" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herbeleef je reis en deel ze ✈️"
           }
         }
       }
     },
-    "Seen · %@": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gezien · %@"
+    "Relive your year and share your snapshot" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herbeleef je jaar en deel je overzicht"
           }
         }
       }
     },
-    "Set your home city": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stel je thuisstad in"
+    "Remote spots, long distances and rugged landscapes, combined." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afgelegen plekken, lange afstanden en ruige landschappen, gecombineerd."
           }
         }
       }
     },
-    "Set your home country": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stel je thuisland in"
+    "Rename Trip" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reis hernoemen"
           }
         }
       }
     },
-    "Share": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deel"
+    "Reset to default name" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standaardnaam herstellen"
           }
         }
       }
     },
-    "Share Month": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maand delen"
+    "Results" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resultaten"
           }
         }
       }
     },
-    "Share Trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reis delen"
+    "Ride" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ride"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rit"
+          }
         }
       }
     },
-    "Share Year": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jaar delen"
+    "Road trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roadtrip"
           }
         }
       }
     },
-    "Show all %lld cities": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon alle %lld steden"
+    "Run" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardlopen"
           }
         }
       }
     },
-    "Show all %lld trips": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon alle %lld reizen"
+    "Running trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running trip"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardloopreis"
           }
         }
       }
     },
-    "Show less": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon minder"
+    "samosas" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "samosas"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "samosa's"
+          }
         }
       }
     },
-    "Show my places": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon mijn plaatsen"
+    "Saw all 7 New Wonders of the World" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle 7 nieuwe wereldwonderen gezien"
           }
         }
       }
     },
-    "Show my travel map": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toon mijn reiskaart"
+    "Scan your photos to create a shareable card." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan je foto's om een deelbare kaart te maken."
           }
         }
       }
     },
-    "Skating": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skating"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schaatsen"
+    "Search cities" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steden zoeken"
           }
         }
       }
     },
-    "Ski": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ski"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skiën"
+    "Search countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoek landen"
           }
         }
       }
     },
-    "Ski trip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ski trip"
+    "Search for a city" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoek een stad"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skireis"
+        }
+      }
+    },
+    "Search for your home city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoek je thuisstad. Gebruikt voor de berekening van je verste reis en om alledaagse foto's dicht bij huis uit te sluiten van je reispersoonlijkheid."
           }
         }
       }
     },
-    "Skip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sla over"
+    "See all" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon alles"
           }
         }
       }
     },
-    "Snow Sports": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Snow Sports"
+    "See everywhere you went this year — and share your recap." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zie overal waar je dit jaar was — en deel je overzicht."
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sneeuwsport"
+        }
+      }
+    },
+    "See which trip took you the furthest" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontdek welke reis je het verst bracht"
           }
         }
       }
     },
-    "Snowboard": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Snowboard"
+    "See your heart rate, climbs, workouts, and energy from this trip. Everything is read from Apple Health and stays on your device." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See your heart rate, climbs, workouts, and energy from this trip. Everything is read from Apple Health and stays on your device."
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Snowboarden"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk je hartslag, beklimmingen, workouts en energie van deze reis. Alles wordt uit Apple Health gelezen en blijft op je toestel."
           }
         }
       }
     },
-    "South America": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zuid-Amerika"
+    "Seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezien"
           }
         }
       }
     },
-    "Still finding your cities… A city only appears here once it's been resolved, which takes a little longer than the rest of the scan. Check back in a moment if yours isn't listed yet.": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je steden worden nog gezocht… Een stad verschijnt hier pas nadat ze is herkend, wat iets langer duurt dan de rest van de scan. Kom zo terug als de jouwe er nog niet bij staat."
+    "Seen · %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezien · %@"
           }
         }
       }
     },
-    "Swim": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Swim"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zwemmen"
+    "Set foot on 3 continents" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voet gezet op 3 continenten"
           }
         }
       }
     },
-    "Swipe to relive it →": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Veeg om het te herbeleven →"
+    "Set your home city" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stel je thuisstad in"
           }
         }
       }
     },
-    "TOP STYLES": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TOPSTIJLEN"
+    "Set your home country" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stel je thuisland in"
           }
         }
       }
     },
-    "Take more geotagged photos and it'll appear here.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maak meer foto's met locatie en het verschijnt hier."
+    "Share" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel"
           }
         }
       }
     },
-    "Take some geotagged photos on your next trip and check back.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maak foto's met locatie op je volgende reis en kom later terug."
+    "Share Month" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maand delen"
           }
         }
       }
     },
-    "Tap a style to see what it's based on": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tik op een stijl om te zien waarop die is gebaseerd"
+    "Share Trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reis delen"
           }
         }
       }
     },
-    "Template": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sjabloon"
+    "Share Year" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaar delen"
           }
         }
       }
     },
-    "The Balanced Traveler": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The Balanced Traveler"
+    "Show all %lld cities" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon alle %lld steden"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De Evenwichtige Reiziger"
+        }
+      }
+    },
+    "Show all %lld trips" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon alle %lld reizen"
           }
         }
       }
     },
-    "The Explorer": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The Explorer"
+    "Show less" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon minder"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De Ontdekkingsreiziger"
+        }
+      }
+    },
+    "Show my places" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon mijn plaatsen"
           }
         }
       }
     },
-    "The Flâneur": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The Flâneur"
+    "Show my travel map" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toon mijn reiskaart"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De Flaneur"
+        }
+      }
+    },
+    "Shutterbug" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotofanaat"
           }
         }
       }
     },
-    "The Mission Traveler": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The Mission Traveler"
+    "Skating" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skating"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De Missiereiziger"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schaatsen"
           }
         }
       }
     },
-    "Thrilling": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thrilling"
+    "Ski" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ski"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spannend"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skiën"
           }
         }
       }
     },
-    "Today": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vandaag"
+    "Ski trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ski trip"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skireis"
           }
         }
       }
     },
-    "Tourist trails": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toeristische paden"
+    "Skip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sla over"
           }
         }
       }
     },
-    "Transit Traveler": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Doorreiziger"
+    "Snow Sports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snow Sports"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sneeuwsport"
           }
         }
       }
     },
-    "Travel Calendar": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reiskalender"
+    "Snowboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snowboard"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snowboarden"
           }
         }
       }
     },
-    "Travel Fuel": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Travel Fuel"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reisbrandstof"
+    "South America" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuid-Amerika"
           }
         }
       }
     },
-    "Travel Map": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reiskaart"
+    "Still finding your cities… A city only appears here once it's been resolved, which takes a little longer than the rest of the scan. Check back in a moment if yours isn't listed yet." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je steden worden nog gezocht… Een stad verschijnt hier pas nadat ze is herkend, wat iets langer duurt dan de rest van de scan. Kom zo terug als de jouwe er nog niet bij staat."
           }
         }
       }
     },
-    "Travel Persona": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Travel Persona"
+    "stroopwafels" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stroopwafels"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reispersona"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stroopwafels"
           }
         }
       }
     },
-    "Travel notifications": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reismeldingen"
+    "strudel slices" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "strudel slices"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stukken strudel"
+          }
         }
       }
     },
-    "Traveled": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afgelegd"
+    "sushi pieces" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sushi pieces"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sushistukjes"
           }
         }
       }
     },
-    "Traveler": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reiziger"
+    "Swim" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swim"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwemmen"
+          }
         }
       }
     },
-    "Trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reis"
+    "Swipe to relive it →" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veeg om het te herbeleven →"
           }
         }
       }
     },
-    "Trip Insights": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trip Insights"
+    "tacos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tacos"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reisinzichten"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "taco's"
           }
         }
       }
     },
-    "Trip Name": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reisnaam"
+    "Take more geotagged photos and it'll appear here." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maak meer foto's met locatie en het verschijnt hier."
           }
         }
       }
     },
-    "Trips": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reizen"
+    "Take some geotagged photos on your next trip and check back." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maak foto's met locatie op je volgende reis en kom later terug."
           }
         }
       }
     },
-    "Trips are journeys away from home, so your home country isn't counted as one.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reizen zijn tochten weg van huis, dus je thuisland telt niet als reis."
+    "Tap a style to see what it's based on" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik op een stijl om te zien waarop die is gebaseerd"
           }
         }
       }
     },
-    "Try Again": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Probeer opnieuw"
+    "tapas" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tapas"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tapas"
           }
         }
       }
     },
-    "Urban Explorer": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stadsontdekker"
+    "Template" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sjabloon"
           }
         }
       }
     },
-    "Vertical Exploration": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vertical Exploration"
+    "The Balanced Traveler" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Balanced Traveler"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verticale verkenning"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Evenwichtige Reiziger"
           }
         }
       }
     },
-    "View this trip": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bekijk deze reis"
+    "The Explorer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Explorer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Ontdekkingsreiziger"
           }
         }
       }
     },
-    "View trip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View trip"
+    "The Flâneur" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Flâneur"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bekijk reis"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Flaneur"
           }
         }
       }
     },
-    "Visited": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bezocht"
+    "The Mission Traveler" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Mission Traveler"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Missiereiziger"
           }
         }
       }
     },
-    "WONDER": {},
-    "Walk": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Walk"
+    "Thrilling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thrilling"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wandeling"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spannend"
           }
         }
       }
     },
-    "Wanderer": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zwerver"
+    "Today" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vandaag"
           }
         }
       }
     },
-    "Water trip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Water trip"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waterreis"
+    "Took 25 trips" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "25 reizen gemaakt"
           }
         }
       }
     },
-    "Weekend Wanderer": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Weekendzwerver"
+    "Took photos in both hemispheres" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's op beide halfronden gemaakt"
           }
         }
       }
     },
-    "Whole country": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hele land"
+    "TOP STYLES" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TOPSTIJLEN"
           }
         }
       }
     },
-    "Wonder": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonder"
+    "Tourist trails" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toeristische paden"
           }
         }
       }
     },
-    "Wonder Hunter": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonderjager"
+    "Transit Traveler" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doorreiziger"
           }
         }
       }
     },
-    "Wonder Master": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wondermeester"
+    "Travel Calendar" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiskalender"
           }
         }
       }
     },
-    "Wonder Seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonder gezien"
+    "Travel Fuel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Travel Fuel"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisbrandstof"
+          }
         }
       }
     },
-    "Wonders": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonderen"
+    "Travel Map" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiskaart"
           }
         }
       }
     },
-    "Wonders & Landmarks": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonderen en bezienswaardigheden"
+    "Travel notifications" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reismeldingen"
           }
         }
       }
     },
-    "Wonders & Landmarks Seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonderen en bezienswaardigheden gezien"
+    "Travel Persona" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Travel Persona"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reispersona"
           }
         }
       }
     },
-    "Wonders Seen": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wonderen gezien"
+    "Traveled" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afgelegd"
           }
         }
       }
     },
-    "Workout": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Workout"
+    "Traveler" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiziger"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Workout"
+        }
+      }
+    },
+    "Trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reis"
           }
         }
       }
     },
-    "Workout Chapters": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Workout Chapters"
+    "Trip Insights" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trip Insights"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Workouthoofdstukken"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisinzichten"
           }
         }
       }
     },
-    "World Wonders": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wereldwonderen"
+    "Trip Name" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisnaam"
           }
         }
       }
     },
-    "World explored": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wereld verkend"
+    "Trips" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reizen"
           }
         }
       }
     },
-    "Write a note about this trip…": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schrijf een notitie over deze reis…"
+    "Trips are journeys away from home, so your home country isn't counted as one." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reizen zijn tochten weg van huis, dus je thuisland telt niet als reis."
           }
         }
       }
     },
-    "Year": {
-      "extractionState": "stale",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jaar"
+    "Try Again" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probeer opnieuw"
           }
         }
       }
     },
-    "Year in Travel": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reisjaar"
+    "Urban Explorer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stadsontdekker"
           }
         }
       }
     },
-    "Yoga": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yoga"
+    "Vertical Exploration" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertical Exploration"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yoga"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verticale verkenning"
+          }
+        }
+      }
+    },
+    "View this trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk deze reis"
           }
         }
       }
     },
-    "You burned %lld kcal": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You burned %lld kcal"
+    "View trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View trip"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je verbrandde %lld kcal"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk reis"
           }
         }
       }
     },
-    "You can change this in Settings at any time.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je kunt dit altijd wijzigen in Instellingen."
+    "Visited" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezocht"
           }
         }
       }
     },
-    "You can turn this on anytime from the Me tab.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can turn this on anytime from the Me tab."
+    "Visited 10 countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 landen bezocht"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je kunt dit altijd inschakelen via het tabblad Ik."
+        }
+      }
+    },
+    "Visited 25 countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "25 landen bezocht"
           }
         }
       }
     },
-    "You cover serious ground between shots.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You cover serious ground between shots."
+    "Visited 50 countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "50 landen bezocht"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je legt flink wat afstand af tussen foto's."
+        }
+      }
+    },
+    "Visited every inhabited continent" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elk bewoond continent bezocht"
           }
         }
       }
     },
-    "You spent %lld%% of %@ abroad 🌍": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "You spent %1$lld%% of %2$@ abroad 🌍"
+    "waffles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "waffles"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je bracht %1$lld%% van %2$@ in het buitenland door 🌍"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wafels"
           }
         }
       }
     },
-    "You stop constantly — every corner is a photo.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You stop constantly — every corner is a photo."
+    "Walk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walk"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je stopt voortdurend — elke hoek is een foto."
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wandeling"
           }
         }
       }
     },
-    "You travelled every month of %@! 🌍": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je reisde elke maand van %@! 🌍"
+    "Wanderer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwerver"
           }
         }
       }
     },
-    "You travelled in %lld of 12 months 🌍": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je reisde in %1$lld van 12 maanden 🌍"
+    "Water trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Water trip"
           }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waterreis"
+          }
         }
       }
     },
-    "Your %@ Travel Snapshot": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jouw reisoverzicht van %@"
+    "Weekend Wanderer" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekendzwerver"
           }
         }
       }
     },
-    "Your %@ Year in Travel": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jouw reisjaar %@"
+    "Whole country" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hele land"
           }
         }
       }
     },
-    "Your Travel Personality": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je reispersoonlijkheid"
+    "Wonder" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonder"
           }
         }
       }
     },
-    "Your Year in Travel": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jouw reisjaar"
+    "WONDER" : {
+
+    },
+    "Wonder Hunter" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonderjager"
           }
         }
       }
     },
-    "Your home": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jouw thuis"
+    "Wonder Master" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wondermeester"
           }
         }
       }
     },
-    "Your places will appear as your photos are scanned — or add countries you've visited by hand.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je plaatsen verschijnen terwijl je foto's worden gescand — of voeg handmatig landen toe die je hebt bezocht."
+    "Wonder Seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonder gezien"
           }
         }
       }
     },
-    "Your travel history, automatically": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je reisgeschiedenis, automatisch"
+    "Wonders" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonderen"
           }
         }
       }
     },
-    "Your travel personality": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je reispersoonlijkheid"
+    "Wonders & Landmarks" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonderen en bezienswaardigheden"
           }
         }
       }
     },
-    "Your travel personality is calculated entirely on‑device from where your photos were taken. Everyday photos within 50 km of home are excluded so it reflects your travels.": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Je reispersoonlijkheid wordt volledig op je toestel berekend op basis van waar je foto's zijn genomen. Alledaagse foto's binnen 50 km van huis worden uitgesloten zodat het je reizen weerspiegelt."
+    "Wonders & Landmarks Seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonderen en bezienswaardigheden gezien"
           }
         }
       }
     },
-    "burgers": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "burgers"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "burgers"
+    "Wonders Seen" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wonderen gezien"
           }
         }
       }
     },
-    "chocolate bars": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chocolate bars"
+    "Workout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chocoladerepen"
-          }
-        }
-      }
-    },
-    "contributed to this style": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "draagt bij aan deze stijl"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout"
           }
         }
       }
     },
-    "croissants": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "croissants"
+    "Workout Chapters" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout Chapters"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "croissants"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workouthoofdstukken"
           }
         }
       }
     },
-    "custard tarts": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "custard tarts"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "custardtaartjes"
+    "World explored" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wereld verkend"
           }
         }
       }
     },
-    "fish & chips": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "fish & chips"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "fish & chips"
+    "World Wanderer" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wereldzwerver"
           }
         }
       }
     },
-    "gyros": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "gyros"
+    "World Wonders" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wereldwonderen"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "gyros"
-          }
         }
       }
     },
-    "meals": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "meals"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "maaltijden"
+    "Write a note about this trip…" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schrijf een notitie over deze reis…"
           }
         }
       }
     },
-    "of %lld": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "van %lld"
+    "Year" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jaar"
           }
         }
       }
     },
-    "of the world explored": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "van de wereld verkend"
+    "Year in Travel" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisjaar"
           }
         }
       }
     },
-    "pad thai plates": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pad thai plates"
+    "Yoga" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yoga"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "borden pad thai"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yoga"
           }
         }
       }
     },
-    "pizza slices": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pizza slices"
+    "You burned %lld kcal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You burned %lld kcal"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pizzapunten"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je verbrandde %lld kcal"
           }
         }
       }
     },
-    "pretzels": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pretzels"
+    "You can change this in Settings at any time." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt dit altijd wijzigen in Instellingen."
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pretzels"
-          }
         }
       }
     },
-    "samosas": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "samosas"
+    "You can turn this on anytime from the Me tab." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can turn this on anytime from the Me tab."
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "samosa's"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je kunt dit altijd inschakelen via het tabblad Ik."
           }
         }
       }
     },
-    "stroopwafels": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "stroopwafels"
+    "You cover serious ground between shots." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You cover serious ground between shots."
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "stroopwafels"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je legt flink wat afstand af tussen foto's."
           }
         }
       }
     },
-    "strudel slices": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "strudel slices"
+    "You spent %lld%% of %@ abroad 🌍" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You spent %1$lld%% of %2$@ abroad 🌍"
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "stukken strudel"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je bracht %1$lld%% van %2$@ in het buitenland door 🌍"
           }
         }
       }
     },
-    "sushi pieces": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "sushi pieces"
+    "You stop constantly — every corner is a photo." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You stop constantly — every corner is a photo."
           }
         },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "sushistukjes"
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je stopt voortdurend — elke hoek is een foto."
           }
         }
       }
     },
-    "tacos": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "tacos"
+    "You travelled every month of %@! 🌍" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reisde elke maand van %@! 🌍"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "taco's"
+        }
+      }
+    },
+    "You travelled in %lld of 12 months 🌍" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reisde in %1$lld van 12 maanden 🌍"
           }
         }
       }
     },
-    "tapas": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "tapas"
+    "Your %@ Travel Snapshot" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw reisoverzicht van %@"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "tapas"
+        }
+      }
+    },
+    "Your %@ Year in Travel" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw reisjaar %@"
           }
         }
       }
     },
-    "waffles": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "waffles"
+    "Your home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw thuis"
           }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "wafels"
+        }
+      }
+    },
+    "Your places will appear as your photos are scanned — or add countries you've visited by hand." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je plaatsen verschijnen terwijl je foto's worden gescand — of voeg handmatig landen toe die je hebt bezocht."
           }
         }
       }
     },
-    "· Travel Score": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "· reisscore"
+    "Your travel history, automatically" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reisgeschiedenis, automatisch"
           }
         }
       }
     },
-    "· travel history, automatically": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "· reisgeschiedenis, automatisch"
+    "Your travel personality" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reispersoonlijkheid"
           }
         }
       }
     },
-    "⛰️": {},
-    "✈️ Your %lld Year in Travel is ready": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "✈️ Jouw reisjaar %lld is klaar"
+    "Your Travel Personality" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reispersoonlijkheid"
           }
         }
       }
     },
-    "📅 Busiest month · %@": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "📅 Drukste maand · %@"
+    "Your travel personality is calculated entirely on‑device from where your photos were taken. Everyday photos within 50 km of home are excluded so it reflects your travels." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reispersoonlijkheid wordt volledig op je toestel berekend op basis van waar je foto's zijn genomen. Alledaagse foto's binnen 50 km van huis worden uitgesloten zodat het je reizen weerspiegelt."
           }
         }
       }
     },
-    "🧭": {},
-    "🧳 Longest · %@": {
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "🧳 Langste · %@"
+    "Your Year in Travel" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jouw reisjaar"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

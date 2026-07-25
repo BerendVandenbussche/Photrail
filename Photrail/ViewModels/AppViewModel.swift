@@ -40,8 +40,16 @@ final class AppViewModel {
     var navState: NavState = .onboarding
     var scanProgress: ScanProgress = .idle
     var stats: TravelStats = .empty {
-        didSet { refreshCountryBounds() }
+        didSet {
+            refreshCountryBounds()
+            checkAchievements()
+        }
     }
+
+    /// Secret milestone achievements the user has unlocked (IDs from `AchievementCatalog`).
+    private(set) var unlockedAchievementIDs: Set<String> = []
+    /// Newly-earned achievements awaiting their one-time confetti toast (FIFO).
+    var achievementQueue: [Achievement] = []
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
 
@@ -291,6 +299,7 @@ final class AppViewModel {
         self.insightsEnabled = UserDefaults.standard.bool(forKey: "insightsEnabled")
         self.insightsPromptDismissed = UserDefaults.standard.bool(forKey: "insightsPromptDismissed")
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
+        self.unlockedAchievementIDs = AchievementStore.load()
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
         // and will redirect to .permissionDenied if access was revoked.
@@ -308,6 +317,31 @@ final class AppViewModel {
         let vm = AppViewModel(store: PhotoStore(modelContainer: container))
         vm.stats = .mock
         return vm
+    }
+
+    // MARK: - Achievements
+
+    /// Re-evaluate every achievement against the current stats. Persists the unlocked set
+    /// and queues genuinely-new unlocks for celebration. The very first evaluation after
+    /// install/update adopts existing progress *silently* — so upgrading users don't get a
+    /// burst of confetti for milestones they passed long ago.
+    private func checkAchievements() {
+        let currently = Set(AchievementCatalog.all.filter { $0.isUnlocked(stats) }.map(\.id))
+        let newlyUnlocked = currently.subtracting(unlockedAchievementIDs)
+        unlockedAchievementIDs.formUnion(currently)
+        AchievementStore.save(unlockedAchievementIDs)
+
+        guard UserDefaults.standard.bool(forKey: "achievementsInitialized") else {
+            UserDefaults.standard.set(true, forKey: "achievementsInitialized")
+            return   // seed silently on first run
+        }
+        guard !newlyUnlocked.isEmpty else { return }
+        achievementQueue.append(contentsOf: AchievementCatalog.all.filter { newlyUnlocked.contains($0.id) })
+    }
+
+    /// Dismiss the achievement toast currently on screen and advance to the next, if any.
+    func dismissTopAchievement() {
+        if !achievementQueue.isEmpty { achievementQueue.removeFirst() }
     }
 
     // MARK: - Entry points

@@ -218,6 +218,13 @@ struct ProfileView: View {
     private var settingsCard: some View {
         @Bindable var appVM = appVM
         return VStack(spacing: 0) {
+            NavigationLink { AchievementsView() } label: {
+                row(icon: "trophy.fill", title: "Achievements",
+                    detail: "\(appVM.unlockedAchievementIDs.count) of \(AchievementCatalog.count)")
+            }
+            .buttonStyle(.plain)
+            Divider().padding(.leading, 52)
+
             Button { showHomePicker = true } label: {
                 row(icon: "house.fill", title: "Home",
                     detail: appVM.homeDisplayName ?? String(localized: "Not set"))
