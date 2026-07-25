@@ -7,11 +7,16 @@ struct StatisticsEngine: Sendable {
     ///   - homeCountryCode: excluded from trip detection so home life isn't counted as trips.
     ///   - manualCountries: countries the user added by hand (no photos) — merged in so the
     ///     country/continent stats stay accurate even after the photos are deleted.
+    ///   - excludedPhotoIDs: individual photos the user has excluded — dropped entirely
+    ///     before any stats are computed. Reversible.
     func compute(from photos: [GeoPhoto],
                  homeCountryCode: String? = nil,
                  homeCoordinate: GeoPhoto.Coordinate? = nil,
-                 manualCountries: [ManualCountry] = []) -> TravelStats {
-        let geocoded = photos.filter { $0.isGeocoded && $0.country != nil }
+                 manualCountries: [ManualCountry] = [],
+                 excludedPhotoIDs: Set<String> = []) -> TravelStats {
+        let geocoded = photos.filter {
+            $0.isGeocoded && $0.country != nil && !excludedPhotoIDs.contains($0.id)
+        }
 
         // --- Countries ---
         var countryMap: [String: CountryAccumulator] = [:]

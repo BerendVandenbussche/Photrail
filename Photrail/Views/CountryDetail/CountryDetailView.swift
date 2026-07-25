@@ -7,6 +7,7 @@ struct CountryDetailView: View {
     @State private var showAllTrips = false
     @State private var showAllCities = false
     @State private var selectedWonder: WonderStat?
+    @State private var showHideConfirm = false
     @Environment(\.dismiss) private var dismiss
     @Environment(AppViewModel.self) private var appVM
 
@@ -70,9 +71,33 @@ struct CountryDetailView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if !country.photoIDs.isEmpty {
+                        Menu {
+                            Button(role: .destructive) {
+                                showHideConfirm = true
+                            } label: {
+                                Label("Exclude these photos", systemImage: "eye.slash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                        .accessibilityLabel("More options")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .confirmationDialog("Exclude photos from \(country.localizedName)?",
+                                isPresented: $showHideConfirm, titleVisibility: .visible) {
+                Button("Exclude \(country.photoCount) Photos", role: .destructive) {
+                    appVM.excludePhotos(ids: country.photoIDs)
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("These photos won't count toward any of your stats, trips or memories — useful for photos you didn't take yourself. If you take your own photos here later, the country reappears on its own. You can restore them anytime from your profile.")
             }
             .sheet(item: $selectedWonder) { wonder in
                 WonderDetailView(stat: wonder, trip: tripFor(wonder))

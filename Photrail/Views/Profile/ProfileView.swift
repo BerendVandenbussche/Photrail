@@ -231,6 +231,15 @@ struct ProfileView: View {
             }
             Divider().padding(.leading, 52)
 
+            if !appVM.excludedPhotoIDs.isEmpty {
+                NavigationLink { ExcludedPhotosView() } label: {
+                    row(icon: "eye.slash.fill", title: "Excluded Photos",
+                        detail: "\(appVM.excludedPhotoIDs.count)")
+                }
+                .buttonStyle(.plain)
+                Divider().padding(.leading, 52)
+            }
+
             HStack(spacing: 14) {
                 Image(systemName: "bell.fill")
                     .font(.system(size: 17, weight: .semibold))

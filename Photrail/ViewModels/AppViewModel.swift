@@ -73,6 +73,11 @@ final class AppViewModel {
         }
     }
 
+    /// Individual photos the user has excluded from evaluation — dropped from every stat.
+    /// Persisted, fully reversible. Per-photo (not per-country) so a place resurfaces on
+    /// its own once the user takes their own photos there. See `ExcludedPhotosStore`.
+    private(set) var excludedPhotoIDs: Set<String> = []
+
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .today
 
@@ -293,6 +298,7 @@ final class AppViewModel {
            let decoded = try? JSONDecoder().decode([ManualCountry].self, from: data) {
             self.manualCountries = decoded
         }
+        self.excludedPhotoIDs = ExcludedPhotosStore.load()
         if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
             self.travelNudgesEnabled = enabled
         }
@@ -372,6 +378,36 @@ final class AppViewModel {
     /// True when a country code came from a manual entry (no photos).
     func isManualCountry(_ code: String) -> Bool {
         manualCountries.contains { $0.code == code }
+    }
+
+    // MARK: - Excluded photos
+
+    /// True when a photo is currently excluded from all stats.
+    func isPhotoExcluded(_ id: String) -> Bool {
+        excludedPhotoIDs.contains(id)
+    }
+
+    /// Exclude one or more photos: they're dropped from every stat, trip, city, country
+    /// and memory. Persisted and reversible.
+    func excludePhotos(ids: [String]) {
+        guard !ids.isEmpty else { return }
+        excludedPhotoIDs.formUnion(ids)
+        ExcludedPhotosStore.save(excludedPhotoIDs)
+        Task { await refreshStatsWithManual() }
+    }
+
+    /// Restore previously excluded photos so they count again everywhere.
+    func includePhotos(ids: [String]) {
+        guard !ids.isEmpty else { return }
+        excludedPhotoIDs.subtract(ids)
+        ExcludedPhotosStore.save(excludedPhotoIDs)
+        Task { await refreshStatsWithManual() }
+    }
+
+    /// Toggle a single photo's exclusion — convenient for the full-screen viewer.
+    func togglePhotoExcluded(_ id: String) {
+        if excludedPhotoIDs.contains(id) { includePhotos(ids: [id]) }
+        else { excludePhotos(ids: [id]) }
     }
 
     /// Give a trip a custom name (or clear it with an empty string) and recompute so the
@@ -472,7 +508,7 @@ final class AppViewModel {
     private func refreshStatsWithManual() async {
         let photos = (try? await store.allPhotos()) ?? []
         stats = statsEngine.compute(from: photos, homeCountryCode: homeCountryCode,
-                                    homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+                                    homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
         publishWidgetStats()
     }
 
@@ -535,7 +571,8 @@ final class AppViewModel {
 
         // Manual countries are intentionally excluded from a year recap (they have no date).
         let yearStats = statsEngine.compute(from: yearPhotos, homeCountryCode: homeCountryCode,
-                                            homeCoordinate: homeCoordinate)
+                                            homeCoordinate: homeCoordinate,
+                                            excludedPhotoIDs: excludedPhotoIDs)
 
         var wonderByPhoto: [String: String] = [:]
         for wonder in yearStats.wonders {
@@ -727,9 +764,10 @@ final class AppViewModel {
         // Load stored stats immediately so the dashboard isn't empty
         Task {
             if let stored = try? await store.allPhotos(), !stored.isEmpty {
-                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
                 memories = MemoriesEngine().memories(from: stored, homeCoordinate: homeCoordinate,
-                                                     homeCountryCode: homeCountryCode)
+                                                     homeCountryCode: homeCountryCode,
+                                                     excludedPhotoIDs: excludedPhotoIDs)
                 publishWidgetStats()
             }
         }
@@ -794,7 +832,7 @@ final class AppViewModel {
 
             // Seed the set of countries already known so new-country detection starts clean.
             let stored = (try? await store.allPhotos()) ?? []
-            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
             scanSeenCountryCodes = Set(stored.compactMap { $0.isGeocoded ? $0.countryCode : nil })
 
             // Phase 2b: resolve countries OFFLINE for new photos (instant, no network).
@@ -868,7 +906,7 @@ final class AppViewModel {
             try await store.applyCountries(rows)
 
             processed += chunk.count
-            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
             let progress = Double(processed) / Double(total)
             await MainActor.run {
                 guard self.scanGeneration == generation else { return }
@@ -902,7 +940,7 @@ final class AppViewModel {
                 try? await store.applyCity(id: result.id, city: result.city, hasLocality: result.hasLocality)
             }
             done += chunk.count
-            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
             let progress = Double(done) / Double(total)
             await MainActor.run {
                 guard self.scanGeneration == generation else { return }
@@ -913,9 +951,10 @@ final class AppViewModel {
 
         try Task.checkCancellation()
         let finalPhotos = (try? await store.allPhotos()) ?? []
-        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries)
+        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
         memories = MemoriesEngine().memories(from: finalPhotos, homeCoordinate: homeCoordinate,
-                                             homeCountryCode: homeCode)
+                                             homeCountryCode: homeCode,
+                                             excludedPhotoIDs: excludedPhotoIDs)
     }
 
     // MARK: - Travel nudges

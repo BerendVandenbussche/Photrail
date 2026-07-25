@@ -14,6 +14,7 @@ struct MemoriesEngine: Sendable {
                   homeCoordinate: GeoPhoto.Coordinate? = nil,
                   homeCountryCode: String? = nil,
                   homeRadiusKm: Double = 50,
+                  excludedPhotoIDs: Set<String> = [],
                   on today: Date = Date(),
                   calendar: Calendar = .current) -> [Memory] {
         let todayMonth = calendar.component(.month, from: today)
@@ -24,6 +25,7 @@ struct MemoriesEngine: Sendable {
         // Photos from this exact day-of-year, in a past year, away from home.
         let matching = photos.filter { photo in
             guard photo.isGeocoded, photo.countryCode != nil else { return false }
+            if excludedPhotoIDs.contains(photo.id) { return false }
 
             // Exclude everyday photos near home. Prefer a precise radius; fall back to
             // home country only when we don't have a home coordinate at all.

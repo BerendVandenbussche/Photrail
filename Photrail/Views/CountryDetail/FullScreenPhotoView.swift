@@ -7,6 +7,7 @@ struct FullScreenPhotoView: View {
     /// Optional heart-rate "vibe" for this photo, from the Trip Insights module.
     var excitement: ExcitementSample? = nil
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppViewModel.self) private var appVM
 
     @State private var image: UIImage?
     @State private var scale: CGFloat = 1
@@ -43,7 +44,6 @@ struct FullScreenPhotoView: View {
                             .font(.headline).foregroundStyle(.white)
                             .padding(10).background(Circle().fill(.white.opacity(0.18)))
                     }
-                    Spacer()
                     if let excitement {
                         HStack(spacing: 6) {
                             Text(excitement.badge.emoji)
@@ -54,9 +54,34 @@ struct FullScreenPhotoView: View {
                         .padding(.horizontal, 12).padding(.vertical, 8)
                         .background(Capsule().fill(.white.opacity(0.18)))
                     }
+                    Spacer()
+                    Menu {
+                        let excluded = appVM.isPhotoExcluded(assetID)
+                        Button(role: excluded ? nil : .destructive) {
+                            appVM.togglePhotoExcluded(assetID)
+                        } label: {
+                            Label(excluded ? "Include in stats" : "Exclude from stats",
+                                  systemImage: excluded ? "eye" : "eye.slash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.headline).foregroundStyle(.white)
+                            .padding(10).background(Circle().fill(.white.opacity(0.18)))
+                    }
+                    .accessibilityLabel("More options")
                 }
                 .padding(20)
                 Spacer()
+                if appVM.isPhotoExcluded(assetID) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "eye.slash.fill")
+                        Text("Excluded from stats").font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14).padding(.vertical, 9)
+                    .background(Capsule().fill(.black.opacity(0.5)))
+                    .padding(.bottom, 30)
+                }
             }
         }
         .task(id: assetID) { image = await loadFullImage() }
