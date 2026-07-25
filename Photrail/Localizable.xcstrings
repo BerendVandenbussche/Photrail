@@ -757,6 +757,9 @@
         }
       }
     },
+    "🕓" : {
+
+    },
     "🧭" : {
 
     },
@@ -2352,6 +2355,9 @@
         }
       }
     },
+    "ON THIS DAY" : {
+
+    },
     "Open map" : {
       "localizations" : {
         "nl" : {
@@ -3003,6 +3009,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deel"
+          }
+        }
+      }
+    },
+    "Share Memory" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herinnering delen"
           }
         }
       }

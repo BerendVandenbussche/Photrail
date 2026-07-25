@@ -114,6 +114,7 @@ private struct MemoryDetailView: View {
                            GridItem(.flexible(), spacing: 3)]
 
     @State private var selected: IdentifiedPhoto?
+    @State private var showShare = false
     private struct IdentifiedPhoto: Identifiable { let id: String }
 
     /// The trip these memory photos belong to (the one sharing the most photo IDs).
@@ -175,8 +176,19 @@ private struct MemoryDetailView: View {
             }
             .navigationTitle("On This Day")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showShare = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .accessibilityLabel("Share")
+                }
+                ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
+            }
             .fullScreenCover(item: $selected) { FullScreenPhotoView(assetID: $0.id) }
+            .sheet(isPresented: $showShare) { MemoryShareView(memory: memory) }
         }
     }
 
@@ -186,5 +198,74 @@ private struct MemoryDetailView: View {
         let f = DateFormatter()
         f.dateStyle = .long
         return f.string(from: memory.date)
+    }
+}
+
+// MARK: - Share
+
+/// A preview + share sheet for an "On This Day" memory, mirroring the trip share flow.
+private struct MemoryShareView: View {
+    let memory: Memory
+    @Environment(\.dismiss) private var dismiss
+    @State private var cover: UIImage?
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                SharePreviewCanvas(size: MemoryShareCardView.canvasSize) {
+                    MemoryShareCardView(memory: memory, cover: cover)
+                }
+                .task { cover = await loadCover() }
+
+                Button { share() } label: {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity).padding(.vertical, 15)
+                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 12)
+            }
+            .navigationTitle("Share Memory")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+            }
+        }
+    }
+
+    private func share() {
+        if let image = ShareCardRenderer.render(
+            MemoryShareCardView(memory: memory, cover: cover),
+            baseSize: MemoryShareCardView.canvasSize,
+            opaque: true
+        ) {
+            SharePresenter.present([image])
+        }
+    }
+
+    private func loadCover() async -> UIImage? {
+        // Let Vision pick the best-looking shot from that day, falling back to the cover.
+        let best = await PhotoCurator().bestPhotos(candidateIDs: memory.photoIDs, category: nil, limit: 1)
+        guard let id = best.first ?? memory.coverPhotoID else { return nil }
+        return await withCheckedContinuation { continuation in
+            guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject
+            else { continuation.resume(returning: nil); return }
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            options.isSynchronous = false
+            options.resizeMode = .exact
+            var resumed = false
+            PHImageManager.default().requestImage(
+                for: asset, targetSize: CGSize(width: 1080, height: 1920), contentMode: .aspectFill, options: options
+            ) { img, info in
+                let degraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
+                guard !degraded, !resumed else { return }
+                resumed = true
+                continuation.resume(returning: img)
+            }
+        }
     }
 }
