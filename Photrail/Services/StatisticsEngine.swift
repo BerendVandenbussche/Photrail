@@ -135,10 +135,15 @@ private struct CountryAccumulator {
     var firstVisit = Date.distantFuture
     var lastVisit = Date.distantPast
     var representativeCoordinate = GeoPhoto.Coordinate(latitude: 0, longitude: 0)
+    var minLat = Double.greatestFiniteMagnitude, maxLat = -Double.greatestFiniteMagnitude
+    var minLon = Double.greatestFiniteMagnitude, maxLon = -Double.greatestFiniteMagnitude
 
     mutating func add(_ photo: GeoPhoto) {
         photoCount += 1
         photoIDs.append(photo.id)
+        let coord = photo.coordinate
+        minLat = min(minLat, coord.latitude);  maxLat = max(maxLat, coord.latitude)
+        minLon = min(minLon, coord.longitude); maxLon = max(maxLon, coord.longitude)
         if photo.date < firstVisit { firstVisit = photo.date }
         if photo.date >= lastVisit {
             lastVisit = photo.date
@@ -159,7 +164,11 @@ private struct CountryAccumulator {
             id: code, name: name, flag: flag, photoCount: photoCount,
             cities: cityMap.values.map { $0.build() }.sorted { $0.photoCount > $1.photoCount },
             firstVisit: firstVisit, lastVisit: lastVisit, photoIDs: photoIDs,
-            representativeCoordinate: representativeCoordinate
+            representativeCoordinate: representativeCoordinate,
+            tripCount: 1,
+            visitedBounds: photoCount > 0 && minLat <= maxLat
+                ? GeoBounds(minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon)
+                : nil
         )
     }
 }

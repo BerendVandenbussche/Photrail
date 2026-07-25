@@ -15,6 +15,10 @@ struct CountryStat: Identifiable, Sendable, Hashable {
     // Number of distinct trips taken to this country (separate visits over time).
     var tripCount: Int = 1
 
+    // Bounding box of all photo locations taken in this country — the "spread" of
+    // where you've been. nil when there are no photos (e.g. manually-added countries).
+    var visitedBounds: GeoBounds?
+
     var cityCount: Int { cities.count }
 
     /// Country name in the app's current language (derived from the ISO code), falling
@@ -24,6 +28,19 @@ struct CountryStat: Identifiable, Sendable, Hashable {
     // Identity is the ISO code — enough for navigation routing.
     static func == (lhs: CountryStat, rhs: CountryStat) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+/// A lat/lon bounding box, plus its approximate area on the globe.
+struct GeoBounds: Sendable, Hashable {
+    var minLat, maxLat, minLon, maxLon: Double
+
+    /// Rough area of the box in km² (equirectangular approximation at the box's mean latitude).
+    var areaKm2: Double {
+        let meanLat = (minLat + maxLat) / 2 * .pi / 180
+        let height = (maxLat - minLat) * 111.0
+        let width = (maxLon - minLon) * 111.0 * cos(meanLat)
+        return max(height * width, 0)
+    }
 }
 
 struct CityStat: Identifiable, Sendable {

@@ -133,39 +133,24 @@ struct DashboardView: View {
         let total = officialWonders.count
         // Only surface the card once at least one wonder has been seen.
         if seen > 0 {
-            Button { showWonders = true } label: {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
+                Button { showWonders = true } label: {
                     HStack {
-                        Label("World Wonders", systemImage: "star.circle.fill")
-                            .font(.headline).foregroundStyle(.primary)
+                        SectionHeader(title: "World Wonders", systemImage: "building.columns")
                         Spacer()
-                        Text("\(seen) of \(total)")
-                            .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                        Text("See all").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
                     }
-                    HStack(spacing: 8) {
-                        ForEach(officialWonders) { stat in
-                            Text(stat.wonder.emoji)
-                                .font(.system(size: 22))
-                                .grayscale(stat.seen ? 0 : 1)
-                                .opacity(stat.seen ? 1 : 0.35)
-                        }
-                    }
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.primary.opacity(0.1))
-                            Capsule().fill(Color.accentColor)
-                                .frame(width: max(6, geo.size.width * CGFloat(seen) / CGFloat(total)))
-                        }
-                    }
-                    .frame(height: 8)
                 }
-                .padding(AppCard.padding)
-                .card()
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+
+                Button { showWonders = true } label: {
+                    WondersBucketCard(seen: seen, total: total,
+                                      emojis: officialWonders.filter { !$0.seen }.map { $0.wonder.emoji })
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
             }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 20)
         }
     }
 
@@ -195,7 +180,8 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt).
+    /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt),
+    /// shown as a 2-up grid of compact cards.
     @ViewBuilder
     private var highlightsSection: some View {
         let top = stats.mostPhotographedCountry
@@ -205,27 +191,37 @@ struct DashboardView: View {
                 SectionHeader(title: "Highlights", systemImage: "sparkles")
                     .padding(.horizontal, 20)
 
-                if let top {
-                    Button { selectedCountry = top } label: {
-                        MostVisitedBanner(country: top)
+                HStack(alignment: .top, spacing: 12) {
+                    if let top {
+                        Button { selectedCountry = top } label: {
+                            HighlightCard(emoji: top.flag,
+                                          label: "Most photographed",
+                                          title: top.localizedName,
+                                          subtitle: "\(top.photoCount) photos · \(top.cityCount) cities")
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 20)
-                }
 
-                if let furthest {
-                    Button { selectedCountry = stats.countries.first { $0.id == furthest.trip.countryCode } } label: {
-                        FurthestTripCard(furthest: furthest)
+                    if let furthest {
+                        Button { selectedCountry = stats.countries.first { $0.id == furthest.trip.countryCode } } label: {
+                            HighlightCard(emoji: "✈️",
+                                          label: "Furthest from home",
+                                          title: furthest.trip.cities.first.map { "\($0), \(furthest.trip.localizedCountry)" } ?? furthest.trip.localizedCountry,
+                                          subtitle: "\(Int(furthest.distanceKm).formatted()) km away")
+                        }
+                        .buttonStyle(.plain)
+                    } else if appVM.homeName == nil {
+                        Button { appVM.selectedTab = .me } label: {
+                            HighlightCard(emoji: "🏠",
+                                          label: "Furthest from home",
+                                          title: "Set your home city",
+                                          subtitle: "See which trip took you the furthest",
+                                          highlighted: true)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 20)
-                } else if appVM.homeName == nil {
-                    Button { appVM.selectedTab = .me } label: {
-                        SetHomeCTACard()
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 20)
                 }
+                .padding(.horizontal, 20)
             }
         }
     }
@@ -326,86 +322,98 @@ private struct RecapEntryCard: View {
     }
 }
 
-private struct FurthestTripCard: View {
-    let furthest: AppViewModel.FurthestTrip
+/// The "bucket list" wonders progress card — dark gradient, big count and a
+/// segmented progress bar, one segment per wonder.
+private struct WondersBucketCard: View {
+    let seen: Int
+    let total: Int
+    let emojis: [String]
 
     var body: some View {
-        HStack(spacing: 16) {
-            Text(furthest.trip.flag)
-                .font(.system(size: 44))
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Furthest from home")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(furthest.trip.cities.first.map { "\($0), \(furthest.trip.localizedCountry)" } ?? furthest.trip.localizedCountry)
-                    .font(.title3.weight(.bold))
-                    .lineLimit(1)
-                Text("\(Int(furthest.distanceKm).formatted()) km away · \(furthest.trip.dateRangeText)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Bucket list")
+                        .font(.caption.weight(.semibold))
+                        .textCase(.uppercase)
+                        .foregroundStyle(.white.opacity(0.7))
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("\(seen)")
+                            .font(.system(size: 34, weight: .heavy, design: .rounded))
+                            .foregroundStyle(.white)
+                        Text("/ \(total) seen")
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                Spacer()
+                HStack(spacing: 4) {
+                    ForEach(Array(emojis.prefix(4).enumerated()), id: \.offset) { _, emoji in
+                        Text(emoji).font(.system(size: 24))
+                    }
+                }
             }
-            Spacer()
-            Image(systemName: "airplane.departure")
-                .foregroundStyle(.tertiary)
-        }
-        .padding(AppCard.padding)
-        .card()
-    }
-}
 
-private struct SetHomeCTACard: View {
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: "house.fill")
-                .font(.system(size: 30))
-                .foregroundStyle(.tint)
-                .frame(width: 44)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Furthest from home")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("Set your home city")
-                    .font(.title3.weight(.bold))
-                Text("See which trip took you the furthest")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 5) {
+                ForEach(0..<max(total, 1), id: \.self) { index in
+                    Capsule()
+                        .fill(index < seen ? Color.white : Color.white.opacity(0.18))
+                        .frame(height: 6)
+                }
             }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundStyle(.tertiary)
         }
         .padding(AppCard.padding)
-        .card()
-        .overlay(
-            RoundedRectangle(cornerRadius: AppCard.radius, style: .continuous)
-                .strokeBorder(Color.accentColor.opacity(0.25), lineWidth: 1)
+        .background(
+            LinearGradient(colors: [Color(red: 0.16, green: 0.13, blue: 0.34),
+                                    Color(red: 0.35, green: 0.24, blue: 0.62)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing),
+            in: RoundedRectangle(cornerRadius: AppCard.radius, style: .continuous)
         )
+        .contentShape(Rectangle())
     }
 }
 
-private struct MostVisitedBanner: View {
-    let country: CountryStat
+/// A compact highlight tile: emoji, an uppercase label, a bold value and a subtitle.
+/// Two of these sit side-by-side in the Highlights grid.
+private struct HighlightCard: View {
+    let emoji: String
+    let label: LocalizedStringKey
+    let title: String
+    let subtitle: LocalizedStringKey
+    var highlighted: Bool = false
 
     var body: some View {
-        HStack(spacing: 16) {
-            Text(country.flag)
-                .font(.system(size: 44))
+        VStack(alignment: .leading, spacing: 10) {
+            Text(emoji)
+                .font(.system(size: 34))
+
             VStack(alignment: .leading, spacing: 4) {
-                Text("Most photographed")
-                    .font(.caption)
+                Text(label)
+                    .font(.caption2.weight(.semibold))
+                    .textCase(.uppercase)
                     .foregroundStyle(.secondary)
-                Text(country.localizedName)
-                    .font(.title2.weight(.bold))
-                Text("\(country.photoCount) photos · \(country.cityCount) cities")
+                    .lineLimit(2, reservesSpace: true)
+                Text(title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundStyle(.tertiary)
         }
+        .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
         .padding(AppCard.padding)
         .card()
+        .overlay {
+            if highlighted {
+                RoundedRectangle(cornerRadius: AppCard.radius, style: .continuous)
+                    .strokeBorder(Color.accentColor.opacity(0.25), lineWidth: 1)
+            }
+        }
+        .contentShape(Rectangle())
     }
 }
 

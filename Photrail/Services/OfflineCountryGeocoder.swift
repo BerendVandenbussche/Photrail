@@ -39,6 +39,15 @@ actor OfflineCountryGeocoder {
         return ((shape.minLat + shape.maxLat) / 2, (shape.minLon + shape.maxLon) / 2)
     }
 
+    /// The bounding box of a country's borders — used to gauge how much of a country's
+    /// extent your photos span ("geographic spread"). Nil if the code is unknown.
+    func bounds(for code: String) -> GeoBounds? {
+        loadIfNeeded()
+        guard let shape = shapes.first(where: { $0.code == code.uppercased() }) else { return nil }
+        return GeoBounds(minLat: shape.minLat, maxLat: shape.maxLat,
+                         minLon: shape.minLon, maxLon: shape.maxLon)
+    }
+
     func match(latitude: Double, longitude: Double) -> Match? {
         loadIfNeeded()
         for shape in shapes {

@@ -8,6 +8,10 @@ struct CountryDetailView: View {
     @State private var showAllCities = false
     @State private var selectedWonder: WonderStat?
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppViewModel.self) private var appVM
+
+    /// Your home country — trips are journeys *away* from home, so it never has any.
+    private var isHomeCountry: Bool { country.id == appVM.homeCountryCode }
 
     /// Wonders & landmarks the user has photographed in this country.
     private var seenWonders: [WonderStat] {
@@ -44,6 +48,9 @@ struct CountryDetailView: View {
                     // Trips
                     if !trips.isEmpty {
                         tripsSection
+                    } else if isHomeCountry {
+                        homeCountryNote
+                            .padding(.horizontal, 20)
                     }
 
                     // Wonders & landmarks seen in this country
@@ -88,6 +95,27 @@ struct CountryDetailView: View {
             StatCard(icon: "mappin.and.ellipse", value: "\(country.cityCount)",
                      label: "Cities", iconColor: .pink)
         }
+    }
+
+    /// Shown instead of a trips list for the home country.
+    private var homeCountryNote: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "house.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(.tint)
+                .frame(width: 36)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Your home")
+                    .font(.subheadline.weight(.semibold))
+                Text("Trips are journeys away from home, so your home country isn't counted as one.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .card()
     }
 
     private var displayedTrips: [Trip] {
@@ -258,4 +286,5 @@ private struct CityRow: View {
 
 #Preview {
     CountryDetailView(country: .mock)
+        .environment(AppViewModel.preview)
 }

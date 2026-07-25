@@ -39,9 +39,15 @@ final class AppViewModel {
 
     var navState: NavState = .onboarding
     var scanProgress: ScanProgress = .idle
-    var stats: TravelStats = .empty
+    var stats: TravelStats = .empty {
+        didSet { refreshCountryBounds() }
+    }
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
+
+    /// Cached country border bounding boxes (from the offline geocoder), keyed by ISO code.
+    /// Populated lazily so the Places grid can show a "geographic spread" coverage bar.
+    private(set) var countryBorderBounds: [String: GeoBounds] = [:]
 
     /// A recap presented from an App Intent (Siri / Shortcuts). Drives a root sheet.
     var presentedRecap: RecapModel?
@@ -150,6 +156,35 @@ final class AppViewModel {
             return country.representativeCoordinate
         }
         return nil
+    }
+
+    /// Fetch border bounding boxes for any visited countries we haven't cached yet.
+    private func refreshCountryBounds() {
+        let missing = stats.countries.map(\.id).filter { countryBorderBounds[$0] == nil }
+        guard !missing.isEmpty else { return }
+        let geocoder = offlineGeocoder
+        Task { [weak self] in
+            var fetched: [String: GeoBounds] = [:]
+            for code in missing {
+                if let bounds = await geocoder.bounds(for: code) { fetched[code] = bounds }
+            }
+            guard !fetched.isEmpty else { return }
+            await MainActor.run {
+                guard let self else { return }
+                self.countryBorderBounds.merge(fetched) { _, new in new }
+            }
+        }
+    }
+
+    /// How much of a country's extent your photos span, 0…1 ("geographic spread"):
+    /// the area of your photos' bounding box relative to the country's border bounding box.
+    /// Returns nil until the country's borders are cached or if there's nothing to show.
+    func coverage(for country: CountryStat) -> Double? {
+        guard let visited = country.visitedBounds,
+              let border = countryBorderBounds[country.id] else { return nil }
+        let borderArea = border.areaKm2
+        guard borderArea > 0 else { return nil }
+        return min(1, max(0, visited.areaKm2 / borderArea))
     }
 
     /// Countries ranked by number of distinct trips (excluding home).
