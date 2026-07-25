@@ -904,6 +904,16 @@
       }
     },
     "BONUS": {},
+    "Back": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terug"
+          }
+        }
+      }
+    },
     "Background": {
       "localizations": {
         "nl": {
@@ -2546,6 +2556,16 @@
         }
       }
     },
+    "Remove home": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thuis verwijderen"
+          }
+        }
+      }
+    },
     "Rename Trip": {
       "extractionState": "stale",
       "localizations": {
@@ -2709,6 +2729,16 @@
         }
       }
     },
+    "Search for your city": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek je stad"
+          }
+        }
+      }
+    },
     "Search for your home city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.": {
       "localizations": {
         "nl": {
@@ -2796,6 +2826,16 @@
         }
       }
     },
+    "Set your home": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel je thuis in"
+          }
+        }
+      }
+    },
     "Set your home city": {
       "extractionState": "stale",
       "localizations": {
@@ -2803,6 +2843,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stel je thuisstad in"
+          }
+        }
+      }
+    },
+    "Set your home city so Photrail can measure how far you travel and keep everyday photos out of your travel stats.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel je thuisstad in zodat Photrail kan berekenen hoe ver je reist en alledaagse foto's buiten je reisstatistieken houdt."
           }
         }
       }
@@ -3598,6 +3648,16 @@
         }
       }
     },
+    "Where's home?": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waar is thuis?"
+          }
+        }
+      }
+    },
     "Whole country": {
       "extractionState": "stale",
       "localizations": {
@@ -3819,11 +3879,32 @@
       }
     },
     "You can change this in Settings at any time.": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "Je kunt dit altijd wijzigen in Instellingen."
+          }
+        }
+      }
+    },
+    "You can change this later in Settings.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt dit later wijzigen in Instellingen."
+          }
+        }
+      }
+    },
+    "You can set your home later in Settings.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt je thuis later instellen in Instellingen."
           }
         }
       }
