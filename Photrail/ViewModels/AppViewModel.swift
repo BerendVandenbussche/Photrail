@@ -581,13 +581,16 @@ final class AppViewModel {
             }
         }
 
-        // Vision-curated best shots from the top destination (the country shown on the
-        // "Top destination" slide), so the header and photos always match. Ranked on-device
-        // by aesthetics + personality match, minus people/pet/screenshots.
-        let topDestination = yearStats.countries
-            .filter { $0.id != homeCountryCode }
-            .max { $0.photoCount < $1.photoCount }
-        let candidateIDs = Array((topDestination?.photoIDs ?? []).prefix(80))
+        // Vision-curated best shots from across *all* the year's trips (every non-home
+        // country), so the collage reflects the whole year, not just one destination.
+        // Ranked on-device by aesthetics + personality match, minus people/pet/screenshots.
+        // Candidates are round-robined across countries and capped so the number of Vision
+        // passes stays bounded regardless of library size.
+        let candidateIDs = Self.balancedCandidateIDs(
+            countries: yearStats.countries.filter { $0.id != homeCountryCode },
+            perCountry: 25,
+            total: 120
+        )
         let highlightPhotoIDs = await photoCurator.bestPhotos(
             candidateIDs: candidateIDs,
             category: profile.dominantCategory
@@ -600,6 +603,31 @@ final class AppViewModel {
                                highestPeakPhotoID: highestPeakPhotoID,
                                highlightPhotoIDs: highlightPhotoIDs,
                                wonderPhotos: wonderPhotos)
+    }
+
+    /// Merges photo IDs from every country into one candidate list for curation, taking up
+    /// to `perCountry` from each (most-photographed countries first) and round-robining them
+    /// so no single destination dominates, then capping at `total`. Keeps the number of
+    /// Vision scoring passes bounded no matter how large the library is.
+    private static func balancedCandidateIDs(countries: [CountryStat],
+                                             perCountry: Int,
+                                             total: Int) -> [String] {
+        let pools = countries
+            .sorted { $0.photoCount > $1.photoCount }
+            .map { Array($0.photoIDs.prefix(perCountry)) }
+        var result: [String] = []
+        var index = 0
+        while result.count < total {
+            var added = false
+            for pool in pools where index < pool.count {
+                result.append(pool[index])
+                added = true
+                if result.count >= total { break }
+            }
+            if !added { break }   // every pool exhausted
+            index += 1
+        }
+        return result
     }
 
     /// Approximate total distance: round trips from home if set, else hop-to-hop between trips.
