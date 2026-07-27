@@ -3,6 +3,7 @@ import SwiftUI
 struct ContinentDetailView: View {
     let stat: ContinentStat
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppViewModel.self) private var appVM
     @State private var selectedCountry: CountryStat?
 
     private var countries: [CountryStat] {
@@ -28,7 +29,9 @@ struct ContinentDetailView: View {
                 }
             }
             .sheet(item: $selectedCountry) { country in
-                CountryDetailView(country: country)
+                CountryDetailView(country: country,
+                                  trips: appVM.stats.trips.filter { $0.countryCodes.contains(country.id) },
+                                  wonders: appVM.stats.wonders)
             }
         }
     }

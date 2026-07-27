@@ -78,6 +78,12 @@ final class AppViewModel {
     /// its own once the user takes their own photos there. See `ExcludedPhotosStore`.
     private(set) var excludedPhotoIDs: Set<String> = []
 
+    /// Bumped whenever a trip's insights are (re)computed and cached. Views that derive a
+    /// trip's display "vibe" from cached insights read this so SwiftUI re-renders them when
+    /// the UserDefaults-backed `TripInsightsStore` changes — e.g. a list row updates from
+    /// "Mountains" to "Ski trip" after the detail view computes Health data.
+    private(set) var insightsRevision = 0
+
     /// In-app purchase entitlement manager for "Photrail Lifetime".
     let storeService = StoreService()
 
@@ -464,7 +470,9 @@ final class AppViewModel {
     /// The trip's display "vibe": the workout-derived activity when it's known (from cached
     /// insights), otherwise the location-inferred type. Matches the trip share card's theme.
     func vibe(for trip: Trip) -> TripType {
-        TripShareTheme.decide(trip: trip, insights: cachedInsights(for: trip)).tripTypeOverride ?? trip.tripType
+        // Touch the revision so SwiftUI re-evaluates callers when insights are recomputed.
+        _ = insightsRevision
+        return TripShareTheme.decide(trip: trip, insights: cachedInsights(for: trip)).tripTypeOverride ?? trip.tripType
     }
 
     /// Turn on the Insights module and present the Health permission sheet.
@@ -512,6 +520,7 @@ final class AppViewModel {
             heartRate: heartRate, flightsClimbed: flights, activeEnergyKcal: energy,
             steps: steps, workouts: workouts, authoredPhotoIDs: authored, now: now)
         TripInsightsStore.save(insights)
+        insightsRevision &+= 1
         return insights
     }
 
