@@ -20,6 +20,10 @@ struct WidgetSharedStats: Codable, Equatable {
     var totalWondersSeen: Int
     var seenWonderEmojis: [String]
     var updatedAt: Date
+    /// Whether the user has unlocked Photrail Lifetime. Widgets that surface Lifetime-only
+    /// content render an "Unlock" placeholder when this is false. Defaulted so older cached
+    /// snapshots (written before this field existed) decode cleanly as not-entitled.
+    var hasLifetime: Bool = false
 
     static let placeholder = WidgetSharedStats(
         countryCount: 24,
@@ -34,7 +38,8 @@ struct WidgetSharedStats: Codable, Equatable {
         sevenWondersSeen: 3,
         totalWondersSeen: 9,
         seenWonderEmojis: ["🗼", "🏛️", "🕌", "🗽", "🌉", "🗻"],
-        updatedAt: .now
+        updatedAt: .now,
+        hasLifetime: true
     )
 
     static let empty = WidgetSharedStats(

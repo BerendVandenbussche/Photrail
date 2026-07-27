@@ -853,7 +853,18 @@
         }
       }
     },
+    "All templates and backgrounds, watermark-free.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle sjablonen en achtergronden, zonder watermerk."
+          }
+        }
+      }
+    },
     "Allow Photo Access": {
+      "extractionState": "stale",
       "localizations": {
         "nl": {
           "stringUnit": {
@@ -1100,6 +1111,16 @@
         }
       }
     },
+    "Close": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sluiten"
+          }
+        }
+      }
+    },
     "Coastal Adventurer": {
       "extractionState": "stale",
       "localizations": {
@@ -1261,6 +1282,26 @@
         }
       }
     },
+    "Discover the traveller you are with Photrail Lifetime.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontdek welke reiziger je bent met Photrail Levenslang."
+          }
+        }
+      }
+    },
+    "Discover the traveller you are, and how you've evolved.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontdek welke reiziger je bent en hoe je bent geëvolueerd."
+          }
+        }
+      }
+    },
     "Dismiss": {
       "extractionState": "manual",
       "localizations": {
@@ -1355,6 +1396,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Europa"
+          }
+        }
+      }
+    },
+    "Every share card": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elke deelkaart"
+          }
+        }
+      }
+    },
+    "Every share card, watermark-free": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elke deelkaart, zonder watermerk"
           }
         }
       }
@@ -1612,6 +1673,16 @@
         }
       }
     },
+    "Heart rate, climbs and workouts from your trips, via Apple Health.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hartslag, hoogtemeters en workouts van je reizen, via Apple Health."
+          }
+        }
+      }
+    },
     "Hemisphere Hopper": {
       "localizations": {
         "nl": {
@@ -1683,6 +1754,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Thuis"
+          }
+        }
+      }
+    },
+    "Home & lock-screen widgets": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widgets voor begin- en toegangsscherm"
+          }
+        }
+      }
+    },
+    "Home-screen and lock-screen widgets for your travel stats.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widgets voor beginscherm en toegangsscherm met je reisstatistieken."
           }
         }
       }
@@ -1814,6 +1905,16 @@
         }
       }
     },
+    "Lifetime member": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Levenslang-lid"
+          }
+        }
+      }
+    },
     "Lots of steps and lots of photos — always on the move.": {
       "extractionState": "manual",
       "localizations": {
@@ -1862,12 +1963,32 @@
         }
       }
     },
+    "Maybe later": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Misschien later"
+          }
+        }
+      }
+    },
     "Me": {
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "Mij"
+          }
+        }
+      }
+    },
+    "Meet Photrail Lifetime": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak kennis met Photrail Levenslang"
           }
         }
       }
@@ -2204,6 +2325,17 @@
         }
       }
     },
+    "Nothing to restore": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets om te herstellen"
+          }
+        }
+      }
+    },
+    "OK": {},
     "ON THIS DAY": {},
     "Oceania": {
       "localizations": {
@@ -2231,6 +2363,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Op deze dag"
+          }
+        }
+      }
+    },
+    "One payment, yours forever. Your map, trips and stats stay free — Lifetime adds the good stuff.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eén betaling, voor altijd van jou. Je kaart, reizen en statistieken blijven gratis — Levenslang voegt het mooie werk toe."
+          }
+        }
+      }
+    },
+    "One-time purchase · Family Sharing enabled": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eenmalige aankoop · Delen met gezin ingeschakeld"
           }
         }
       }
@@ -2422,6 +2574,16 @@
         }
       }
     },
+    "Purchases unavailable": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aankopen niet beschikbaar"
+          }
+        }
+      }
+    },
     "Reached Antarctica": {
       "localizations": {
         "nl": {
@@ -2593,6 +2755,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alles herstellen"
+          }
+        }
+      }
+    },
+    "Restore Purchases": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aankopen herstellen"
           }
         }
       }
@@ -2775,6 +2947,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ontdek welke reis je het verst bracht"
+          }
+        }
+      }
+    },
+    "See your heart rate, climbs and workouts from this trip with Lifetime.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk je hartslag, hoogtemeters en workouts van deze reis met Levenslang."
           }
         }
       }
@@ -3083,6 +3265,16 @@
         }
       }
     },
+    "Start free": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratis starten"
+          }
+        }
+      }
+    },
     "Still finding your cities… A city only appears here once it's been resolved, which takes a little longer than the rest of the scan. Check back in a moment if yours isn't listed yet.": {
       "extractionState": "stale",
       "localizations": {
@@ -3161,6 +3353,17 @@
         }
       }
     },
+    "Tap to see your travel stats here": {
+      "extractionState": "stale",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik om hier je reisstatistieken te zien"
+          }
+        }
+      }
+    },
     "Template": {
       "localizations": {
         "nl": {
@@ -3218,6 +3421,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "De Flaneur"
+          }
+        }
+      }
+    },
+    "The Lifetime purchase can't be loaded right now. Please check your connection and try again later.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De Levenslang-aankoop kan nu niet worden geladen. Controleer je verbinding en probeer het later opnieuw."
           }
         }
       }
@@ -3326,6 +3539,26 @@
         }
       }
     },
+    "Track the New 7 Wonders and famous landmarks with Lifetime.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Houd de Nieuwe 7 Wereldwonderen en beroemde bezienswaardigheden bij met Levenslang."
+          }
+        }
+      }
+    },
+    "Track the New 7 Wonders and famous landmarks you've seen.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Houd bij welke van de Nieuwe 7 Wereldwonderen en beroemde bezienswaardigheden je hebt gezien."
+          }
+        }
+      }
+    },
     "Transit Traveler": {
       "localizations": {
         "nl": {
@@ -3390,6 +3623,16 @@
         }
       }
     },
+    "Travel Personality": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reispersoonlijkheid"
+          }
+        }
+      }
+    },
     "Travel notifications": {
       "localizations": {
         "nl": {
@@ -3448,6 +3691,16 @@
         }
       }
     },
+    "Trip Insights from Apple Health": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reisinzichten uit Apple Health"
+          }
+        }
+      }
+    },
     "Trip Name": {
       "localizations": {
         "nl": {
@@ -3484,6 +3737,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "Probeer opnieuw"
+          }
+        }
+      }
+    },
+    "Unlock": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel"
+          }
+        }
+      }
+    },
+    "Unlock Lifetime to reveal the traveller you are.": {
+      "extractionState": "stale",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel Levenslang om te ontdekken welke reiziger je bent."
+          }
+        }
+      }
+    },
+    "Unlock Lifetime — %@": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel Levenslang — %@"
+          }
+        }
+      }
+    },
+    "Unlock Photrail Lifetime": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel Photrail Levenslang"
+          }
+        }
+      }
+    },
+    "Unlock — %@": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel — %@"
           }
         }
       }
@@ -3637,6 +3941,26 @@
         }
       }
     },
+    "We couldn't find a previous purchase on this Apple Account.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We konden geen eerdere aankoop vinden op dit Apple-account."
+          }
+        }
+      }
+    },
+    "We'll ask for photo access next.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We vragen hierna toegang tot je foto's."
+          }
+        }
+      }
+    },
     "Weekend Wanderer": {
       "extractionState": "stale",
       "localizations": {
@@ -3665,6 +3989,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hele land"
+          }
+        }
+      }
+    },
+    "Widgets": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widgets"
           }
         }
       }
@@ -3803,6 +4137,16 @@
         }
       }
     },
+    "World Wonders tracking": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wereldwonderen bijhouden"
+          }
+        }
+      }
+    },
     "World explored": {
       "localizations": {
         "nl": {
@@ -3840,6 +4184,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reisjaar"
+          }
+        }
+      }
+    },
+    "Year in Travel recap": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jaar in Reizen-overzicht"
           }
         }
       }
@@ -4036,12 +4390,32 @@
         }
       }
     },
+    "Your animated recap of the year, ready to share.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je geanimeerde jaaroverzicht, klaar om te delen."
+          }
+        }
+      }
+    },
     "Your home": {
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
             "value": "Jouw thuis"
+          }
+        }
+      }
+    },
+    "Your map, trips and stats are free forever. Lifetime unlocks the extras — one payment, yours for good.": {
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kaart, reizen en statistieken zijn voor altijd gratis. Levenslang ontgrendelt de extra's — één betaling, voorgoed van jou."
           }
         }
       }

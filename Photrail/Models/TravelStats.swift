@@ -41,7 +41,7 @@ struct TravelStats: Sendable {
     }
 
     /// Compact snapshot for the home-screen widget (published to the App Group).
-    func widgetSnapshot(at date: Date = .now) -> WidgetSharedStats {
+    func widgetSnapshot(at date: Date = .now, hasLifetime: Bool = false) -> WidgetSharedStats {
         let top = mostPhotographedCountry
         let sevenSeen = wonders.filter { $0.wonder.category == .sevenWonders && $0.seen }.count
         let seenEmojis = wonders.filter { $0.seen }.map(\.wonder.emoji)
@@ -58,7 +58,8 @@ struct TravelStats: Sendable {
             sevenWondersSeen: sevenSeen,
             totalWondersSeen: wondersSeenCount,
             seenWonderEmojis: seenEmojis,
-            updatedAt: date
+            updatedAt: date,
+            hasLifetime: hasLifetime
         )
     }
 

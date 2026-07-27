@@ -92,7 +92,16 @@ struct PlacesView: View {
         case .countries:  countriesList
         case .trips:      tripsList
         case .continents: continentsList
-        case .wonders:    wondersList
+        case .wonders:
+            if appVM.hasLifetime {
+                wondersList
+            } else {
+                LockedFeaturePrompt(icon: "star.circle.fill",
+                                    title: "World Wonders",
+                                    message: "Track the New 7 Wonders and famous landmarks with Lifetime.")
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+            }
         }
     }
 

@@ -10,6 +10,7 @@ struct ProfileView: View {
     @State private var yearRecap: RecapModel?
     @State private var pendingYear: Int?
     @State private var selectedCategory: TravelCategory?
+    @State private var showPaywall = false
 
     private var stats: TravelStats { appVM.stats }
     private var profile: TravelPersonalityProfile? { appVM.personalityProfile }
@@ -38,7 +39,12 @@ struct ProfileView: View {
 
                     if appVM.explorerRarity > 0 { rarityCard }
 
-                    if let profile, profile.isMeaningful {
+                    if !appVM.hasLifetime {
+                        LockedFeaturePrompt(icon: "person.crop.circle.badge.checkmark",
+                                            title: "Travel Personality",
+                                            message: "Discover the traveller you are with Photrail Lifetime.")
+                            .padding(.horizontal, 20)
+                    } else if let profile, profile.isMeaningful {
                         PersonalitySection(profile: profile) { category in
                             selectedCategory = category
                         }
@@ -65,14 +71,24 @@ struct ProfileView: View {
             .toolbar {
                 if !stats.trips.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { CalendarView(trips: stats.trips) } label: {
-                            Image(systemName: "calendar")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(.tint)
-                                .frame(width: 34, height: 34)
-                                .background(Circle().fill(Color.accentColor.opacity(0.15)))
+                        if appVM.hasLifetime {
+                            NavigationLink { CalendarView(trips: stats.trips) } label: {
+                                calendarIcon
+                            }
+                            .accessibilityLabel("Travel Calendar")
+                        } else {
+                            Button { showPaywall = true } label: {
+                                calendarIcon.overlay(alignment: .bottomTrailing) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 9, weight: .bold))
+                                        .foregroundStyle(.white)
+                                        .padding(3)
+                                        .background(Circle().fill(.tint))
+                                        .offset(x: 3, y: 3)
+                                }
+                            }
+                            .accessibilityLabel("Travel Calendar")
                         }
-                        .accessibilityLabel("Travel Calendar")
                     }
                 }
             }
@@ -82,6 +98,7 @@ struct ProfileView: View {
             .sheet(item: $selectedCategory) { category in
                 if let profile { PersonalityDetailView(category: category, profile: profile) }
             }
+            .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
             .confirmationDialog("Reindex photo library?",
                                 isPresented: $showReindexConfirm, titleVisibility: .visible) {
                 Button("Reindex", role: .destructive) { appVM.reindex() }
@@ -93,6 +110,14 @@ struct ProfileView: View {
     }
 
     // MARK: - Sections
+
+    private var calendarIcon: some View {
+        Image(systemName: "calendar")
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(.tint)
+            .frame(width: 34, height: 34)
+            .background(Circle().fill(Color.accentColor.opacity(0.15)))
+    }
 
     private var avatarHeader: some View {
         VStack(spacing: 12) {
@@ -198,13 +223,15 @@ struct ProfileView: View {
             VStack(spacing: 0) {
                 ForEach(availableYears, id: \.self) { year in
                     Button {
+                        guard appVM.hasLifetime else { showPaywall = true; return }
                         pendingYear = year
                         Task {
                             yearRecap = await appVM.makeYearRecap(year: year)
                             pendingYear = nil
                         }
                     } label: {
-                        YearRow(year: year, tripCount: tripCount(for: year), loading: pendingYear == year)
+                        YearRow(year: year, tripCount: tripCount(for: year),
+                                loading: pendingYear == year, locked: !appVM.hasLifetime)
                     }
                     .buttonStyle(.plain)
                     if year != availableYears.last { Divider().padding(.leading, 52) }
@@ -218,6 +245,32 @@ struct ProfileView: View {
     private var settingsCard: some View {
         @Bindable var appVM = appVM
         return VStack(spacing: 0) {
+            if appVM.hasLifetime {
+                HStack(spacing: 14) {
+                    Image(systemName: "star.circle.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.tint)
+                        .frame(width: 24)
+                    Text("Lifetime member").foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "checkmark").font(.subheadline.weight(.bold)).foregroundStyle(.green)
+                }
+                .padding(14)
+            } else {
+                Button { showPaywall = true } label: {
+                    row(icon: "star.circle.fill", title: "Unlock Photrail Lifetime",
+                        detail: appVM.lifetimePrice)
+                }
+                .buttonStyle(.plain)
+            }
+            Divider().padding(.leading, 52)
+
+            Button { Task { await appVM.restorePurchases() } } label: {
+                row(icon: "arrow.clockwise.circle", title: "Restore Purchases", detail: nil)
+            }
+            .buttonStyle(.plain)
+            Divider().padding(.leading, 52)
+
             NavigationLink { AchievementsView() } label: {
                 row(icon: "trophy.fill", title: "Achievements",
                     detail: "\(appVM.unlockedAchievementIDs.count) of \(AchievementCatalog.count)")
@@ -252,18 +305,35 @@ struct ProfileView: View {
             .padding(14)
             Divider().padding(.leading, 52)
 
-            HStack(spacing: 14) {
-                Image(systemName: "heart.text.square.fill")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.tint)
-                    .frame(width: 24)
-                Text("Trip Insights").foregroundStyle(.primary)
-                Spacer()
-                Toggle("", isOn: $appVM.insightsEnabled).labelsHidden()
-            }
-            .padding(14)
-            .onChange(of: appVM.insightsEnabled) { _, on in
-                if on { Task { _ = await appVM.enableInsights() } }
+            if appVM.hasLifetime {
+                HStack(spacing: 14) {
+                    Image(systemName: "heart.text.square.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.tint)
+                        .frame(width: 24)
+                    Text("Trip Insights").foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("", isOn: $appVM.insightsEnabled).labelsHidden()
+                }
+                .padding(14)
+                .onChange(of: appVM.insightsEnabled) { _, on in
+                    if on { Task { _ = await appVM.enableInsights() } }
+                }
+            } else {
+                Button { showPaywall = true } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "heart.text.square.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.tint)
+                            .frame(width: 24)
+                        Text("Trip Insights").foregroundStyle(.primary)
+                        Spacer()
+                        Image(systemName: "lock.fill").font(.caption).foregroundStyle(.tertiary)
+                    }
+                    .padding(14)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
             Divider().padding(.leading, 52)
 
@@ -297,6 +367,7 @@ private struct YearRow: View {
     let year: Int
     let tripCount: Int
     var loading: Bool = false
+    var locked: Bool = false
 
     var body: some View {
         HStack(spacing: 14) {
@@ -313,7 +384,8 @@ private struct YearRow: View {
             if loading {
                 ProgressView()
             } else {
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                Image(systemName: locked ? "lock.fill" : "chevron.right")
+                    .font(.caption).foregroundStyle(.tertiary)
             }
         }
         .padding(14)

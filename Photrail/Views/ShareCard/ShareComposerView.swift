@@ -8,12 +8,14 @@ struct ShareComposerView: View {
     let trips: [Trip]
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppViewModel.self) private var appVM
 
     @State private var type: ShareCardType
     @State private var background: ShareCardBackground = .map
     @State private var selectedTrip: Trip?
     @State private var photoItem: PhotosPickerItem?
     @State private var photo: UIImage?
+    @State private var showPaywall = false
 
     init(stats: TravelStats, profile: TravelPersonalityProfile?, trips: [Trip]) {
         self.stats = stats
@@ -24,6 +26,14 @@ struct ShareComposerView: View {
     }
 
     private var hasData: Bool { stats.totalGeotaggedPhotos > 0 }
+
+    /// Free users get a single basic template + default background, watermarked. Lifetime
+    /// unlocks every template, every background and removes the watermark.
+    private var isFree: Bool { !appVM.hasLifetime }
+    /// The one template free users may use (the basic map summary).
+    private var freeType: ShareCardType { availableTypes.contains(.summary) ? .summary : (availableTypes.first ?? .summary) }
+    private func isUnlocked(_ kind: ShareCardType) -> Bool { appVM.hasLifetime || kind == freeType }
+    private func isUnlocked(_ bg: ShareCardBackground) -> Bool { appVM.hasLifetime || bg == .map }
 
     private var availableTypes: [ShareCardType] {
         ShareCardType.allCases.filter { kind in
@@ -57,6 +67,15 @@ struct ShareComposerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+            }
+            .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
+            .task {
+                // Keep free users on the basic, watermarked card.
+                if isFree {
+                    type = freeType
+                    background = .map
+                    photo = nil
+                }
             }
             .onChange(of: photoItem) { _, item in
                 Task {
@@ -112,8 +131,12 @@ struct ShareComposerView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(availableTypes) { kind in
-                        chip(kind.pickerTitle, selected: type == kind) {
-                            withAnimation(.spring(response: 0.3)) { type = kind }
+                        chip(kind.pickerTitle, selected: type == kind, locked: !isUnlocked(kind)) {
+                            if isUnlocked(kind) {
+                                withAnimation(.spring(response: 0.3)) { type = kind }
+                            } else {
+                                showPaywall = true
+                            }
                         }
                     }
                 }
@@ -127,7 +150,12 @@ struct ShareComposerView: View {
             Text("Background").font(.headline)
             HStack(spacing: 10) {
                 ForEach(ShareCardBackground.allCases) { bg in
-                    if bg == .photo {
+                    if !isUnlocked(bg) {
+                        Button { showPaywall = true } label: {
+                            chipLabel(bg.pickerTitle, systemImage: bg.systemImage,
+                                      selected: false, locked: true)
+                        }
+                    } else if bg == .photo {
                         PhotosPicker(selection: $photoItem, matching: .images) {
                             chipLabel(bg.pickerTitle, systemImage: bg.systemImage,
                                       selected: background == .photo)
@@ -170,7 +198,8 @@ struct ShareComposerView: View {
 
     private var shareButton: some View {
         Button {
-            if let image = ShareCardRenderer.image(model: model, background: background, photo: photo) {
+            if let image = ShareCardRenderer.image(model: model, background: background,
+                                                    photo: photo) {
                 SharePresenter.present([image])
             }
         } label: {
@@ -185,22 +214,29 @@ struct ShareComposerView: View {
 
     // MARK: - Small components
 
-    private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+    private func chip(_ title: String, selected: Bool, locked: Bool = false,
+                      action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.subheadline.weight(selected ? .semibold : .regular))
-                .padding(.horizontal, 16).padding(.vertical, 8)
-                .background(selected ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
-                .foregroundStyle(selected ? .white : .primary)
+            HStack(spacing: 5) {
+                Text(title)
+                if locked { Image(systemName: "lock.fill").font(.caption2) }
+            }
+            .font(.subheadline.weight(selected ? .semibold : .regular))
+            .padding(.horizontal, 16).padding(.vertical, 8)
+            .background(selected ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
+            .foregroundStyle(selected ? .white : (locked ? .secondary : .primary))
         }
     }
 
-    private func chipLabel(_ title: String, systemImage: String, selected: Bool) -> some View {
-        Label(title, systemImage: systemImage)
-            .font(.subheadline.weight(selected ? .semibold : .regular))
-            .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(selected ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
-            .foregroundStyle(selected ? .white : .primary)
+    private func chipLabel(_ title: String, systemImage: String, selected: Bool,
+                           locked: Bool = false) -> some View {
+        HStack(spacing: 5) {
+            Label(title, systemImage: locked ? "lock.fill" : systemImage)
+        }
+        .font(.subheadline.weight(selected ? .semibold : .regular))
+        .padding(.horizontal, 14).padding(.vertical, 8)
+        .background(selected ? Color.accentColor : Color.secondary.opacity(0.12), in: Capsule())
+        .foregroundStyle(selected ? .white : (locked ? .secondary : .primary))
     }
 
     private static func defaultType(stats: TravelStats,

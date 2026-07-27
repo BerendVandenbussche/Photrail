@@ -10,10 +10,11 @@ enum ShareCardRenderer {
     static func image(model: ShareCardModel,
                       background: ShareCardBackground,
                       photo: UIImage? = nil,
+                      watermark: Bool = false,
                       targetWidth: CGFloat = 1080) -> UIImage? {
         let base = ShareCardView.canvasSize
         let renderer = ImageRenderer(content:
-            ShareCardView(model: model, background: background, photo: photo)
+            ShareCardView(model: model, background: background, photo: photo, watermark: watermark)
                 .frame(width: base.width, height: base.height)
         )
         renderer.scale = targetWidth / base.width   // 1080 / 360 = 3×

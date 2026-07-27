@@ -5,8 +5,10 @@ struct OnboardingView: View {
     @Environment(AppViewModel.self) var appVM
     @State private var currentPage = 0
     @State private var animateHero = false
-    /// After the intro pages, the user picks a home location before we request photo access.
+    /// After the intro pages, the user picks a home location, then meets Lifetime, before
+    /// we request photo access.
     @State private var showHomeStep = false
+    @State private var showLifetimeStep = false
 
     private let pages: [OnboardingPage] = [
         OnboardingPage(
@@ -31,10 +33,16 @@ struct OnboardingView: View {
 
     var body: some View {
         Group {
-            if showHomeStep {
+            if showLifetimeStep {
+                OnboardingLifetimeStep(
+                    onBack: { withAnimation(.spring(response: 0.4)) { showLifetimeStep = false } },
+                    onContinue: { withAnimation(.spring()) { appVM.completeOnboarding() } }
+                )
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            } else if showHomeStep {
                 OnboardingHomeStep(
                     onBack: { withAnimation(.spring(response: 0.4)) { showHomeStep = false } },
-                    onContinue: { withAnimation(.spring()) { appVM.completeOnboarding() } }
+                    onContinue: { withAnimation(.spring(response: 0.4)) { showLifetimeStep = true } }
                 )
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             } else {
@@ -226,7 +234,7 @@ private struct OnboardingHomeStep: View {
             Button {
                 onContinue()
             } label: {
-                Label("Allow Photo Access", systemImage: "photo.on.rectangle.angled")
+                Text("Continue")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
@@ -255,6 +263,106 @@ private struct OnboardingHomeStep: View {
                       longitude: place.longitude,
                       countryCode: place.countryCode)
         completer.query = ""   // collapse the results now that home is set
+    }
+}
+
+// MARK: - Lifetime step
+
+/// A non-blocking "meet Lifetime" step. Free is always one tap away ("Start free"); the
+/// upgrade is offered but never required. Both paths finish onboarding (which then requests
+/// photo access).
+private struct OnboardingLifetimeStep: View {
+    @Environment(AppViewModel.self) private var appVM
+    let onBack: () -> Void
+    let onContinue: () -> Void
+
+    private static let gradientTop = Color(red: 0.31, green: 0.27, blue: 0.9)
+    private static let gradientBottom = Color(red: 0.55, green: 0.3, blue: 0.85)
+
+    private let benefits: [(String, LocalizedStringKey)] = [
+        ("📅", "Year in Travel recap"),
+        ("🧭", "Travel Personality"),
+        ("🏛️", "World Wonders tracking"),
+        ("❤️", "Trip Insights from Apple Health"),
+        ("📲", "Home & lock-screen widgets"),
+        ("🎨", "Every share card, watermark-free")
+    ]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button { onBack() } label: {
+                    Image(systemName: "chevron.left").font(.headline).foregroundStyle(.secondary)
+                }
+                .accessibilityLabel("Back")
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+
+            ScrollView {
+                VStack(spacing: 20) {
+                    LogoBadge(size: 64)
+                        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+                        .padding(.top, 12)
+                    Text("Meet Photrail Lifetime")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .multilineTextAlignment(.center)
+                    Text("Your map, trips and stats are free forever. Lifetime unlocks the extras — one payment, yours for good.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 12)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(Array(benefits.enumerated()), id: \.offset) { _, benefit in
+                            HStack(spacing: 12) {
+                                Text(benefit.0).font(.system(size: 22)).frame(width: 30)
+                                Text(benefit.1).font(.subheadline)
+                                Spacer(minLength: 0)
+                            }
+                        }
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .card()
+                    .padding(.horizontal, 24)
+                }
+                .padding(.bottom, 12)
+            }
+
+            VStack(spacing: 12) {
+                Button {
+                    Task { if await appVM.purchaseLifetime() { onContinue() } }
+                } label: {
+                    Group {
+                        if appVM.storeService.working {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Unlock Lifetime — \(appVM.lifetimePrice)").font(.headline)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(LinearGradient(colors: [Self.gradientTop, Self.gradientBottom],
+                                               startPoint: .leading, endPoint: .trailing),
+                                in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(.white)
+                }
+                .disabled(appVM.storeService.working)
+
+                Button { onContinue() } label: {
+                    Text("Start free")
+                        .font(.headline)
+                        .foregroundStyle(.tint)
+                }
+
+                Text("We'll ask for photo access next.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 30)
+        }
     }
 }
 

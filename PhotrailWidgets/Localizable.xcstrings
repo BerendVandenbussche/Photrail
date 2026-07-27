@@ -160,6 +160,9 @@
     "Photrail" : {
 
     },
+    "Tap to see your travel stats here" : {
+
+    },
     "Travel Stats" : {
       "localizations" : {
         "nl" : {
@@ -169,6 +172,9 @@
           }
         }
       }
+    },
+    "Unlock Photrail Lifetime" : {
+
     },
     "World Wonders" : {
       "localizations" : {

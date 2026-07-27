@@ -25,7 +25,13 @@ struct TripInsightsSection: View {
                 VStack(alignment: .leading, spacing: 12) {
                     SectionHeader(title: "Trip Insights").padding(.horizontal, 20)
 
-                    if !appVM.insightsEnabled {
+                    if !appVM.hasLifetime {
+                        LockedFeaturePrompt(
+                            icon: "heart.text.square.fill",
+                            title: "Trip Insights",
+                            message: "See your heart rate, climbs and workouts from this trip with Lifetime.")
+                            .padding(.horizontal, 20)
+                    } else if !appVM.insightsEnabled {
                         InsightsPermissionPrompt(
                             onEnable: { Task { await enable() } },
                             onDismiss: { appVM.insightsPromptDismissed = true })

@@ -8,6 +8,7 @@ struct CountryDetailView: View {
     @State private var showAllCities = false
     @State private var selectedWonder: WonderStat?
     @State private var showHideConfirm = false
+    @State private var showPaywall = false
     @Environment(\.dismiss) private var dismiss
     @Environment(AppViewModel.self) private var appVM
 
@@ -102,6 +103,7 @@ struct CountryDetailView: View {
             .sheet(item: $selectedWonder) { wonder in
                 WonderDetailView(stat: wonder, trip: tripFor(wonder))
             }
+            .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
         }
     }
 
@@ -212,7 +214,9 @@ struct CountryDetailView: View {
                 .padding(.horizontal, 20)
 
             ForEach(seenWonders) { stat in
-                Button { selectedWonder = stat } label: {
+                Button {
+                    if appVM.hasLifetime { selectedWonder = stat } else { showPaywall = true }
+                } label: {
                     HStack(spacing: 14) {
                         Text(stat.wonder.emoji)
                             .font(.system(size: 30))
@@ -226,7 +230,8 @@ struct CountryDetailView: View {
                         Spacer()
                         Text("\(stat.photoCount)")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                        Image(systemName: appVM.hasLifetime ? "chevron.right" : "lock.fill")
+                            .font(.caption).foregroundStyle(.tertiary)
                     }
                     .padding(.horizontal, 20)
                     .contentShape(Rectangle())

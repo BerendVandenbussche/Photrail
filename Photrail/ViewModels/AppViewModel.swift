@@ -78,6 +78,30 @@ final class AppViewModel {
     /// its own once the user takes their own photos there. See `ExcludedPhotosStore`.
     private(set) var excludedPhotoIDs: Set<String> = []
 
+    /// In-app purchase entitlement manager for "Photrail Lifetime".
+    let storeService = StoreService()
+
+    /// Whether the user has unlocked Lifetime (via purchase or grandfathering). Free users
+    /// keep the full map, trips, stats and "On This Day"; this gates the delight layer.
+    var hasLifetime: Bool { storeService.hasLifetime }
+
+    /// Localized price for paywall CTAs (from StoreKit, e.g. "€2,99").
+    var lifetimePrice: String { storeService.displayPrice }
+
+    /// Buy Lifetime. Returns true on success. Republishes widget stats on change.
+    @discardableResult
+    func purchaseLifetime() async -> Bool {
+        let ok = await storeService.purchase()
+        if ok { publishWidgetStats() }
+        return ok
+    }
+
+    /// Restore a previous purchase (App Review requirement).
+    func restorePurchases() async {
+        await storeService.restore()
+        publishWidgetStats()
+    }
+
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .today
 
@@ -311,6 +335,14 @@ final class AppViewModel {
         // and will redirect to .permissionDenied if access was revoked.
         if UserDefaults.standard.bool(forKey: "hasSeenOnboarding") {
             self.navState = .dashboard
+        }
+
+        // Resolve the IAP entitlement (product, current entitlements, grandfathering) and
+        // republish widget stats whenever it changes.
+        storeService.onEntitlementChange = { [weak self] in self?.publishWidgetStats() }
+        Task { [weak self] in
+            await self?.storeService.start()
+            self?.publishWidgetStats()
         }
     }
 
@@ -1048,7 +1080,7 @@ final class AppViewModel {
 
     /// Publish the current stats to the shared App Group container and refresh widgets.
     private func publishWidgetStats() {
-        WidgetSharedStore.save(stats.widgetSnapshot())
+        WidgetSharedStore.save(stats.widgetSnapshot(hasLifetime: hasLifetime))
         WidgetCenter.shared.reloadAllTimelines()
     }
 

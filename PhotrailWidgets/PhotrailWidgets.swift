@@ -159,6 +159,40 @@ private struct WondersView: View {
     }
 }
 
+/// Shown in place of real stats when the user hasn't unlocked Lifetime. Widgets are a
+/// Lifetime feature, so free users see a tempting prompt rather than data.
+private struct LockedWidgetView: View {
+    var compact: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: compact ? 4 : 8) {
+            HStack(spacing: 5) {
+                LogoMark(color: .white).frame(width: 13, height: 13)
+                Text("Photrail")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundStyle(.white.opacity(0.85))
+
+            Spacer()
+
+            Image(systemName: "lock.fill")
+                .font(.system(size: compact ? 22 : 28, weight: .semibold))
+                .foregroundStyle(.white)
+            Text("Unlock Photrail Lifetime")
+                .font(.system(size: compact ? 13 : 15, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Tap to see your travel stats here")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.65))
+                .lineLimit(2)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+}
+
 // MARK: - Widget entry view
 
 /// Shared Midnight gradient used by all Photrail widgets.
@@ -175,19 +209,30 @@ struct PhotrailWidgetEntryView: View {
     private var gradient: LinearGradient { widgetGradient }
 
     var body: some View {
-        switch family {
-        case .systemSmall:
-            SmallStatsView(stats: entry.stats)
-                .containerBackground(for: .widget) { gradient }
-        case .systemMedium:
-            MediumStatsView(stats: entry.stats)
-                .containerBackground(for: .widget) { gradient }
-        case .accessoryRectangular:
-            AccessoryRectangularView(stats: entry.stats)
-                .containerBackground(for: .widget) { Color.clear }
-        default:
-            SmallStatsView(stats: entry.stats)
-                .containerBackground(for: .widget) { gradient }
+        if !entry.stats.hasLifetime {
+            if family == .accessoryRectangular {
+                Label("Unlock Photrail Lifetime", systemImage: "lock.fill")
+                    .font(.headline)
+                    .containerBackground(for: .widget) { Color.clear }
+            } else {
+                LockedWidgetView(compact: family == .systemSmall)
+                    .containerBackground(for: .widget) { gradient }
+            }
+        } else {
+            switch family {
+            case .systemSmall:
+                SmallStatsView(stats: entry.stats)
+                    .containerBackground(for: .widget) { gradient }
+            case .systemMedium:
+                MediumStatsView(stats: entry.stats)
+                    .containerBackground(for: .widget) { gradient }
+            case .accessoryRectangular:
+                AccessoryRectangularView(stats: entry.stats)
+                    .containerBackground(for: .widget) { Color.clear }
+            default:
+                SmallStatsView(stats: entry.stats)
+                    .containerBackground(for: .widget) { gradient }
+            }
         }
     }
 }
@@ -212,8 +257,13 @@ struct PhotrailWondersEntryView: View {
     let entry: StatsEntry
 
     var body: some View {
-        WondersView(stats: entry.stats, compact: family == .systemSmall)
-            .containerBackground(for: .widget) { widgetGradient }
+        if entry.stats.hasLifetime {
+            WondersView(stats: entry.stats, compact: family == .systemSmall)
+                .containerBackground(for: .widget) { widgetGradient }
+        } else {
+            LockedWidgetView(compact: family == .systemSmall)
+                .containerBackground(for: .widget) { widgetGradient }
+        }
     }
 }
 

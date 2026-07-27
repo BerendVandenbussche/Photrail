@@ -7,6 +7,7 @@ struct DashboardView: View {
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
     @State private var showWonders = false
+    @State private var showPaywall = false
 
     private var stats: TravelStats { appVM.stats }
     private var scanProgress: AppViewModel.ScanProgress { appVM.scanProgress }
@@ -55,8 +56,9 @@ struct DashboardView: View {
                         // Compact lifetime snapshot → taps into Places
                         statStrip
 
-                        // Year in Travel recap entry
+                        // Year in Travel recap entry (Lifetime)
                         Button {
+                            guard appVM.hasLifetime else { showPaywall = true; return }
                             buildingRecap = true
                             Task {
                                 yearRecap = await appVM.makeYearRecap()
@@ -64,7 +66,8 @@ struct DashboardView: View {
                             }
                         } label: {
                             RecapEntryCard(year: Calendar.current.component(.year, from: Date()),
-                                           loading: buildingRecap)
+                                           loading: buildingRecap,
+                                           locked: !appVM.hasLifetime)
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal, 20)
@@ -116,7 +119,15 @@ struct DashboardView: View {
             .sheet(isPresented: $showWonders) {
                 WondersListView(wonders: stats.wonders)
             }
+            .sheet(isPresented: $showPaywall) {
+                LifetimePaywallView()
+            }
         }
+    }
+
+    /// Wonders are a Lifetime feature — open the list only when entitled, else the paywall.
+    private func openWonders() {
+        if appVM.hasLifetime { showWonders = true } else { showPaywall = true }
     }
 
     // MARK: - World Wonders progress
@@ -134,17 +145,21 @@ struct DashboardView: View {
         // Only surface the card once at least one wonder has been seen.
         if seen > 0 {
             VStack(alignment: .leading, spacing: 10) {
-                Button { showWonders = true } label: {
+                Button { openWonders() } label: {
                     HStack {
                         SectionHeader(title: "World Wonders", systemImage: "building.columns")
                         Spacer()
-                        Text("See all").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                        if appVM.hasLifetime {
+                            Text("See all").font(.subheadline.weight(.semibold)).foregroundStyle(.tint)
+                        } else {
+                            Image(systemName: "lock.fill").font(.caption).foregroundStyle(.tint)
+                        }
                     }
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 20)
 
-                Button { showWonders = true } label: {
+                Button { openWonders() } label: {
                     WondersBucketCard(seen: seen, total: total,
                                       emojis: officialWonders.filter { !$0.seen }.map { $0.wonder.emoji })
                 }
@@ -289,6 +304,7 @@ private struct RecentTripRow: View {
 private struct RecapEntryCard: View {
     let year: Int
     let loading: Bool
+    var locked: Bool = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -309,7 +325,8 @@ private struct RecapEntryCard: View {
             if loading {
                 ProgressView().tint(.white)
             } else {
-                Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.8))
+                Image(systemName: locked ? "lock.fill" : "chevron.right")
+                    .foregroundStyle(.white.opacity(0.8))
             }
         }
         .padding(18)

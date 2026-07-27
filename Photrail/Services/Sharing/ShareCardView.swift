@@ -7,6 +7,8 @@ struct ShareCardView: View {
     let model: ShareCardModel
     var background: ShareCardBackground = .map
     var photo: UIImage? = nil
+    /// Free users export a lightly watermarked card; Lifetime removes it.
+    var watermark: Bool = false
 
     static let canvasSize = CGSize(width: 360, height: 640)
 
@@ -22,10 +24,21 @@ struct ShareCardView: View {
         ZStack {
             backgroundLayer
             contentLayer
+            if watermark { watermarkOverlay }
         }
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: background == .transparent ? 0 : 36, style: .continuous))
         .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
+    }
+
+    /// A subtle diagonal wordmark shown on free exports.
+    private var watermarkOverlay: some View {
+        Text("Made with Photrail")
+            .font(.system(size: 26, weight: .heavy, design: .rounded))
+            .foregroundStyle(.white.opacity(0.28))
+            .rotationEffect(.degrees(-32))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .allowsHitTesting(false)
     }
 
     // MARK: - Background

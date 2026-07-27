@@ -8,8 +8,10 @@ struct SharePreviewCanvas<Content: View>: View {
 
     var body: some View {
         GeometryReader { geo in
-            let scale = min((geo.size.width - 32) / size.width,
-                            (geo.size.height - 16) / size.height)
+            // Clamp to ≥ 0: during the first layout pass `geo.size` can be zero, which would
+            // otherwise make the scale (and the resulting frame) negative / non-finite.
+            let scale = max(0, min((geo.size.width - 32) / size.width,
+                                   (geo.size.height - 16) / size.height))
             content
                 .frame(width: size.width, height: size.height)
                 .scaleEffect(scale)

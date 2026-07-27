@@ -12,6 +12,7 @@ struct TripDetailView: View {
     @State private var note: String = ""
     @State private var showNoteEditor = false
     @State private var selectedWonder: WonderStat?
+    @State private var showPaywall = false
     @State private var customName: String?
     @State private var showRenameEditor = false
     /// Per-photo heart-rate "vibe", filled by the insights section, used to badge the grid.
@@ -97,6 +98,7 @@ struct TripDetailView: View {
             }
         }
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
+        .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
         .task { await loadCover() }
         .task { await loadInsights() }
         .onAppear {
@@ -301,7 +303,10 @@ struct TripDetailView: View {
                 .padding(.horizontal, 20)
 
             ForEach(trip.wonders) { wonder in
-                Button { selectedWonder = wonderStat(for: wonder.id) } label: {
+                Button {
+                    if appVM.hasLifetime { selectedWonder = wonderStat(for: wonder.id) }
+                    else { showPaywall = true }
+                } label: {
                     HStack(spacing: 14) {
                         if let id = wonder.photoID {
                             PhotoThumbnail(assetID: id, size: 48, cornerRadius: 10)
@@ -317,13 +322,14 @@ struct TripDetailView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                        Image(systemName: appVM.hasLifetime ? "chevron.right" : "lock.fill")
+                            .font(.caption).foregroundStyle(.tertiary)
                     }
                     .padding(.horizontal, 20)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .disabled(wonderStat(for: wonder.id) == nil)
+                .disabled(appVM.hasLifetime && wonderStat(for: wonder.id) == nil)
                 if wonder.id != trip.wonders.last?.id {
                     Divider().padding(.leading, 76)
                 }

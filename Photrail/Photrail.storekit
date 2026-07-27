@@ -1,0 +1,46 @@
+{
+  "identifier" : "A1B2C3D4-0000-4000-8000-PHOTRAIL001",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : true,
+      "internalID" : "A1B2C3D4-0000-4000-8000-PHOTRAIL002",
+      "localizations" : [
+        {
+          "description" : "Unlock Year in Travel recaps, Travel Personality, World Wonders, Trip Insights, widgets and all share cards — forever.",
+          "displayName" : "Photrail Lifetime",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "Ontgrendel Jaar in Reizen, Reispersoonlijkheid, Wereldwonderen, Reisinzichten, widgets en alle deelkaarten — voor altijd.",
+          "displayName" : "Photrail Levenslang",
+          "locale" : "nl"
+        }
+      ],
+      "productID" : "Berend.Photrail.lifetime",
+      "referenceName" : "Photrail Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6740000000",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "BEL",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
