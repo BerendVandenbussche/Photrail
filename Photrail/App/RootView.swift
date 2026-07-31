@@ -14,6 +14,10 @@ struct RootView: View {
                         removal: .move(edge: .leading).combined(with: .opacity)
                     ))
 
+            case .mapReveal:
+                MapRevealView()
+                    .transition(.opacity)
+
             case .dashboard:
                 MainTabView()
                     .transition(.asymmetric(
@@ -43,6 +47,7 @@ extension AppViewModel.NavState {
     var id: String {
         switch self {
         case .onboarding:      return "onboarding"
+        case .mapReveal:       return "mapReveal"
         case .dashboard:       return "dashboard"
         case .permissionDenied: return "denied"
         }

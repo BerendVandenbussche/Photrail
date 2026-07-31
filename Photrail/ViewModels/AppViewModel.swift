@@ -13,6 +13,7 @@ final class AppViewModel {
 
     enum NavState {
         case onboarding
+        case mapReveal
         case dashboard
         case permissionDenied
     }
@@ -263,6 +264,13 @@ final class AppViewModel {
     var hasSeenOnboarding: Bool {
         get { UserDefaults.standard.bool(forKey: "hasSeenOnboarding") }
         set { UserDefaults.standard.set(newValue, forKey: "hasSeenOnboarding") }
+    }
+
+    /// One-time gate for the post-onboarding "map reveal" celebration. Only genuinely-new
+    /// users see it; existing users updating the app skip straight to the dashboard.
+    var hasSeenMapReveal: Bool {
+        get { UserDefaults.standard.bool(forKey: "hasSeenMapReveal") }
+        set { UserDefaults.standard.set(newValue, forKey: "hasSeenMapReveal") }
     }
 
     private let scanService = PhotoScanService()
@@ -814,8 +822,19 @@ final class AppViewModel {
         }
         // Ask for notification permission so we can celebrate new countries while traveling.
         Task { await NotificationService.requestAuthorization() }
-        navState = .dashboard
+        // First-time users get the map-reveal celebration, which occupies the scan wait.
+        // Everyone else drops straight into the dashboard.
+        navState = hasSeenMapReveal ? .dashboard : .mapReveal
         startForegroundScan()
+    }
+
+    /// Called by `MapRevealView` when the celebration is finished (or skipped). Marks the
+    /// one-time gate and animates into the dashboard.
+    func finishMapReveal() {
+        hasSeenMapReveal = true
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+            navState = .dashboard
+        }
     }
 
     private func startForegroundScan() {
