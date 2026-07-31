@@ -340,17 +340,6 @@ struct ProfileView: View {
             Button { showReindexConfirm = true } label: {
                 row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
             }
-
-            #if DEBUG
-            Divider().padding(.leading, 52)
-            Button {
-                appVM.hasSeenMapReveal = false
-                appVM.navState = .mapReveal
-            } label: {
-                row(icon: "sparkles", title: "Replay map reveal (debug)", detail: nil)
-            }
-            .buttonStyle(.plain)
-            #endif
         }
         .card()
         .padding(.horizontal, 20)
