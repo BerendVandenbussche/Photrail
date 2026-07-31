@@ -65,11 +65,12 @@ final class AppViewModel {
     /// the nearest town), computed alongside the personality profile. 0 = not enough data.
     var explorerRarity: Int = 0
 
-    /// Countries the user added by hand (photos deleted / never on device). Persisted.
-    var manualCountries: [ManualCountry] = [] {
+    /// Trips the user entered by hand (photos deleted / never on device). Their countries
+    /// and places feed the stats, and dated ones surface as trips. Persisted.
+    var manualTrips: [ManualTrip] = [] {
         didSet {
-            if let data = try? JSONEncoder().encode(manualCountries) {
-                UserDefaults.standard.set(data, forKey: "manualCountries")
+            if let data = try? JSONEncoder().encode(manualTrips) {
+                UserDefaults.standard.set(data, forKey: "manualTrips")
             }
         }
     }
@@ -332,9 +333,11 @@ final class AppViewModel {
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
         }
-        if let data = UserDefaults.standard.data(forKey: "manualCountries"),
-           let decoded = try? JSONDecoder().decode([ManualCountry].self, from: data) {
-            self.manualCountries = decoded
+        if let data = UserDefaults.standard.data(forKey: "manualTrips"),
+           let decoded = try? JSONDecoder().decode([ManualTrip].self, from: data) {
+            self.manualTrips = decoded
+        } else {
+            self.manualTrips = Self.migrateLegacyManualCountries()
         }
         self.excludedPhotoIDs = ExcludedPhotosStore.load()
         if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
@@ -398,32 +401,67 @@ final class AppViewModel {
 
     // MARK: - Entry points
 
-    // MARK: - Manual countries
+    // MARK: - Manual trips
 
-    /// Add a country by hand (for trips whose photos are gone), then refresh stats.
-    func addManualCountry(code: String) {
-        let code = code.uppercased()
-        guard !manualCountries.contains(where: { $0.code == code }) else { return }
+    /// Add (or replace) a hand-entered trip, then refresh stats so its countries and places
+    /// show everywhere. Fills in a representative coordinate for any country missing one.
+    func saveManualTrip(_ trip: ManualTrip) {
         Task {
-            let coord = await offlineGeocoder.representativeCoordinate(for: code)
-            manualCountries.append(ManualCountry(
-                code: code,
-                name: CountryCatalog.name(for: code),
-                flag: CountryCatalog.flag(for: code),
-                latitude: coord?.latitude, longitude: coord?.longitude
-            ))
+            var trip = trip
+            for i in trip.countries.indices where trip.countries[i].latitude == nil {
+                if let coord = await offlineGeocoder.representativeCoordinate(for: trip.countries[i].code) {
+                    trip.countries[i].latitude = coord.latitude
+                    trip.countries[i].longitude = coord.longitude
+                }
+            }
+            if let idx = manualTrips.firstIndex(where: { $0.id == trip.id }) {
+                manualTrips[idx] = trip
+            } else {
+                manualTrips.append(trip)
+            }
             await refreshStatsWithManual()
         }
     }
 
-    func removeManualCountry(code: String) {
-        manualCountries.removeAll { $0.code == code }
+    func removeManualTrip(id: String) {
+        manualTrips.removeAll { $0.id == id }
         Task { await refreshStatsWithManual() }
     }
 
-    /// True when a country code came from a manual entry (no photos).
+    /// The manual trip backing a synthesized `Trip`, if any — for the editor.
+    func manualTrip(for trip: Trip) -> ManualTrip? {
+        guard let id = trip.manualTripID else { return nil }
+        return manualTrips.first { $0.id == id }
+    }
+
+    /// True when a country code only exists because of a manual entry (no photos).
     func isManualCountry(_ code: String) -> Bool {
-        manualCountries.contains { $0.code == code }
+        let fromManual = manualTrips.contains { $0.countryCodes.contains(code) }
+        let fromPhotos = stats.countries.contains { $0.id == code && $0.photoCount > 0 }
+        return fromManual && !fromPhotos
+    }
+
+    /// One-time migration of the old "manual countries" feature into single-country,
+    /// undated manual trips, so nobody loses data. Persists the result and clears the old key.
+    private static func migrateLegacyManualCountries() -> [ManualTrip] {
+        struct LegacyManualCountry: Decodable {
+            let code: String; let name: String; let flag: String
+            let latitude: Double?; let longitude: Double?
+        }
+        guard let data = UserDefaults.standard.data(forKey: "manualCountries"),
+              let legacy = try? JSONDecoder().decode([LegacyManualCountry].self, from: data),
+              !legacy.isEmpty else { return [] }
+
+        let trips = legacy.map { c in
+            ManualTrip(id: UUID().uuidString, name: nil, startDate: nil, endDate: nil,
+                       countries: [.init(code: c.code, name: c.name, flag: c.flag,
+                                         latitude: c.latitude, longitude: c.longitude, places: [])])
+        }
+        if let encoded = try? JSONEncoder().encode(trips) {
+            UserDefaults.standard.set(encoded, forKey: "manualTrips")
+        }
+        UserDefaults.standard.removeObject(forKey: "manualCountries")
+        return trips
     }
 
     // MARK: - Excluded photos
@@ -557,7 +595,7 @@ final class AppViewModel {
     private func refreshStatsWithManual() async {
         let photos = (try? await store.allPhotos()) ?? []
         stats = statsEngine.compute(from: photos, homeCountryCode: homeCountryCode,
-                                    homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
+                                    homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
         publishWidgetStats()
     }
 
@@ -813,7 +851,7 @@ final class AppViewModel {
         // Load stored stats immediately so the dashboard isn't empty
         Task {
             if let stored = try? await store.allPhotos(), !stored.isEmpty {
-                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
+                stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
                 memories = MemoriesEngine().memories(from: stored, homeCoordinate: homeCoordinate,
                                                      homeCountryCode: homeCountryCode,
                                                      excludedPhotoIDs: excludedPhotoIDs)
@@ -892,7 +930,7 @@ final class AppViewModel {
 
             // Seed the set of countries already known so new-country detection starts clean.
             let stored = (try? await store.allPhotos()) ?? []
-            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
+            stats = statsEngine.compute(from: stored, homeCountryCode: homeCountryCode, homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
             scanSeenCountryCodes = Set(stored.compactMap { $0.isGeocoded ? $0.countryCode : nil })
 
             // Phase 2b: resolve countries OFFLINE for new photos (instant, no network).
@@ -966,7 +1004,7 @@ final class AppViewModel {
             try await store.applyCountries(rows)
 
             processed += chunk.count
-            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
             let progress = Double(processed) / Double(total)
             await MainActor.run {
                 guard self.scanGeneration == generation else { return }
@@ -1000,7 +1038,7 @@ final class AppViewModel {
                 try? await store.applyCity(id: result.id, city: result.city, hasLocality: result.hasLocality)
             }
             done += chunk.count
-            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
+            let snapshot = statsEngine.compute(from: (try? await store.allPhotos()) ?? [], homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
             let progress = Double(done) / Double(total)
             await MainActor.run {
                 guard self.scanGeneration == generation else { return }
@@ -1011,7 +1049,7 @@ final class AppViewModel {
 
         try Task.checkCancellation()
         let finalPhotos = (try? await store.allPhotos()) ?? []
-        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualCountries: manualCountries, excludedPhotoIDs: excludedPhotoIDs)
+        stats = statsEngine.compute(from: finalPhotos, homeCountryCode: homeCode, homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
         memories = MemoriesEngine().memories(from: finalPhotos, homeCoordinate: homeCoordinate,
                                              homeCountryCode: homeCode,
                                              excludedPhotoIDs: excludedPhotoIDs)

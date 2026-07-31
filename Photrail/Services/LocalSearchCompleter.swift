@@ -29,6 +29,15 @@ final class LocalSearchCompleter: NSObject, MKLocalSearchCompleterDelegate {
         completer.resultTypes = [.address]
     }
 
+    /// Bias autocomplete toward a region (e.g. the country being edited) so nearby places
+    /// rank first. Pass a wide span to cover a whole country.
+    func setRegion(latitude: Double, longitude: Double, spanDegrees: Double = 12) {
+        completer.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+            span: MKCoordinateSpan(latitudeDelta: spanDegrees, longitudeDelta: spanDegrees)
+        )
+    }
+
     nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         let updated = completer.results
         Task { @MainActor in self.results = updated }

@@ -9,7 +9,8 @@ struct PlacesView: View {
     @State private var selectedCountry: CountryStat?
     @State private var selectedContinent: ContinentStat?
     @State private var selectedWonder: WonderStat?
-    @State private var showAddCountry = false
+    @State private var showTripEditor = false
+    @State private var editingTrip: ManualTrip?
 
     private var stats: TravelStats { appVM.stats }
 
@@ -24,13 +25,13 @@ struct PlacesView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if stats.totalGeotaggedPhotos == 0 && appVM.manualCountries.isEmpty {
+                if stats.totalGeotaggedPhotos == 0 && appVM.manualTrips.isEmpty {
                     ContentUnavailableView {
                         Label("Nothing here yet", systemImage: "globe.europe.africa")
                     } description: {
-                        Text("Your places will appear as your photos are scanned — or add countries you've visited by hand.")
+                        Text("Your places will appear as your photos are scanned — or add a trip you took by hand.")
                     } actions: {
-                        Button("Add a country") { showAddCountry = true }
+                        Button("Add a trip") { addTrip() }
                     }
                 } else {
                     content
@@ -38,7 +39,17 @@ struct PlacesView: View {
             }
             .navigationTitle("Places")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showAddCountry) { ManualCountryPickerView() }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { addTrip() } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel(Text("Add a trip"))
+                }
+            }
+            .sheet(isPresented: $showTripEditor) {
+                ManualTripEditorView(existing: editingTrip)
+            }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
                                   trips: stats.trips.filter { $0.countryCodes.contains(country.id) },
@@ -110,46 +121,30 @@ struct PlacesView: View {
     private var countriesList: some View {
         let countries = stats.countries.sorted { $0.photoCount > $1.photoCount }
         let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
-        return VStack(spacing: 12) {
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(countries) { country in
-                    let manual = appVM.isManualCountry(country.id)
-                    Button { selectedCountry = country } label: {
-                        CountryGridCard(country: country,
-                                        manual: manual,
-                                        coverage: manual ? nil : appVM.coverage(for: country))
-                    }
-                    .buttonStyle(.plain)
-                    .overlay(alignment: .topTrailing) {
-                        if manual {
-                            Button { appVM.removeManualCountry(code: country.id) } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(.red)
-                                    .padding(8)
-                                    .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
+        return LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(countries) { country in
+                let manual = appVM.isManualCountry(country.id)
+                Button { selectedCountry = country } label: {
+                    CountryGridCard(country: country,
+                                    manual: manual,
+                                    coverage: manual ? nil : appVM.coverage(for: country))
                 }
+                .buttonStyle(.plain)
             }
-
-            Button { showAddCountry = true } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 22)).foregroundStyle(.tint)
-                    Text("Add a country manually")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                    Spacer()
-                }
-                .padding(14)
-                .card()
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
+    }
+
+    // MARK: - Manual trip helpers
+
+    private func addTrip() {
+        editingTrip = nil
+        showTripEditor = true
+    }
+
+    private func editTrip(_ trip: Trip) {
+        editingTrip = appVM.manualTrip(for: trip)
+        showTripEditor = true
     }
 
     // MARK: - Trips (grouped by year, newest first)
@@ -183,6 +178,18 @@ struct PlacesView: View {
                                 TripRow(trip: trip)
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                if trip.isManual {
+                                    Button { editTrip(trip) } label: {
+                                        Label("Edit trip", systemImage: "pencil")
+                                    }
+                                    Button(role: .destructive) {
+                                        if let id = trip.manualTripID { appVM.removeManualTrip(id: id) }
+                                    } label: {
+                                        Label("Delete trip", systemImage: "trash")
+                                    }
+                                }
+                            }
                             if trip.id != group.trips.last?.id { Divider().padding(.leading, 78) }
                         }
                     }
@@ -376,6 +383,11 @@ private struct TripRow: View {
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer()
+            if trip.isManual {
+                Image(systemName: "hand.draw")
+                    .font(.caption2).foregroundStyle(.tertiary)
+                    .accessibilityLabel(Text("Added by hand"))
+            }
             Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 20)

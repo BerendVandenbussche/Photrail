@@ -93,6 +93,12 @@ struct Trip: Identifiable, Sendable {
     var countryCodes: [String] { countries.map(\.code) }
     var isMultiCountry: Bool { countries.count > 1 }
 
+    /// Trips the user entered by hand carry a `"manual:<uuid>"` id, so the UI can offer
+    /// edit/delete and skip photo-only affordances. `manualTripID` recovers the underlying
+    /// `ManualTrip.id` for editing.
+    var isManual: Bool { id.hasPrefix("manual:") }
+    var manualTripID: String? { isManual ? String(id.dropFirst("manual:".count)) : nil }
+
     /// Flags of every country, e.g. "🇫🇷🇮🇹🇨🇭" (capped so rows don't overflow).
     var flagsLine: String {
         let flags = countries.prefix(6).map(\.flag).joined()
