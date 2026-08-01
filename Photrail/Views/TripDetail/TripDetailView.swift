@@ -252,28 +252,48 @@ struct TripDetailView: View {
                 .padding(.horizontal, 20)
 
             ForEach(Array(trip.stops.enumerated()), id: \.element.id) { index, stop in
-                HStack(spacing: 14) {
-                    ZStack {
-                        Circle().fill(Color.accentColor.opacity(0.15)).frame(width: 30, height: 30)
-                        Text("\(index + 1)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(.tint)
+                if stop.photoIDs.isEmpty {
+                    stopRow(index: index, stop: stop)
+                        .padding(.horizontal, 20)
+                } else {
+                    NavigationLink {
+                        StopPhotosView(stop: stop)
+                    } label: {
+                        stopRow(index: index, stop: stop, showsChevron: true)
+                            .padding(.horizontal, 20)
+                            .contentShape(Rectangle())
                     }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(trip.isMultiCountry ? "\(stop.flag) \(stop.name)" : stop.name)
-                            .font(.subheadline.weight(.semibold))
-                        Text(dateLabel(stop.firstVisit))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Text("\(stop.photoCount)")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
-                    Image(systemName: "photo.stack").font(.caption).foregroundStyle(.tertiary)
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 20)
                 if stop.id != trip.stops.last?.id {
                     Divider().padding(.leading, 64)
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func stopRow(index: Int, stop: Trip.TripStop, showsChevron: Bool = false) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle().fill(Color.accentColor.opacity(0.15)).frame(width: 30, height: 30)
+                Text("\(index + 1)")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(.tint)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(trip.isMultiCountry ? "\(stop.flag) \(stop.name)" : stop.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text(dateLabel(stop.firstVisit))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text("\(stop.photoCount)")
+                .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Image(systemName: "photo.stack").font(.caption).foregroundStyle(.tertiary)
+            if showsChevron {
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
             }
         }
     }
@@ -385,6 +405,24 @@ struct TripDetailView: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "MMM d, yyyy"
         return fmt.string(from: date)
+    }
+}
+
+// MARK: - Stop photos
+
+/// The photos taken at one itinerary stop, reusing the shared photo grid.
+private struct StopPhotosView: View {
+    let stop: Trip.TripStop
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 16) {
+                PhotoGridSection(title: "Photos", photoIDs: stop.photoIDs, limit: 300)
+            }
+            .padding(.bottom, 8)
+        }
+        .navigationTitle(stop.name)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

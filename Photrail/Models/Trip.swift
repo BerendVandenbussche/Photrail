@@ -88,6 +88,9 @@ struct Trip: Identifiable, Sendable {
         let longitude: Double
         let firstVisit: Date
         let photoCount: Int
+        /// Photos taken at this stop, so the itinerary can open the place's own grid.
+        /// Empty for hand-entered stops (no photos behind them).
+        var photoIDs: [String] = []
     }
 
     var countryCodes: [String] { countries.map(\.code) }

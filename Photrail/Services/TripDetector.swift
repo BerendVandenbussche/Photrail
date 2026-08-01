@@ -209,7 +209,8 @@ struct TripDetector: Sendable {
                                  countryCode: sample.countryCode ?? "",
                                  flag: sample.flagEmoji,
                                  latitude: clat, longitude: clon,
-                                 firstVisit: firstVisit, photoCount: cityPhotos.count)
+                                 firstVisit: firstVisit, photoCount: cityPhotos.count,
+                                 photoIDs: cityPhotos.sorted { $0.date < $1.date }.map(\.id))
         }
         .sorted { $0.firstVisit < $1.firstVisit }
 
