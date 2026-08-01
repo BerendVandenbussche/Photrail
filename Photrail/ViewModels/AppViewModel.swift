@@ -403,6 +403,12 @@ final class AppViewModel {
 
     // MARK: - Manual trips
 
+    /// A representative coordinate inside a country (offline geocoder), used to bias the
+    /// manual place search toward the selected country.
+    func representativeCoordinate(for code: String) async -> (latitude: Double, longitude: Double)? {
+        await offlineGeocoder.representativeCoordinate(for: code)
+    }
+
     /// Add (or replace) a hand-entered trip, then refresh stats so its countries and places
     /// show everywhere. Fills in a representative coordinate for any country missing one.
     func saveManualTrip(_ trip: ManualTrip) {

@@ -16,6 +16,7 @@ struct ManualTripEditorView: View {
     @State private var endDate: Date
     @State private var countries: [ManualTrip.Country]
     @State private var showCountryPicker = false
+    @State private var showDeleteConfirm = false
 
     init(existing: ManualTrip? = nil) {
         self.existing = existing
@@ -63,6 +64,15 @@ struct ManualTripEditorView: View {
                 } footer: {
                     Text("Add the countries you visited on this trip. Tap a country to add cities and places.")
                 }
+
+                if existing != nil {
+                    Section {
+                        Button(role: .destructive) { showDeleteConfirm = true } label: {
+                            Label("Delete trip", systemImage: "trash")
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                }
             }
             .navigationTitle(existing == nil ? Text("Add Trip") : Text("Edit Trip"))
             .navigationBarTitleDisplayMode(.inline)
@@ -81,6 +91,15 @@ struct ManualTripEditorView: View {
                         latitude: nil, longitude: nil, places: []
                     ))
                 }
+            }
+            .confirmationDialog("Delete this trip?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                Button("Delete trip", role: .destructive) {
+                    if let existing { appVM.removeManualTrip(id: existing.id) }
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This removes the trip and its countries from your stats. This can't be undone.")
             }
         }
     }
@@ -153,8 +172,11 @@ private struct CountryPickerSheet: View {
 
 /// Lists and edits the places recorded for one country of a manual trip.
 private struct CountryPlacesView: View {
+    @Environment(AppViewModel.self) private var appVM
     @Binding var country: ManualTrip.Country
     @State private var showPlaceSearch = false
+    /// A point inside the country, used to bias/validate the place search.
+    @State private var center: CLLocationCoordinate2D?
 
     var body: some View {
         List {
@@ -182,8 +204,15 @@ private struct CountryPlacesView: View {
         }
         .navigationTitle(CountryCatalog.name(for: country.code))
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            if let lat = country.latitude, let lon = country.longitude {
+                center = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            } else if let coord = await appVM.representativeCoordinate(for: country.code) {
+                center = CLLocationCoordinate2D(latitude: coord.latitude, longitude: coord.longitude)
+            }
+        }
         .sheet(isPresented: $showPlaceSearch) {
-            PlaceSearchSheet { name, lat, lon in
+            PlaceSearchSheet(countryCode: country.code, center: center) { name, lat, lon in
                 guard !country.places.contains(where: { $0.name == name }) else { return }
                 country.places.append(ManualTrip.Place(
                     id: UUID().uuidString, name: name, latitude: lat, longitude: lon
@@ -199,36 +228,68 @@ private struct CountryPlacesView: View {
 /// name + lat/lon back to the caller.
 private struct PlaceSearchSheet: View {
     @Environment(\.dismiss) private var dismiss
+    /// The ISO code of the country the place must belong to.
+    let countryCode: String
+    /// A point inside that country, to bias autocomplete (nil = no bias).
+    let center: CLLocationCoordinate2D?
     let onPick: (_ name: String, _ latitude: Double, _ longitude: Double) -> Void
 
     @State private var completer = LocalSearchCompleter()
     @State private var resolving = false
+    @State private var mismatch: String?
 
     var body: some View {
         @Bindable var completer = completer
         return NavigationStack {
-            List(completer.results, id: \.self) { result in
-                Button {
-                    resolve(result)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(result.title)
-                        if !result.subtitle.isEmpty {
-                            Text(result.subtitle).font(.caption).foregroundStyle(.secondary)
-                        }
+            Group {
+                if completer.query.trimmingCharacters(in: .whitespaces).isEmpty {
+                    ContentUnavailableView {
+                        Label("Search for a place", systemImage: "mappin.and.ellipse")
+                    } description: {
+                        Text("Find a city, town or landmark in \(CountryCatalog.name(for: countryCode)) with Apple Maps.")
                     }
-                    .contentShape(Rectangle())
+                } else if completer.results.isEmpty {
+                    ContentUnavailableView.search(text: completer.query)
+                } else {
+                    List(completer.results, id: \.self) { result in
+                        Button {
+                            resolve(result)
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "mappin.circle.fill")
+                                    .font(.system(size: 22)).foregroundStyle(.tint)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(result.title)
+                                    if !result.subtitle.isEmpty {
+                                        Text(result.subtitle).font(.caption).foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(resolving)
+                    }
+                    .listStyle(.plain)
                 }
-                .buttonStyle(.plain)
-                .disabled(resolving)
             }
-            .listStyle(.plain)
             .searchable(text: $completer.query, prompt: "Search a city or place")
             .overlay { if resolving { ProgressView() } }
             .navigationTitle("Add Place")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { Button("Cancel") { dismiss() } }
+            }
+            .onAppear {
+                if let center {
+                    completer.setRegion(latitude: center.latitude, longitude: center.longitude)
+                }
+            }
+            .alert("That place isn't in this country",
+                   isPresented: Binding(get: { mismatch != nil }, set: { if !$0 { mismatch = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                if let mismatch { Text("\(mismatch) is in a different country. Add it under that country instead.") }
             }
         }
     }
@@ -239,6 +300,11 @@ private struct PlaceSearchSheet: View {
             let place = await completer.resolve(completion)
             resolving = false
             guard let place else { return }
+            // Keep the picked place inside the selected country.
+            if let resolved = place.countryCode, resolved.uppercased() != countryCode.uppercased() {
+                mismatch = completion.title
+                return
+            }
             // Prefer the completion's short title over the resolver's "Name, Country" display.
             onPick(completion.title, place.latitude, place.longitude)
             dismiss()
