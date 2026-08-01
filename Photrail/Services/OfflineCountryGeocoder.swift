@@ -31,12 +31,62 @@ actor OfflineCountryGeocoder {
         return items.map { ($0.id, match(latitude: $0.latitude, longitude: $0.longitude)) }
     }
 
-    /// A rough representative point (bounding-box center) for a country code — good
-    /// enough to place a map pin for a manually-added country. Nil if unknown.
+    /// A representative point inside a country's main landmass — good enough to place a
+    /// map pin for a manually-added country. Nil if unknown.
+    ///
+    /// Uses the centroid of the country's *largest* polygon rather than the whole-country
+    /// bounding-box center: countries with far-flung territories or that cross the
+    /// antimeridian (USA + Aleutians, Russia, France + overseas) have a bounding box
+    /// spanning most of the globe, whose center falls in the ocean — for the USA, off
+    /// the coast of France.
     func representativeCoordinate(for code: String) -> (latitude: Double, longitude: Double)? {
         loadIfNeeded()
         guard let shape = shapes.first(where: { $0.code == code.uppercased() }) else { return nil }
-        return ((shape.minLat + shape.maxLat) / 2, (shape.minLon + shape.maxLon) / 2)
+        // Largest polygon by outer-ring area = the main landmass (contiguous USA, etc.).
+        guard let largest = shape.polygons.max(by: { Self.ringArea($0.first) < Self.ringArea($1.first) }),
+              let outer = largest.first, outer.count >= 3 else {
+            return ((shape.minLat + shape.maxLat) / 2, (shape.minLon + shape.maxLon) / 2)
+        }
+        return Self.centroid(of: outer)
+    }
+
+    /// Absolute area of a ring via the shoelace formula (degrees²; only used to compare
+    /// polygons of the same country, so a planar approximation is fine).
+    private static func ringArea(_ ring: [(Double, Double)]?) -> Double {
+        guard let ring, ring.count >= 3 else { return 0 }
+        var sum = 0.0
+        var j = ring.count - 1
+        for i in 0..<ring.count {
+            let (yi, xi) = ring[i]
+            let (yj, xj) = ring[j]
+            sum += (xj * yi) - (xi * yj)
+            j = i
+        }
+        return abs(sum) / 2
+    }
+
+    /// Area-weighted centroid of a polygon's outer ring — lands inside convex-ish shapes
+    /// (e.g. central USA), unlike a vertex average which coastlines can skew.
+    private static func centroid(of ring: [(Double, Double)]) -> (latitude: Double, longitude: Double) {
+        var area = 0.0, cx = 0.0, cy = 0.0
+        var j = ring.count - 1
+        for i in 0..<ring.count {
+            let (yi, xi) = ring[i]   // (lat, lon)
+            let (yj, xj) = ring[j]
+            let cross = (xj * yi) - (xi * yj)
+            area += cross
+            cx += (xi + xj) * cross
+            cy += (yi + yj) * cross
+            j = i
+        }
+        area /= 2
+        guard abs(area) > 1e-9 else {
+            // Degenerate ring: fall back to the vertex average.
+            let lat = ring.map(\.0).reduce(0, +) / Double(ring.count)
+            let lon = ring.map(\.1).reduce(0, +) / Double(ring.count)
+            return (lat, lon)
+        }
+        return (latitude: cy / (6 * area), longitude: cx / (6 * area))
     }
 
     /// The bounding box of a country's borders — used to gauge how much of a country's
