@@ -7,7 +7,13 @@ struct ExcludedPhotosView: View {
 
     @State private var selected: IdentifiedPhoto?
     @State private var showRestoreAllConfirm = false
-    private struct IdentifiedPhoto: Identifiable { let id: String }
+    /// Carries the list to swipe through as it was when the photo was tapped. Restoring a
+    /// photo from inside the viewer removes it from `ids`, and paging over a list that
+    /// shrinks underneath you lands on a blank page.
+    private struct IdentifiedPhoto: Identifiable {
+        let id: String
+        let siblings: [String]
+    }
 
     private let columns = [
         GridItem(.flexible(), spacing: 2),
@@ -31,7 +37,7 @@ struct ExcludedPhotosView: View {
 
                     LazyVGrid(columns: columns, spacing: 2) {
                         ForEach(ids, id: \.self) { id in
-                            Button { selected = IdentifiedPhoto(id: id) } label: {
+                            Button { selected = IdentifiedPhoto(id: id, siblings: ids) } label: {
                                 PhotoThumbnail(assetID: id,
                                                size: (UIScreen.main.bounds.width - 4) / 3,
                                                cornerRadius: 0)
@@ -58,7 +64,9 @@ struct ExcludedPhotosView: View {
         } message: {
             Text("They'll count toward your stats, trips and memories again.")
         }
-        .fullScreenCover(item: $selected) { FullScreenPhotoView(assetID: $0.id) }
+        .fullScreenCover(item: $selected) {
+            FullScreenPhotoView(assetIDs: $0.siblings, startID: $0.id)
+        }
     }
 
     private var emptyState: some View {

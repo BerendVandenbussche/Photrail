@@ -824,7 +824,7 @@ final class AppViewModel {
                                              total: Int) -> [String] {
         let pools = countries
             .sorted { $0.photoCount > $1.photoCount }
-            .map { Array($0.photoIDs.prefix(perCountry)) }
+            .map { Self.evenlySpaced($0.photoIDs, count: perCountry) }
         var result: [String] = []
         var index = 0
         while result.count < total {
@@ -838,6 +838,16 @@ final class AppViewModel {
             index += 1
         }
         return result
+    }
+
+    /// Up to `count` items sampled evenly across `ids`, rather than the first `count`.
+    /// `photoIDs` accumulates in scan order, i.e. chronologically — so taking the head of
+    /// a country visited twice puts only the earlier trip in the running, and the later one
+    /// can never win a slot it was never a candidate for.
+    private static func evenlySpaced(_ ids: [String], count: Int) -> [String] {
+        guard ids.count > count, count > 0 else { return ids }
+        let step = Double(ids.count) / Double(count)
+        return (0..<count).map { ids[min(Int(Double($0) * step), ids.count - 1)] }
     }
 
     /// Approximate total distance: round trips from home if set, else hop-to-hop between trips.

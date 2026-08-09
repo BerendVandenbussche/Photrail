@@ -29,7 +29,14 @@ struct PhotoThumbnail: View {
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .task(id: assetID) {
-            image = await loadThumbnail()
+            // Drop the previous photo's image first. `LazyVGrid` recycles a tile for a new
+            // asset while `@State` survives, so without this the tile keeps showing the old
+            // photo until the new one loads — and a tap then opens something the user never
+            // saw on screen.
+            image = nil
+            let loaded = await loadThumbnail()
+            guard !Task.isCancelled else { return }
+            image = loaded
         }
     }
 

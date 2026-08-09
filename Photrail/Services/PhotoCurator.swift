@@ -19,10 +19,19 @@ actor PhotoCurator {
         let assets = fetchAssets(candidateIDs)
 
         var scored: [(id: String, score: Double, date: Date)] = []
+        // Candidates we couldn't judge at all (no thumbnail came back). Kept aside so a
+        // library that Vision can't read still produces a full set rather than one photo.
+        var unjudged: [(id: String, date: Date)] = []
         for asset in assets {
-            guard let cg = await thumbnail(for: asset)?.cgImage else { continue }
+            let date = asset.creationDate ?? .distantPast
+            guard let cg = await thumbnail(for: asset)?.cgImage else {
+                unjudged.append((asset.localIdentifier, date))
+                continue
+            }
+            // A nil score is a deliberate rejection (screenshot, receipt) — not a failure,
+            // so those stay out of the backfill.
             guard let score = await score(cg: cg, isFavorite: asset.isFavorite, category: category) else { continue }
-            scored.append((asset.localIdentifier, score, asset.creationDate ?? .distantPast))
+            scored.append((asset.localIdentifier, score, date))
         }
 
         let ranked = scored.sorted { $0.score > $1.score }
@@ -41,6 +50,16 @@ actor PhotoCurator {
             for candidate in ranked where !chosenIDs.contains(candidate.id) {
                 guard chosen.count < limit else { break }
                 chosen.append((candidate.id, candidate.date))
+            }
+        }
+        // Last resort: fill the remaining slots with candidates Vision never saw, still
+        // honouring the spacing rule so the result doesn't collapse onto one afternoon.
+        if chosen.count < limit {
+            for candidate in unjudged {
+                guard chosen.count < limit else { break }
+                if chosen.allSatisfy({ abs($0.date.timeIntervalSince(candidate.date)) >= minSpacing }) {
+                    chosen.append(candidate)
+                }
             }
         }
         return chosen.map(\.id)
@@ -126,7 +145,12 @@ actor PhotoCurator {
     private func thumbnail(for asset: PHAsset) async -> UIImage? {
         await withCheckedContinuation { continuation in
             let options = PHImageRequestOptions()
-            options.deliveryMode = .highQualityFormat   // single callback
+            // `.fastFormat` — also a single callback, but it settles for whatever is cached
+            // on device. `.highQualityFormat` returns *nil* for an asset whose full image
+            // lives only in iCloud, which with "Optimize iPhone Storage" is most of a real
+            // library — every one of those candidates was being dropped before it was ever
+            // scored. Downloading instead would mean fetching 120 originals to pick six.
+            options.deliveryMode = .fastFormat
             options.isNetworkAccessAllowed = false
             options.isSynchronous = false
             options.resizeMode = .fast

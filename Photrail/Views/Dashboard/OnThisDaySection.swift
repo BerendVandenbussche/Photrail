@@ -187,7 +187,9 @@ private struct MemoryDetailView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
             }
-            .fullScreenCover(item: $selected) { FullScreenPhotoView(assetID: $0.id) }
+            .fullScreenCover(item: $selected) {
+                FullScreenPhotoView(assetIDs: memory.photoIDs, startID: $0.id)
+            }
             .sheet(isPresented: $showShare) { MemoryShareView(memory: memory) }
         }
     }

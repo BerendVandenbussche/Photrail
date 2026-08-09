@@ -52,7 +52,11 @@ struct PhotoGridSection: View {
             }
         }
         .fullScreenCover(item: $selected) {
-            FullScreenPhotoView(assetID: $0.id, excitement: excitementByPhotoID[$0.id])
+            // Swipeable across the grid as shown — the same `prefix(limit)`, so the viewer
+            // can't page to a photo the grid never offered.
+            FullScreenPhotoView(assetIDs: Array(photoIDs.prefix(limit)),
+                                startID: $0.id,
+                                excitementByPhotoID: excitementByPhotoID)
         }
     }
 }
