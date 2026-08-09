@@ -8,7 +8,10 @@ import UIKit
 /// one SwiftUI sheet on top of another deadlocks (the UI just hangs).
 @MainActor
 enum SharePresenter {
-    static func present(_ items: [Any]) {
+    /// - Parameter onComplete: Fires when the sheet closes, whether the user shared or
+    ///   cancelled. Used to clean up temporary files (e.g. exported videos) — which must not
+    ///   be deleted any earlier, since the receiving app reads the URL lazily.
+    static func present(_ items: [Any], onComplete: (() -> Void)? = nil) {
         guard let scene = UIApplication.shared.connectedScenes
                 .compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
@@ -21,6 +24,7 @@ enum SharePresenter {
         while let presented = top.presentedViewController { top = presented }
 
         let activity = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        activity.completionWithItemsHandler = { _, _, _, _ in onComplete?() }
         if let popover = activity.popoverPresentationController {   // iPad
             popover.sourceView = top.view
             popover.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 0, height: 0)

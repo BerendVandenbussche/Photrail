@@ -36,6 +36,9 @@ struct RootView: View {
         }
         .onAppear {
             appVM.startOnboarding()
+            // Backstop for exports whose share sheet never reported completion (app killed
+            // mid-share). Each one is several megabytes.
+            ShareVideoFile.purge()
         }
         .onChange(of: scenePhase) { _, phase in
             appVM.handleScenePhase(phase)
