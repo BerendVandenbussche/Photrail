@@ -145,6 +145,22 @@ final class AppViewModel {
         didSet { UserDefaults.standard.set(profileEmoji, forKey: "profileEmoji") }
     }
 
+    // MARK: - Map layers
+    //
+    // Pure display toggles for the Map tab: which layers to draw. Countries is free and on
+    // by default; wonders and visited-areas are Lifetime-gated (the UI blocks turning them
+    // on without Lifetime, and `WorldMapView` never receives them for free users).
+
+    var mapShowCountries: Bool = true {
+        didSet { UserDefaults.standard.set(mapShowCountries, forKey: "mapShowCountries") }
+    }
+    var mapShowWonders: Bool = false {
+        didSet { UserDefaults.standard.set(mapShowWonders, forKey: "mapShowWonders") }
+    }
+    var mapShowVisitedAreas: Bool = false {
+        didSet { UserDefaults.standard.set(mapShowVisitedAreas, forKey: "mapShowVisitedAreas") }
+    }
+
     /// Travel personality profile derived from photo locations (cached).
     var personalityProfile: TravelPersonalityProfile?
     private let personalityCacheKey = "travelPersonalityProfile"
@@ -219,6 +235,20 @@ final class AppViewModel {
                 self.countryBorderBounds.merge(fetched) { _, new in new }
             }
         }
+    }
+
+    /// Outer border rings per country, for clipping the map's "visited areas" overlay to
+    /// real coastlines and frontiers. Only the requested codes are loaded.
+    func borderRings(for codes: [String]) async -> [String: [[CLLocationCoordinate2D]]] {
+        var result: [String: [[CLLocationCoordinate2D]]] = [:]
+        for code in Set(codes) {
+            let rings = await offlineGeocoder.borderRings(for: code)
+            guard !rings.isEmpty else { continue }
+            result[code] = rings.map { ring in
+                ring.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            }
+        }
+        return result
     }
 
     /// How much of a country's extent your photos span, 0…1 ("geographic spread"):
@@ -343,6 +373,11 @@ final class AppViewModel {
         if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
             self.travelNudgesEnabled = enabled
         }
+        if let shown = UserDefaults.standard.object(forKey: "mapShowCountries") as? Bool {
+            self.mapShowCountries = shown
+        }
+        self.mapShowWonders = UserDefaults.standard.bool(forKey: "mapShowWonders")
+        self.mapShowVisitedAreas = UserDefaults.standard.bool(forKey: "mapShowVisitedAreas")
         self.insightsEnabled = UserDefaults.standard.bool(forKey: "insightsEnabled")
         self.insightsPromptDismissed = UserDefaults.standard.bool(forKey: "insightsPromptDismissed")
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")

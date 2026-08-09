@@ -34,8 +34,13 @@ struct CountryDetailView: View {
                     // Hero header
                     DetailHeader(glyph: country.flag, title: country.localizedName, subtitle: dateRange)
 
-                    // Location
-                    if country.representativeCoordinate.latitude != 0 || country.representativeCoordinate.longitude != 0 {
+                    // Location + how much of the country you've covered. Falls back to a
+                    // plain pin map for hand-added countries, which have no photo places
+                    // to build a coverage shape from.
+                    if !country.cities.isEmpty {
+                        CountryCoverageCard(country: country)
+                            .padding(.horizontal, 20)
+                    } else if country.representativeCoordinate.latitude != 0 || country.representativeCoordinate.longitude != 0 {
                         LocationMiniMap(latitude: country.representativeCoordinate.latitude,
                                         longitude: country.representativeCoordinate.longitude,
                                         glyph: country.flag,

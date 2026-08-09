@@ -89,6 +89,19 @@ actor OfflineCountryGeocoder {
         return (latitude: cy / (6 * area), longitude: cx / (6 * area))
     }
 
+    /// The outer border ring of each landmass of a country, as (lat, lon) points — the
+    /// mainland plus every island. Used to clip "visited area" overlays to real coastlines
+    /// and borders. Holes are omitted: they matter for point-in-polygon tests, not for
+    /// drawing a filled region.
+    func borderRings(for code: String) -> [[(latitude: Double, longitude: Double)]] {
+        loadIfNeeded()
+        guard let shape = shapes.first(where: { $0.code == code.uppercased() }) else { return [] }
+        return shape.polygons.compactMap { polygon in
+            guard let outer = polygon.first, outer.count >= 3 else { return nil }
+            return outer.map { (latitude: $0.0, longitude: $0.1) }
+        }
+    }
+
     /// The bounding box of a country's borders — used to gauge how much of a country's
     /// extent your photos span ("geographic spread"). Nil if the code is unknown.
     func bounds(for code: String) -> GeoBounds? {
