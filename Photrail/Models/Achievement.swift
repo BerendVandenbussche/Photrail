@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A secret milestone the user can earn purely from their travel history. Locked
 /// achievements are hidden entirely (mystery tiles) until the rule is satisfied,
-/// then celebrated with a one-time confetti toast. Everything is derived on-device
+/// then celebrated with a one-time unlock toast. Everything is derived on-device
 /// from `TravelStats` — no new scanning or network.
 struct Achievement: Identifiable {
     let id: String

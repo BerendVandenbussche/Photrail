@@ -49,7 +49,7 @@ final class AppViewModel {
 
     /// Secret milestone achievements the user has unlocked (IDs from `AchievementCatalog`).
     private(set) var unlockedAchievementIDs: Set<String> = []
-    /// Newly-earned achievements awaiting their one-time confetti toast (FIFO).
+    /// Newly-earned achievements awaiting their one-time unlock toast (FIFO).
     var achievementQueue: [Achievement] = []
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
@@ -425,7 +425,7 @@ final class AppViewModel {
     /// Re-evaluate every achievement against the current stats. Persists the unlocked set
     /// and queues genuinely-new unlocks for celebration. The very first evaluation after
     /// install/update adopts existing progress *silently* — so upgrading users don't get a
-    /// burst of confetti for milestones they passed long ago.
+    /// stack of toasts for milestones they passed long ago.
     private func checkAchievements() {
         let currently = Set(AchievementCatalog.all.filter { $0.isUnlocked(stats) }.map(\.id))
         let newlyUnlocked = currently.subtracting(unlockedAchievementIDs)
