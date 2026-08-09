@@ -6,7 +6,6 @@ struct DashboardView: View {
     @State private var showShareCard = false
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
-    @State private var showWonders = false
     @State private var showPaywall = false
 
     private var stats: TravelStats { appVM.stats }
@@ -116,9 +115,6 @@ struct DashboardView: View {
             .sheet(item: $yearRecap) { recap in
                 RecapView(recap: recap)
             }
-            .sheet(isPresented: $showWonders) {
-                WondersListView(wonders: stats.wonders)
-            }
             .sheet(isPresented: $showPaywall) {
                 LifetimePaywallView()
             }
@@ -126,8 +122,10 @@ struct DashboardView: View {
     }
 
     /// Wonders are a Lifetime feature — open the list only when entitled, else the paywall.
+    /// Lands on the Places tab's Wonders list rather than a sheet, so "See all" always ends
+    /// up somewhere the user can navigate onwards from.
     private func openWonders() {
-        if appVM.hasLifetime { showWonders = true } else { showPaywall = true }
+        if appVM.hasLifetime { appVM.openPlaces(.wonders) } else { showPaywall = true }
     }
 
     // MARK: - World Wonders progress
@@ -171,28 +169,31 @@ struct DashboardView: View {
 
     // MARK: - Feed sections
 
-    /// Compact lifetime snapshot; the whole strip taps into the Places tab.
+    /// Compact lifetime snapshot; each figure taps into the Places list it counts.
+    /// Cities have no list of their own, so they open Countries — the level above them.
     private var statStrip: some View {
-        Button { appVM.selectedTab = .places } label: {
-            HStack(spacing: 0) {
-                statItem("\(stats.countryCount)", "Countries")
-                statItem("\(stats.cityCount)", "Cities")
-                statItem("\(stats.visitedContinentCount)", "Continents")
-                statItem("\(stats.trips.count)", "Trips")
-            }
-            .padding(.vertical, 14)
-            .card()
+        HStack(spacing: 0) {
+            statItem("\(stats.countryCount)", "Countries", segment: .countries)
+            statItem("\(stats.cityCount)", "Cities", segment: .countries)
+            statItem("\(stats.visitedContinentCount)", "Continents", segment: .continents)
+            statItem("\(stats.trips.count)", "Trips", segment: .trips)
         }
-        .buttonStyle(.plain)
+        .padding(.vertical, 14)
+        .card()
         .padding(.horizontal, 20)
     }
 
-    private func statItem(_ value: String, _ label: LocalizedStringKey) -> some View {
-        VStack(spacing: 3) {
-            Text(value).font(.system(size: 20, weight: .bold, design: .rounded))
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+    private func statItem(_ value: String, _ label: LocalizedStringKey,
+                          segment: PlacesSegment) -> some View {
+        Button { appVM.openPlaces(segment) } label: {
+            VStack(spacing: 3) {
+                Text(value).font(.system(size: 20, weight: .bold, design: .rounded))
+                Text(label).font(.caption2).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
-        .frame(maxWidth: .infinity)
+        .buttonStyle(.plain)
     }
 
     /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt),
@@ -252,7 +253,7 @@ struct DashboardView: View {
     private var recentTripsSection: some View {
         if !recentTrips.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
-                Button { appVM.selectedTab = .places } label: {
+                Button { appVM.openPlaces(.trips) } label: {
                     HStack {
                         SectionHeader(title: "Recent Trips", systemImage: "suitcase.fill")
                         Spacer()

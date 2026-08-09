@@ -113,6 +113,17 @@ final class AppViewModel {
     /// Selected bottom-tab; mutable so other views (e.g. the "set home" CTA) can switch tabs.
     var selectedTab: AppTab = .today
 
+    /// Which segment the Places tab shows. Lives here rather than in `PlacesView` so a
+    /// "See all" elsewhere in the app can land on the right list instead of whatever the
+    /// user last had open.
+    var placesSegment: PlacesSegment = .trips
+
+    /// Switch to the Places tab, showing a specific list.
+    func openPlaces(_ segment: PlacesSegment) {
+        placesSegment = segment
+        selectedTab = .places
+    }
+
     /// Master switch for the (optional) HealthKit Insights module. Off by default —
     /// the user opts in contextually from a trip. Enabling it triggers the Health
     /// permission sheet via `enableInsights()`.

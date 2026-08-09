@@ -1,11 +1,20 @@
 import SwiftUI
 
+/// The lists the Places tab can show. Top-level (and stored on `AppViewModel`) so that
+/// "See all" buttons elsewhere can open Places on the matching list.
+enum PlacesSegment: String, CaseIterable, Identifiable, Sendable {
+    case trips = "Trips"
+    case continents = "Continents"
+    case countries = "Countries"
+    case wonders = "Wonders"
+    var id: String { rawValue }
+}
+
 /// The Places tab — a browsable catalog of everywhere you've been:
 /// countries, trips, continents and wonders, plus an activity overview.
 struct PlacesView: View {
     @Environment(AppViewModel.self) private var appVM
 
-    @State private var segment: Segment = .trips
     @State private var selectedCountry: CountryStat?
     @State private var selectedContinent: ContinentStat?
     @State private var selectedWonder: WonderStat?
@@ -13,14 +22,7 @@ struct PlacesView: View {
     @State private var editingTrip: ManualTrip?
 
     private var stats: TravelStats { appVM.stats }
-
-    private enum Segment: String, CaseIterable, Identifiable {
-        case trips = "Trips"
-        case continents = "Continents"
-        case countries = "Countries"
-        case wonders = "Wonders"
-        var id: String { rawValue }
-    }
+    private var segment: PlacesSegment { appVM.placesSegment }
 
     var body: some View {
         NavigationStack {
@@ -73,8 +75,9 @@ struct PlacesView: View {
                 Section {
                     segmentBody
                 } header: {
-                    Picker("", selection: $segment) {
-                        ForEach(Segment.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
+                    @Bindable var appVM = appVM
+                    Picker("", selection: $appVM.placesSegment) {
+                        ForEach(PlacesSegment.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal, 20)
