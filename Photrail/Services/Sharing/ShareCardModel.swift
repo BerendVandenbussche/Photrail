@@ -54,7 +54,8 @@ struct ShareCardModel: Sendable {
     /// True when there isn't enough data to make a meaningful card.
     var isEmpty: Bool {
         switch type {
-        case .summary:     return supporting.isEmpty && headline.isEmpty
+        // The poster draws its own artwork and never consults this model.
+        case .summary, .poster: return supporting.isEmpty && headline.isEmpty
         case .personality: return slices.isEmpty
         case .wonders:     return wonders.isEmpty
         case .trip:        return trip == nil
@@ -76,7 +77,7 @@ extension ShareCardModel {
             .filter { $0.latitude != 0 || $0.longitude != 0 }
 
         switch type {
-        case .summary:
+        case .summary, .poster:
             return ShareCardModel(
                 type: .summary,
                 headline: "\(stats.countryCount)\nCountries",

@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import CoreLocation
 
 /// Lets the user pick a template + background, preview the premium card, and share it.
 struct ShareComposerView: View {
@@ -17,6 +18,13 @@ struct ShareComposerView: View {
     @State private var photo: UIImage?
     @State private var showPaywall = false
 
+    // World-poster artwork. Loaded lazily the first time the template is chosen, since it
+    // parses the bundled border data.
+    @State private var posterCoastline: [[CGPoint]] = []
+    @State private var posterRings: [String: [[CLLocationCoordinate2D]]] = [:]
+    @State private var posterLoading = false
+    @State private var posterLoaded = false
+
     init(stats: TravelStats, profile: TravelPersonalityProfile?, trips: [Trip]) {
         self.stats = stats
         self.profile = profile
@@ -32,12 +40,16 @@ struct ShareComposerView: View {
     private var isFree: Bool { !appVM.hasLifetime }
     /// The one template free users may use (the basic map summary).
     private var freeType: ShareCardType { availableTypes.contains(.summary) ? .summary : (availableTypes.first ?? .summary) }
-    private func isUnlocked(_ kind: ShareCardType) -> Bool { appVM.hasLifetime || kind == freeType }
+    /// The world poster is deliberately free for everyone — every one shared advertises the app.
+    private func isUnlocked(_ kind: ShareCardType) -> Bool {
+        appVM.hasLifetime || kind == freeType || kind == .poster
+    }
     private func isUnlocked(_ bg: ShareCardBackground) -> Bool { appVM.hasLifetime || bg == .map }
 
     private var availableTypes: [ShareCardType] {
         ShareCardType.allCases.filter { kind in
             switch kind {
+            case .poster:      return stats.countryCount > 0
             case .summary:     return stats.countryCount > 0
             case .personality: return profile?.isMeaningful ?? false
             case .wonders:     return !stats.wonders.isEmpty
@@ -46,6 +58,16 @@ struct ShareComposerView: View {
             case .trip:        return false
             }
         }
+    }
+
+    private var posterCard: WorldPosterCardView {
+        WorldPosterCardView(
+            visitedCodes: stats.countries.map(\.id),
+            coastline: posterCoastline,
+            borderRings: posterRings,
+            profileEmoji: appVM.profileEmoji,
+            title: "My World"
+        )
     }
 
     private var model: ShareCardModel {
@@ -70,12 +92,16 @@ struct ShareComposerView: View {
             }
             .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
             .task {
-                // Keep free users on the basic, watermarked card.
-                if isFree {
+                // Keep free users on a template they're entitled to (the poster counts).
+                if isFree, !isUnlocked(type) {
                     type = freeType
                     background = .map
                     photo = nil
                 }
+            }
+            // Also fires on first appear, so it covers the poster being the default.
+            .task(id: type) {
+                if type == .poster { await loadPosterArtwork() }
             }
             .onChange(of: photoItem) { _, item in
                 Task {
@@ -97,7 +123,10 @@ struct ShareComposerView: View {
                     .padding(.top, 12)
 
                 templatePicker
-                backgroundPicker
+                // The poster brings its own artwork, so there's no background to pick.
+                if !type.usesOwnArtwork {
+                    backgroundPicker
+                }
 
                 if type == .trip, trips.count > 1 {
                     tripPicker
@@ -110,7 +139,31 @@ struct ShareComposerView: View {
         }
     }
 
+    @ViewBuilder
     private var cardPreview: some View {
+        if type == .poster {
+            posterPreview
+        } else {
+            standardPreview
+        }
+    }
+
+    private var posterPreview: some View {
+        let scale: CGFloat = 0.78
+        return ZStack {
+            posterCard
+                .frame(width: WorldPosterCardView.canvasSize.width,
+                       height: WorldPosterCardView.canvasSize.height)
+            if posterLoading { ProgressView().tint(.white) }
+        }
+        .scaleEffect(scale)
+        .frame(width: WorldPosterCardView.canvasSize.width * scale,
+               height: WorldPosterCardView.canvasSize.height * scale)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .shadow(color: .black.opacity(0.25), radius: 20, y: 10)
+    }
+
+    private var standardPreview: some View {
         let scale: CGFloat = 0.78
         return ShareCardView(model: model, background: background, photo: photo)
             .frame(width: ShareCardView.canvasSize.width, height: ShareCardView.canvasSize.height)
@@ -198,10 +251,12 @@ struct ShareComposerView: View {
 
     private var shareButton: some View {
         Button {
-            if let image = ShareCardRenderer.image(model: model, background: background,
-                                                    photo: photo) {
-                SharePresenter.present([image])
-            }
+            let image: UIImage? = type == .poster
+                ? ShareCardRenderer.render(posterCard,
+                                           baseSize: WorldPosterCardView.canvasSize,
+                                           opaque: true)
+                : ShareCardRenderer.image(model: model, background: background, photo: photo)
+            if let image { SharePresenter.present([image]) }
         } label: {
             Label("Share", systemImage: "square.and.arrow.up")
                 .font(.headline)
@@ -210,6 +265,32 @@ struct ShareComposerView: View {
                 .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
                 .foregroundStyle(.white)
         }
+        .disabled(type == .poster && posterLoading)
+    }
+
+    // MARK: - Poster artwork
+
+    /// Loads the world outline and the visited countries' borders, once. The heavy
+    /// simplification runs off the main actor so the composer stays responsive.
+    private func loadPosterArtwork() async {
+        guard !posterLoaded, !posterLoading else { return }
+        posterLoading = true
+
+        let lines = await WorldOutline.shared.polylines()
+        let raw = await appVM.borderRings(for: stats.countries.map(\.id))
+        let prepared = await Task.detached(priority: .userInitiated) {
+            var result: [String: [[CLLocationCoordinate2D]]] = [:]
+            for (code, rings) in raw {
+                let cleaned = PosterMapGeometry.prepare(rings: rings)
+                if !cleaned.isEmpty { result[code] = cleaned }
+            }
+            return result
+        }.value
+
+        posterCoastline = lines
+        posterRings = prepared
+        posterLoaded = true
+        posterLoading = false
     }
 
     // MARK: - Small components
@@ -242,6 +323,8 @@ struct ShareComposerView: View {
     private static func defaultType(stats: TravelStats,
                                     profile: TravelPersonalityProfile?,
                                     trips: [Trip]) -> ShareCardType {
+        // The world poster leads — it's the most striking card and it's free for everyone.
+        if stats.countryCount > 0 { return .poster }
         if profile?.isMeaningful ?? false { return .personality }
         if stats.countryCount > 0 { return .summary }
         if !stats.wonders.isEmpty { return .wonders }

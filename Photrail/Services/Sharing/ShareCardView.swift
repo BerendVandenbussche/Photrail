@@ -184,7 +184,7 @@ struct ShareCardView: View {
 
     private var eyebrowText: String {
         switch model.type {
-        case .summary:     return "My travel map"
+        case .summary, .poster: return "My travel map"
         case .personality: return model.subheadline ?? "My travel personality"
         case .wonders:     return "World wonders"
         case .trip:        return "My trip"
@@ -196,7 +196,7 @@ struct ShareCardView: View {
     @ViewBuilder
     private var cardContent: some View {
         switch model.type {
-        case .summary:     summaryContent
+        case .summary, .poster: summaryContent
         case .personality: personalityContent
         case .wonders:     wondersContent
         case .trip:        tripContent
