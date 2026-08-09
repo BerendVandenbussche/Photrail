@@ -11,14 +11,26 @@ struct AchievementsView: View {
     private var unlockedCount: Int { appVM.unlockedAchievementIDs.count }
     private var total: Int { AchievementCatalog.count }
 
+    /// The achievement whose shareable video card is open. Only ever set for unlocked ones.
+    @State private var sharing: Achievement?
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 header
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(AchievementCatalog.all) { achievement in
-                        AchievementTile(achievement: achievement,
-                                        unlocked: appVM.unlockedAchievementIDs.contains(achievement.id))
+                        let unlocked = appVM.unlockedAchievementIDs.contains(achievement.id)
+                        if unlocked {
+                            // Earned ones open a shareable animated card. Locked ones stay
+                            // inert mystery tiles — there's nothing to show yet.
+                            Button { sharing = achievement } label: {
+                                AchievementTile(achievement: achievement, unlocked: true)
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            AchievementTile(achievement: achievement, unlocked: false)
+                        }
                     }
                 }
             }
@@ -26,6 +38,7 @@ struct AchievementsView: View {
         }
         .navigationTitle("Achievements")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $sharing) { AchievementVideoPreview(achievement: $0) }
     }
 
     private var header: some View {
@@ -61,10 +74,19 @@ private struct AchievementTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(unlocked ? achievement.emoji : "🔒")
-                .font(.system(size: 34))
-                .grayscale(unlocked ? 0 : 1)
-                .opacity(unlocked ? 1 : 0.5)
+            HStack(alignment: .top) {
+                Text(unlocked ? achievement.emoji : "🔒")
+                    .font(.system(size: 34))
+                    .grayscale(unlocked ? 0 : 1)
+                    .opacity(unlocked ? 1 : 0.5)
+                Spacer()
+                // Quiet hint that an earned tile does something when tapped.
+                if unlocked {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tint)
+                }
+            }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(unlocked ? achievement.title : "???")
