@@ -61,6 +61,9 @@ final class AppViewModel {
     /// A recap presented from an App Intent (Siri / Shortcuts). Drives a root sheet.
     var presentedRecap: RecapModel?
 
+    /// A trip opened from Spotlight / Siri. Drives a root sheet, like `presentedRecap`.
+    var presentedTrip: Trip?
+
     /// "Explorer rarity" 0–100 — how off-the-beaten-path your photos are (distance to
     /// the nearest town), computed alongside the personality profile. 0 = not enough data.
     var explorerRarity: Int = 0
@@ -649,6 +652,7 @@ final class AppViewModel {
         stats = statsEngine.compute(from: photos, homeCountryCode: homeCountryCode,
                                     homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
         publishWidgetStats()
+        indexTripsForSearch()
     }
 
     func startOnboarding() {
@@ -1206,6 +1210,15 @@ final class AppViewModel {
         Task { await NotificationService.notifyNewCountry(code: code, name: name, flag: flag) }
     }
 
+    /// Publish the current trips to Spotlight, off the main actor.
+    ///
+    /// Called from the same two places as `publishWidgetStats()` — the points where stats are
+    /// *final*. Deliberately not from `stats.didSet`, which fires once per geocoding chunk.
+    private func indexTripsForSearch() {
+        let trips = stats.trips
+        Task.detached(priority: .utility) { await TripSearchIndexer.reindex(trips: trips) }
+    }
+
     /// Publish the current stats to the shared App Group container and refresh widgets.
     private func publishWidgetStats() {
         WidgetSharedStore.save(stats.widgetSnapshot(hasLifetime: hasLifetime))
@@ -1291,6 +1304,7 @@ final class AppViewModel {
 
     private func completeScan() async {
         publishWidgetStats()
+        indexTripsForSearch()
         await runNudges()
         await recomputePersonality()
         withAnimation { scanProgress = .complete }
