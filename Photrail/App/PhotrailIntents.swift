@@ -38,6 +38,29 @@ struct OpenYearInTravelIntent: AppIntent {
     }
 }
 
+/// Opens a specific trip. Powers Spotlight result taps as well as Siri and Shortcuts —
+/// `TripEntity` is `IndexedEntity`, so a tapped search result runs this intent.
+struct OpenTripIntent: AppIntent {
+    static let title: LocalizedStringResource = "Open a trip"
+    static let openAppWhenRun = true
+
+    @Parameter(title: "Trip")
+    var trip: TripEntity
+
+    init() {}
+    init(trip: TripEntity) { self.trip = trip }
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Open \(\.$trip)")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        IntentRouter.shared.pendingTripID = trip.id
+        return .result()
+    }
+}
+
 /// Exposes the intents to Siri / Spotlight with spoken phrases.
 struct PhotrailShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
@@ -55,5 +78,10 @@ struct PhotrailShortcuts: AppShortcutsProvider {
                     phrases: ["Show my places in \(.applicationName)"],
                     shortTitle: "Places",
                     systemImageName: "globe.europe.africa.fill")
+        AppShortcut(intent: OpenTripIntent(),
+                    phrases: ["Open my \(\.$trip) trip in \(.applicationName)",
+                              "Show my \(\.$trip) trip in \(.applicationName)"],
+                    shortTitle: "Open Trip",
+                    systemImageName: "airplane")
     }
 }

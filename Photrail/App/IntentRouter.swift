@@ -12,4 +12,10 @@ final class IntentRouter {
     var pendingTab: AppViewModel.AppTab?
     /// Set when an intent asks to open the Year in Travel recap.
     var openYearRecap = false
+    /// A trip a Spotlight result / Siri asked to open, by `Trip.id`.
+    ///
+    /// Unlike the flags above this is *not* cleared on the first attempt: a cold launch applies
+    /// pending intents before the scan has produced any trips, so it has to survive until
+    /// `stats.trips` can actually resolve it.
+    var pendingTripID: String?
 }
