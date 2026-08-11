@@ -248,6 +248,13 @@ private struct PlaceSearchSheet: View {
                     } description: {
                         Text("Find a city, town or landmark in \(CountryCatalog.name(for: countryCode)) with Apple Maps.")
                     }
+                } else if completer.isSearching && completer.results.isEmpty {
+                    // Not "no results" — Apple Maps simply hasn't answered yet, which on a slow
+                    // connection is several seconds of telling the user their search failed.
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("Searching…").foregroundStyle(.secondary)
+                    }
                 } else if completer.results.isEmpty {
                     ContentUnavailableView.search(text: completer.query)
                 } else {

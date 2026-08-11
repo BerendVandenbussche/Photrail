@@ -186,6 +186,13 @@ private struct OnboardingHomeStep: View {
                 } header: {
                     Text("Your home")
                 }
+            } else if completer.isSearching && completer.results.isEmpty {
+                Section("Results") {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                        Text("Searching…").foregroundStyle(.secondary)
+                    }
+                }
             } else if !completer.results.isEmpty {
                 Section("Results") {
                     ForEach(completer.results, id: \.self) { result in

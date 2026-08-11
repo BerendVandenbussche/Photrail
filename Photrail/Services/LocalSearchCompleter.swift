@@ -12,12 +12,18 @@ final class LocalSearchCompleter: NSObject, MKLocalSearchCompleterDelegate {
             let trimmed = query.trimmingCharacters(in: .whitespaces)
             if trimmed.isEmpty {
                 results = []
+                isSearching = false
             } else {
+                isSearching = true
                 completer.queryFragment = trimmed
             }
         }
     }
     private(set) var results: [MKLocalSearchCompletion] = []
+
+    /// True between a keystroke and Apple Maps answering it. On a slow connection that gap is
+    /// seconds long with nothing on screen, which reads as the field being broken.
+    private(set) var isSearching = false
 
     private let completer = MKLocalSearchCompleter()
 
@@ -40,11 +46,17 @@ final class LocalSearchCompleter: NSObject, MKLocalSearchCompleterDelegate {
 
     nonisolated func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         let updated = completer.results
-        Task { @MainActor in self.results = updated }
+        Task { @MainActor in
+            self.results = updated
+            self.isSearching = false
+        }
     }
 
     nonisolated func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
-        Task { @MainActor in self.results = [] }
+        Task { @MainActor in
+            self.results = []
+            self.isSearching = false
+        }
     }
 
     /// A resolved place the user can set as home.

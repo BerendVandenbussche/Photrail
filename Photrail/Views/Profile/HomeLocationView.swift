@@ -31,7 +31,14 @@ struct HomeLocationView: View {
                     Text("Search for your home city. Used for the furthest‑trip calculation and to exclude everyday photos near home from your travel personality.")
                 }
 
-                if !completer.results.isEmpty {
+                if completer.isSearching && completer.results.isEmpty {
+                    Section("Results") {
+                        HStack(spacing: 10) {
+                            ProgressView()
+                            Text("Searching…").foregroundStyle(.secondary)
+                        }
+                    }
+                } else if !completer.results.isEmpty {
                     Section("Results") {
                         ForEach(completer.results, id: \.self) { result in
                             Button {
