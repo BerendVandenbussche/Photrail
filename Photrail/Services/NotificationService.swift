@@ -38,10 +38,40 @@ enum NotificationRoute {
 enum NotificationService {
 
     /// Ask for notification permission. Safe to call repeatedly — iOS only prompts once.
+    ///
+    /// Shows the real system prompt, so only call this where the user has *asked* for nudges
+    /// (the Profile toggle). Onboarding uses `requestProvisionalAuthorization()` instead.
     @discardableResult
     static func requestAuthorization() async -> Bool {
         let center = UNUserNotificationCenter.current()
         return (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+    }
+
+    /// Grant notifications quietly, with no prompt at all.
+    ///
+    /// `.provisional` authorizes immediately and silently: nudges land in Notification Center
+    /// without a banner or sound, and the first one iOS delivers carries "Keep"/"Turn Off"
+    /// buttons. The user judges a real "Welcome to Croatia!" rather than an abstract permission
+    /// alert stacked behind the photo-library one, and a reflexive "Don't Allow" during
+    /// onboarding can no longer silence the feature forever.
+    ///
+    /// Suits this app because the nudges are deliberately rare (7-day cap, once per thing) —
+    /// quiet delivery is the price, and it's cheap at this volume. A user who wants banners can
+    /// still flip the Profile toggle, which calls `requestAuthorization()` and upgrades.
+    ///
+    /// No-op once any decision exists: iOS ignores the request when the status isn't
+    /// `.notDetermined`, so this never downgrades a user who already granted full alerts.
+    static func requestProvisionalAuthorization() async {
+        let center = UNUserNotificationCenter.current()
+        _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge, .provisional])
+    }
+
+    /// Current permission state, so the UI can explain why nudges are silent.
+    ///
+    /// A single "Don't Allow" during onboarding leaves every notify path below returning early
+    /// with no trace, which is indistinguishable from "nothing was worth notifying about".
+    static func authorizationStatus() async -> UNAuthorizationStatus {
+        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
     }
 
     /// Schedule a "new country" notification, delivered immediately.

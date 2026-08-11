@@ -924,8 +924,10 @@ final class AppViewModel {
                 publishWidgetStats()
             }
         }
-        // Ask for notification permission so we can celebrate new countries while traveling.
-        Task { await NotificationService.requestAuthorization() }
+        // Quietly authorize nudges so we can celebrate new countries while traveling. Deliberately
+        // *provisional*: stacking a notification prompt behind the photo-library one is the fastest
+        // way to get a reflexive "Don't Allow", and the user judges the first real nudge instead.
+        Task { await NotificationService.requestProvisionalAuthorization() }
         // First-time users get the map-reveal celebration, which occupies the scan wait.
         // Everyone else drops straight into the dashboard.
         navState = hasSeenMapReveal ? .dashboard : .mapReveal
