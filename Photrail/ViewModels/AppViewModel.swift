@@ -64,6 +64,9 @@ final class AppViewModel {
     /// A trip opened from Spotlight / Siri. Drives a root sheet, like `presentedRecap`.
     var presentedTrip: Trip?
 
+    /// Set when the achievement banner is tapped. Drives a root sheet, like `presentedRecap`.
+    var presentedAchievements = false
+
     /// "Explorer rarity" 0–100 — how off-the-beaten-path your photos are (distance to
     /// the nearest town), computed alongside the personality profile. 0 = not enough data.
     var explorerRarity: Int = 0
@@ -446,6 +449,17 @@ final class AppViewModel {
     /// Dismiss the achievement toast currently on screen and advance to the next, if any.
     func dismissTopAchievement() {
         if !achievementQueue.isEmpty { achievementQueue.removeFirst() }
+    }
+
+    /// Dismiss every queued achievement at once — the banner announced them as a group.
+    func dismissAllAchievements() {
+        achievementQueue.removeAll()
+    }
+
+    /// Open the achievements list from the banner, considering them all announced.
+    func openAchievements() {
+        achievementQueue.removeAll()
+        presentedAchievements = true
     }
 
     // MARK: - Entry points

@@ -38,6 +38,18 @@ struct MainTabView: View {
                     }
             }
         }
+        // `AchievementsView` sets its own navigation title, so it needs a stack of its own when
+        // it isn't reached by the NavigationLink in Profile.
+        .sheet(isPresented: $appVM.presentedAchievements) {
+            NavigationStack {
+                AchievementsView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Done") { appVM.presentedAchievements = false }
+                        }
+                    }
+            }
+        }
         .onAppear { applyPendingIntent() }             // cold launch from an intent
         .onChange(of: router.pendingTab) { _, _ in applyPendingIntent() }
         .onChange(of: router.openYearRecap) { _, _ in applyPendingIntent() }
