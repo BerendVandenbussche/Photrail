@@ -539,6 +539,16 @@
         }
       }
     },
+    "%lld new achievements" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld nieuwe prestaties"
+          }
+        }
+      }
+    },
     "%lld of %lld" : {
       "localizations" : {
         "en" : {
@@ -880,6 +890,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Prestatie ontgrendeld"
+          }
+        }
+      }
+    },
+    "Achievements unlocked" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prestaties ontgrendeld"
           }
         }
       }
@@ -2850,6 +2870,16 @@
         }
       }
     },
+    "Notifications are off in iOS Settings" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meldingen staan uit in iOS-instellingen"
+          }
+        }
+      }
+    },
     "Not yet visited" : {
       "localizations" : {
         "nl" : {
@@ -3624,6 +3654,16 @@
         }
       }
     },
+    "Searching\u2026" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoeken\u2026"
+          }
+        }
+      }
+    },
     "Search a city or place" : {
       "localizations" : {
         "nl" : {
@@ -4270,6 +4310,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tik om hier je reisstatistieken te zien"
+          }
+        }
+      }
+    },
+    "Tap to see what you've earned" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik om te zien wat je hebt verdiend"
           }
         }
       }
