@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// The "Me" tab: avatar, travel personality, lifetime snapshot, home, and management.
 struct ProfileView: View {
@@ -11,6 +12,7 @@ struct ProfileView: View {
     @State private var pendingYear: Int?
     @State private var selectedCategory: TravelCategory?
     @State private var showPaywall = false
+    @State private var notificationsDenied = false
 
     private var stats: TravelStats { appVM.stats }
     private var profile: TravelPersonalityProfile? { appVM.personalityProfile }
@@ -23,6 +25,21 @@ struct ProfileView: View {
             years.insert(Calendar.current.component(.year, from: trip.endDate))
         }
         return years.sorted(by: >)
+    }
+
+    private func refreshNotificationStatus() async {
+        notificationsDenied = await NotificationService.authorizationStatus() == .denied
+    }
+
+    /// Send the "trip is ready" nudge for the most recent trip, bypassing every eligibility rule.
+    private func sendTestNudge() async {
+        guard let trip = stats.trips.max(by: { $0.endDate < $1.endDate }) else { return }
+        // Provisional, not the real prompt: a test hook must not be the thing that puts a
+        // permission alert in front of the user, and this way it exercises the same quiet
+        // delivery path onboarding sets up.
+        await NotificationService.requestProvisionalAuthorization()
+        await NotificationService.notifyTripReady(tripID: trip.id, flag: trip.flag, country: trip.displayName)
+        await refreshNotificationStatus()
     }
 
     private func tripCount(for year: Int) -> Int {
@@ -293,16 +310,39 @@ struct ProfileView: View {
                 Divider().padding(.leading, 52)
             }
 
-            HStack(spacing: 14) {
-                Image(systemName: "bell.fill")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.tint)
-                    .frame(width: 24)
-                Text("Travel notifications").foregroundStyle(.primary)
-                Spacer()
-                Toggle("", isOn: $appVM.travelNudgesEnabled).labelsHidden()
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 14) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.tint)
+                        .frame(width: 24)
+                    Text("Travel notifications").foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("", isOn: $appVM.travelNudgesEnabled).labelsHidden()
+                }
+                // Nudges are rare by design, so "silent" reads as "working" whether permission
+                // was granted or declined once during onboarding. Say which it is.
+                if notificationsDenied {
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label("Notifications are off in iOS Settings", systemImage: "exclamationmark.triangle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 38)
+                }
             }
             .padding(14)
+            .contentShape(.rect)
+            // The real triggers need a trip that ended 2–14 days ago, a border crossing today,
+            // or New Year — none of which can be waited for while testing. Long-press sends the
+            // trip nudge for the most recent trip, exercising delivery and the tap-through.
+            .onLongPressGesture(minimumDuration: 1.5) { Task { await sendTestNudge() } }
+            .task { await refreshNotificationStatus() }
             Divider().padding(.leading, 52)
 
             if appVM.hasLifetime {
