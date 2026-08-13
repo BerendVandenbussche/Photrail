@@ -159,8 +159,11 @@ extension RecapModel {
         // year is guaranteed to appear, exactly once.
         let monthFmt = DateFormatter()
         monthFmt.dateFormat = "MMM"
+        // Home is *included* here, unlike `newCountries` and `favoriteCountryName`. It's where
+        // the year started, and leaving it out made the route card contradict itself: the
+        // headline counted `journey` (9) while the stat band beside it counted `countries`
+        // (10). Every "countries" number in the recap now comes from the same set.
         let journey = stats.countries
-            .filter { $0.id != homeCountryCode }
             .sorted { $0.firstVisit < $1.firstVisit }
             .enumerated()
             .map { index, country in
