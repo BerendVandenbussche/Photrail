@@ -8,7 +8,24 @@ import Foundation
 /// Cities are indexed into a 1° grid so each query only tests nearby points.
 actor OfflineCityGeocoder {
 
-    private struct City { let lat, lon: Double; let name: String }
+    private struct City {
+        let lat, lon: Double
+        let name: String
+        /// How far this place's name reasonably reaches, in km — see `reachKm(for:)`.
+        let reachKm: Double
+    }
+
+    /// The radius within which a place is a fair name for a photo, from its population.
+    ///
+    /// The dataset lists neighbourhoods alongside cities (Toronto's "Bendale", "Ionview",
+    /// "Humber Summit" are all in there), so nearest-wins named a stop after whichever
+    /// 15,000-person district a photo happened to sit in. Square-rooting the population
+    /// approximates a settlement's own radius: ~16 km for Toronto, ~1.7 km for Bendale, so
+    /// downtown photos say Toronto while a genuinely separate town nearby keeps its name.
+    /// Capped so a megacity can't claim places an hour outside it.
+    private static func reachKm(for population: Int) -> Double {
+        min(25, Double(population).squareRoot() / 100)
+    }
 
     private var cities: [City] = []
     private var grid: [Int: [Int]] = [:]
@@ -58,13 +75,18 @@ actor OfflineCityGeocoder {
         guard !candidates.isEmpty else { return nil }
 
         let cosLat = cos(latitude * .pi / 180)
-        var best: (index: Int, dist: Double)?
+        // Rank by distance *beyond* each place's own reach rather than raw distance, so a
+        // photo inside a big city is named after the city and not after the nearest hamlet
+        // or district centroid. `distanceKm` stays the true distance — the locality and
+        // max-name thresholds below judge how far away the point really is.
+        var best: (index: Int, dist: Double, score: Double)?
         for index in candidates {
             let c = cities[index]
             let dx = (c.lon - longitude) * 111.32 * cosLat
             let dy = (c.lat - latitude) * 110.57
             let d = (dx * dx + dy * dy).squareRoot()
-            if best == nil || d < best!.dist { best = (index, d) }
+            let score = d - c.reachKm
+            if best == nil || score < best!.score { best = (index, d, score) }
         }
         guard let best else { return nil }
         return Match(name: cities[best.index].name, distanceKm: best.dist)
@@ -87,7 +109,9 @@ actor OfflineCityGeocoder {
             let cols = line.split(separator: "\t", omittingEmptySubsequences: false)
             guard cols.count >= 3,
                   let lat = Double(cols[1]), let lon = Double(cols[2]) else { return }
-            let city = City(lat: lat, lon: lon, name: String(cols[0]))
+            let population = cols.count >= 5 ? Int(cols[4]) ?? 0 : 0
+            let city = City(lat: lat, lon: lon, name: String(cols[0]),
+                            reachKm: Self.reachKm(for: population))
             let index = self.cities.count
             self.cities.append(city)
             self.grid[Self.key(Int(floor(lat)), Int(floor(lon))), default: []].append(index)
