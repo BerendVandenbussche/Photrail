@@ -171,6 +171,40 @@ struct TripDetector: Sendable {
         return distanceScore * continentFactor * gapFactor
     }
 
+    /// One continuous stay in a city, in the order it happened.
+    private struct CityVisit {
+        /// "city,countryCode" — city names repeat across borders.
+        let key: String
+        var photos: [GeoPhoto]
+    }
+
+    /// Split a trip's photos into stays, in chronological order.
+    ///
+    /// A photo continues the current stay when it's in the same city. When it's in a city
+    /// visited earlier, it re-joins that stay only if the break was short — a day trip out
+    /// and back to the same hotel is one stop, not three. A longer absence (drove to Ottawa
+    /// for two days, then returned) is genuinely a second visit and gets its own stop.
+    ///
+    /// - Parameter revisitGap: how long you can be away before returning counts as a new stay.
+    private func cityVisits(_ photos: [GeoPhoto],
+                            revisitGap: TimeInterval = 24 * 3600) -> [CityVisit] {
+        var visits: [CityVisit] = []
+        for photo in photos.sorted(by: { $0.date < $1.date }) {
+            guard let city = photo.city, let code = photo.countryCode else { continue }
+            let key = "\(city),\(code)"
+            if visits.last?.key == key {
+                visits[visits.count - 1].photos.append(photo)
+            } else if let index = visits.lastIndex(where: { $0.key == key }),
+                      let lastSeen = visits[index].photos.last?.date,
+                      photo.date.timeIntervalSince(lastSeen) <= revisitGap {
+                visits[index].photos.append(photo)   // brief excursion — same stay
+            } else {
+                visits.append(CityVisit(key: key, photos: [photo]))
+            }
+        }
+        return visits
+    }
+
     private func makeTrip(_ photos: [GeoPhoto]) -> Trip {
         let first = photos.first!
 
@@ -191,28 +225,43 @@ struct TripDetector: Sendable {
         }
         let primary = countries.max { $0.photoCount < $1.photoCount } ?? countries.first!
 
-        // Cities → located stops (keyed by city + country, since names repeat across borders).
-        var byCity: [String: [GeoPhoto]] = [:]
-        for photo in photos {
-            guard let city = photo.city, let code = photo.countryCode else { continue }
-            byCity["\(city),\(code)", default: []].append(photo)
+        // Cities → located stops, segmented by *when* you were there rather than by name
+        // alone. Grouping every photo of a city into one stop silently folded a return
+        // visit into the first one: an Ontario trip that starts and ends in Toronto showed
+        // a single Toronto stop, numbered first (its `firstVisit` is day one), holding the
+        // final days' photos. Walking the trip in time order instead gives one stop per
+        // stay, so the numbering and each stop's grid match the itinerary.
+        let visits = cityVisits(photos)
+
+        // The city list stays name-unique and most-photographed first — it labels the trip,
+        // it isn't the itinerary.
+        var photosPerCity: [String: Int] = [:]
+        var cityName: [String: String] = [:]
+        for visit in visits {
+            photosPerCity[visit.key, default: 0] += visit.photos.count
+            cityName[visit.key] = visit.photos.first?.city ?? visit.key
         }
-        let cities = byCity.sorted { $0.value.count > $1.value.count }
-            .compactMap { $0.value.first?.city }
-        let stops = byCity.map { key, cityPhotos -> Trip.TripStop in
+        let cities = photosPerCity.sorted { $0.value > $1.value }.compactMap { cityName[$0.key] }
+
+        // A city visited twice needs two distinct stop ids for the itinerary's list identity.
+        var seen: [String: Int] = [:]
+        let stops = visits.map { visit -> Trip.TripStop in
+            let cityPhotos = visit.photos
             let count = Double(cityPhotos.count)
             let clat = cityPhotos.map(\.coordinate.latitude).reduce(0, +) / count
             let clon = cityPhotos.map(\.coordinate.longitude).reduce(0, +) / count
             let firstVisit = cityPhotos.map(\.date).min() ?? first.date
             let sample = cityPhotos.first!
-            return Trip.TripStop(id: key, name: sample.city ?? key,
+            let occurrence = (seen[visit.key] ?? 0) + 1
+            seen[visit.key] = occurrence
+            return Trip.TripStop(id: occurrence == 1 ? visit.key : "\(visit.key)#\(occurrence)",
+                                 name: sample.city ?? visit.key,
                                  countryCode: sample.countryCode ?? "",
                                  flag: sample.flagEmoji,
                                  latitude: clat, longitude: clon,
                                  firstVisit: firstVisit, photoCount: cityPhotos.count,
                                  photoIDs: cityPhotos.sorted { $0.date < $1.date }.map(\.id))
         }
-        .sorted { $0.firstVisit < $1.firstVisit }
 
         // Centroid
         let lat = photos.map(\.coordinate.latitude).reduce(0, +) / Double(photos.count)
