@@ -446,7 +446,8 @@ private struct StopPhotosView: View {
 
 // MARK: - Share preview
 
-/// Shows a live preview of the trip share card before sharing.
+/// Shows a live preview of the trip film before sharing it — and the still card as the
+/// alternative, which is literally the film's last frame.
 private struct TripSharePreview: View {
     let trip: Trip
     let cover: UIImage?
@@ -457,36 +458,176 @@ private struct TripSharePreview: View {
     /// Resolved insights: the cached value, refined once computed on appear.
     @State private var resolved: TripInsights?
 
+    @State private var assets = TripFilmAssets.empty
+    @State private var filmLoaded = false
+    @State private var loopStart = Date()
+    @State private var exporting = false
+    @State private var exportProgress: Double = 0
+    @State private var videoError: String?
+    @State private var showPaywall = false
+
+    /// The shot list, which depends on what actually loaded — a trip whose maps all timed out
+    /// still has a film, it just falls back to the vector treatment.
+    private var film: TripFilm? {
+        guard filmLoaded else { return nil }
+        return TripFilm(trip: trip, assets: assets)
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                SharePreviewCanvas(size: TripShareCardView.canvasSize) {
-                    TripShareCardView(trip: trip, cover: cover, insights: resolved)
-                }
-                .task {
-                    resolved = insights
-                    // Fill the theme in even if the (lazy) insights section hasn't loaded yet.
-                    if resolved == nil, appVM.insightsEnabled {
-                        resolved = await appVM.computeInsights(for: trip)
-                    }
-                }
-
-                Button { share() } label: {
-                    Label("Share", systemImage: "square.and.arrow.up")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity).padding(.vertical, 15)
-                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
-                        .foregroundStyle(.white)
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 12)
+                canvas
+                actions
             }
             .navigationTitle("Share Trip")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }.disabled(exporting)
+                }
+            }
+            .task { await prepare() }
+            .overlay { if exporting { exportOverlay } }
+            .interactiveDismissDisabled(exporting)
+            .alert("Couldn't create the video", isPresented: videoErrorBinding) {
+                Button("OK", role: .cancel) { videoError = nil }
+            } message: {
+                Text(videoError ?? "")
+            }
+            .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
+        }
+    }
+
+    /// The preview plays the very film it exports — `TripFilmView` is a pure function of
+    /// progress, so what loops here and what lands in the `.mp4` are identical by construction.
+    /// Until the photos and maps arrive it shows the still card, which is the same size and the
+    /// same last frame, so nothing jumps when the film takes over.
+    private var canvas: some View {
+        SharePreviewCanvas(size: TripShareCardView.canvasSize) {
+            ZStack {
+                if let film {
+                    TimelineView(.animation) { timeline in
+                        TripFilmView(trip: trip, assets: assets, insights: resolved,
+                                     film: film, progress: loopProgress(at: timeline.date, film: film))
+                    }
+                } else {
+                    TripShareCardView(trip: trip, cover: cover, insights: resolved)
+                    VStack {
+                        Spacer()
+                        HStack(spacing: 8) {
+                            ProgressView().tint(.white)
+                            Text("Preparing film…")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 14).padding(.vertical, 9)
+                        .background(.black.opacity(0.55), in: Capsule())
+                        .padding(.bottom, 26)
+                    }
+                }
             }
         }
+        .onAppear { loopStart = Date() }
+    }
+
+    /// Restarts from the top after a beat on the end card, so the last numbers are readable
+    /// before it loops.
+    private func loopProgress(at date: Date, film: TripFilm) -> Double {
+        let cycle = film.duration + 1.0
+        let elapsed = date.timeIntervalSince(loopStart).truncatingRemainder(dividingBy: cycle)
+        return min(elapsed / film.duration, 1)
+    }
+
+    private var actions: some View {
+        VStack(spacing: 12) {
+            Button {
+                guard appVM.hasLifetime else { showPaywall = true; return }
+                Task { await exportFilm() }
+            } label: {
+                Label("Share film", systemImage: appVM.hasLifetime ? "square.and.arrow.up" : "lock.fill")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity).padding(.vertical, 15)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(.white)
+            }
+            // Only gated on the film being ready for people who can actually export it —
+            // otherwise the button that opens the paywall would sit disabled behind a spinner.
+            .disabled(exporting || (appVM.hasLifetime && film == nil))
+
+            Button { share() } label: {
+                Label("Share image", systemImage: "photo")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+            }
+            .disabled(exporting)
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 12)
+    }
+
+    // MARK: - Loading and export
+
+    private func prepare() async {
+        resolved = insights
+        // Fill the theme in even if the (lazy) insights section hasn't loaded yet.
+        if resolved == nil, appVM.insightsEnabled {
+            resolved = await appVM.computeInsights(for: trip)
+        }
+        guard !filmLoaded else { return }
+        assets = await TripFilmAssets.load(for: trip, insights: resolved)
+        loopStart = Date()
+        filmLoaded = true
+    }
+
+    private func exportFilm() async {
+        guard let film else { return }
+        exporting = true
+        exportProgress = 0
+        defer { exporting = false }
+
+        do {
+            let url = try ShareVideoFile.makeURL(named: "Photrail — \(trip.englishDisplayName)")
+            let output = try await ShareVideoRenderer.export(
+                config: ShareVideoRenderer.Config(duration: film.duration),
+                outputURL: url,
+                onProgress: { exportProgress = $0 }
+            ) { progress in
+                TripFilmView(trip: trip, assets: assets, insights: resolved,
+                             film: film, progress: progress)
+            }
+            // Cleaned up only once the sheet is done: Instagram and TikTok read the file
+            // lazily, and deleting it earlier ships them a 0-byte video.
+            SharePresenter.present([output]) {
+                ShareVideoFile.remove(output)
+            }
+        } catch is CancellationError {
+            // Nothing to report — the user backed out.
+        } catch {
+            videoError = error.localizedDescription
+        }
+    }
+
+    private var exportOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.55).ignoresSafeArea()
+            VStack(spacing: 14) {
+                ProgressView(value: exportProgress)
+                    .progressViewStyle(.linear)
+                    .frame(width: 180)
+                Text("Creating video…")
+                    .font(.subheadline.weight(.semibold))
+                // The film takes long enough that a bar alone reads as a hang.
+                Text(exportProgress.formatted(.percent.precision(.fractionLength(0))))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            .padding(28)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+        }
+    }
+
+    private var videoErrorBinding: Binding<Bool> {
+        Binding(get: { videoError != nil }, set: { if !$0 { videoError = nil } })
     }
 
     private func share() {

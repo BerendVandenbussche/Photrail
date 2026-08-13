@@ -123,6 +123,16 @@
         }
       }
     },
+    "%@ %@ photos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ photos"
+          }
+        }
+      }
+    },
     "%@ %lld%@" : {
       "localizations" : {
         "en" : {
@@ -180,6 +190,9 @@
         }
       }
     },
+    "%@ km on the ground" : {
+
+    },
     "%@ of %lld · %lld%% seen" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -212,6 +225,9 @@
         }
       }
     },
+    "%@ One of the New 7 Wonders" : {
+
+    },
     "%@ Peak %lld bpm — tap a photo to see its vibe" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -228,6 +244,9 @@
           }
         }
       }
+    },
+    "%@ Seen in person" : {
+
     },
     "%@ steps" : {
       "extractionState" : "manual",
@@ -488,6 +507,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld days · %@ photos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld days · %2$@ photos"
           }
         }
       }
@@ -2494,6 +2523,9 @@
         }
       }
     },
+    "Map data © Apple" : {
+
+    },
     "Maybe later" : {
       "localizations" : {
         "nl" : {
@@ -3310,6 +3342,23 @@
         }
       }
     },
+    "Preparing film…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing film…"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film voorbereiden…"
+          }
+        }
+      }
+    },
     "pretzels" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3920,6 +3969,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delen als video"
+          }
+        }
+      }
+    },
+    "Share film" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share film"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film delen"
           }
         }
       }
