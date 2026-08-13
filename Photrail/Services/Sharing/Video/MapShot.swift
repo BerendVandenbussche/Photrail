@@ -15,6 +15,14 @@ import UIKit
 /// has to retain a `Snapshot` or reason about `displayScale`, and can place a pin with a plain
 /// `.position(x: marker.x * width, y: marker.y * height)`.
 ///
+/// **Attribution lives inside `image`.** `MKMapSnapshotter` composites the Apple logo and "Maps"
+/// mark into the picture it returns, so nothing needs to be added — but the obligation moves from
+/// *displaying* a credit to *not hiding* one. The Developer Program License Agreement forbids
+/// removing, obscuring or altering Apple's notices, and the Maps HIG asks that the logo not be
+/// covered all the time and be kept clear of surrounding chrome. In practice that means whatever
+/// draws a `MapShot` must not crop, cover or round away its bottom-leading corner. Snapshots
+/// below 200×100pt carry no logo at all, so every map here is requested comfortably larger.
+///
 /// `@unchecked Sendable` because `UIImage` is immutable once created and this value is produced in
 /// one task and read in another, never mutated.
 struct MapShot: @unchecked Sendable {

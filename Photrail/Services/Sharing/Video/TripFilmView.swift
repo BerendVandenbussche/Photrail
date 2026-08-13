@@ -215,22 +215,6 @@ struct TripFilmView: View {
         }
     }
 
-    /// Shown on every scene built from map tiles. Apple requires their content to be credited
-    /// wherever it appears, and an exported video is somewhere it appears.
-    private var mapCredit: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                Text("Map data © Apple")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.55))
-                    .padding(.trailing, 14)
-                    .padding(.bottom, 40)
-            }
-        }
-    }
-
     // MARK: - 1. Open
 
     private func openScene(at local: Double) -> some View {
@@ -264,14 +248,17 @@ struct TripFilmView: View {
 
     // MARK: - 2. The map
 
-    /// The establishing shot: the real map, pulling back while the route draws across it.
+    /// The establishing shot: the real map, with the route drawing across it.
     ///
-    /// The camera doesn't move — the *picture* does. `MKMapSnapshotter` gave us one image and
-    /// the coordinates resolved into it, so a scale on the whole stack keeps the route welded to
-    /// the terrain underneath it.
+    /// `MKMapSnapshotter` gave us one image and the coordinates resolved into it, so the route is
+    /// welded to the terrain underneath it.
+    ///
+    /// Deliberately not scaled. This used to pull back from 1.25, which cropped the outer fifth of
+    /// the image — including the bottom-leading corner where the snapshot carries Apple's Maps
+    /// logo. Cropping an attribution mark isn't something to be clever about, and the scene never
+    /// needed the move: the line drawing itself across a real map is the shot.
     private func mapDiveScene(at local: Double) -> some View {
         let drawn = Ramp(0.18, 0.82, easing: .easeInOut).value(at: local)
-        let zoom = Ramp(0, 1, easing: .easeOut).interpolate(1.25, 1.0, at: local)
         let route = trip.stops.prefix(12).map {
             CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
         }
@@ -286,8 +273,6 @@ struct TripFilmView: View {
                                startPoint: .top, endPoint: .bottom)
             }
             .frame(width: W, height: H)
-            .scaleEffect(zoom)
-            .clipped()
 
             VStack(alignment: .leading, spacing: 10) {
                 Spacer()
@@ -304,8 +289,6 @@ struct TripFilmView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 32)
-
-            if assets.wideMap != nil { mapCredit }
         }
     }
 
@@ -318,6 +301,8 @@ struct TripFilmView: View {
             let shot = assets.stopMaps.indices.contains(index) ? assets.stopMaps[index] : nil
             let photo = assets.stopShots.indices.contains(index) ? assets.stopShots[index] : nil
             // Alternating sides, so three stops in a row don't read as the same shot three times.
+            // Only the *card* swaps sides: the photo inset always overhangs the trailing corner,
+            // because the leading one carries the snapshot's Apple Maps logo (see `MapShot`).
             let leading = index.isMultiple(of: 2)
             let mapSize = TripFilmAssets.stopMapSize
             let centre = CLLocationCoordinate2D(latitude: stop.latitude, longitude: stop.longitude)
@@ -327,12 +312,11 @@ struct TripFilmView: View {
                     // The slack lives at the top, so a long name grows upward into empty space.
                     Spacer(minLength: 0)
 
-                    ZStack(alignment: leading ? .bottomTrailing : .bottomLeading) {
+                    ZStack(alignment: .bottomTrailing) {
                         MapLayer(shot: shot, coordinates: [centre], outline: [],
                                  size: mapSize, drawn: nil, lineWidth: 0,
                                  lineColor: .clear, accent: accent, pinSize: 14)
                             .frame(width: mapSize.width, height: mapSize.height)
-                            .scaleEffect(Ramp(0, 1, easing: .easeOut).interpolate(1.06, 1.0, at: local))
                             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                             .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
                                 .strokeBorder(.white.opacity(0.18), lineWidth: 1))
@@ -341,7 +325,7 @@ struct TripFilmView: View {
 
                         photoCard(photo, size: CGSize(width: 124, height: 158), at: local,
                                   ramp: Ramp(0.22, 0.44, easing: .spring))
-                            .offset(x: leading ? 34 : -34, y: 46)
+                            .offset(x: 34, y: 46)
                     }
                     .frame(width: mapSize.width, height: mapSize.height)
                     .frame(maxWidth: .infinity, alignment: leading ? .leading : .trailing)
@@ -367,8 +351,6 @@ struct TripFilmView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 30)
-
-                if shot != nil { mapCredit }
             }
         }
     }
@@ -402,9 +384,9 @@ struct TripFilmView: View {
                                      size: mapSize, drawn: nil, lineWidth: 0,
                                      lineColor: .clear, accent: accent, pinSize: 0)
                                 .frame(width: mapSize.width, height: mapSize.height)
-                                // A slow push, so the landmark is being approached rather than
-                                // sat in front of.
-                                .scaleEffect(Ramp(0, 1, easing: .linear).interpolate(1.0, 1.08, at: local))
+                                // No slow push here either: scaling up crops the corner carrying
+                                // Apple's Maps logo. The 3D camera already gives this scene its
+                                // depth, so it loses less than the wide map did.
                                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                                 .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
                                     .strokeBorder(.white.opacity(0.18), lineWidth: 1))
@@ -445,8 +427,6 @@ struct TripFilmView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 30)
-
-                if assets.wonderMap != nil { mapCredit }
             }
         }
     }
@@ -510,8 +490,6 @@ struct TripFilmView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 30)
-
-                if assets.trackMap != nil { mapCredit }
             }
         }
     }
