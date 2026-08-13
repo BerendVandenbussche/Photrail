@@ -12,6 +12,9 @@ struct TripInsightsSection: View {
     @State private var insights: TripInsights?
     @State private var loading = false
     @State private var selectedChapter: WorkoutChapter?
+    /// Dismissed once, gone for good on every trip — the tip is worth saying once, not on
+    /// every trip detail a Garmin owner ever opens.
+    @AppStorage("routeTipDismissed") private var routeTipDismissed = false
 
     /// Once the user dismisses the opt-in card, hide the whole section on every trip so
     /// they're greeted with useful content instead. They can still enable it from the Me tab.
@@ -97,8 +100,79 @@ struct TripInsightsSection: View {
             if !insights.workoutChapters.isEmpty {
                 workoutsCard(insights.workoutChapters)
             }
+            if let tip = routeTip(insights) {
+                routeTipCard(tip)
+            }
         }
         .padding(.horizontal, 20)
+    }
+
+    /// Activities that happen outdoors and normally record a track. A yoga session or a pool
+    /// swim has no GPS to lose, so it must never trigger a tip about missing routes — the advice
+    /// would be unfollowable and would make the app look like it misunderstands its own data.
+    private static let routeBearing: Set<String> = [
+        "running", "walking", "cycling", "hiking", "skiing", "snowboarding", "snowSports", "skating"
+    ]
+
+    private enum RouteTip {
+        /// Outdoor workouts arrived, none of them carrying a route.
+        case routeless
+        /// No workouts arrived at all, on a trip where the other Health data says you moved.
+        case missing
+    }
+
+    /// Whether to explain the gap, and which gap it is.
+    ///
+    /// Two different failures produce the same silent emptiness. Workouts relayed into Health
+    /// from a Garmin or Zwift arrive stripped of their GPS. And Strava's Health sync is **off
+    /// until you go and switch it on**, so someone recording every hike in Strava can have
+    /// nothing at all in Health — which the earlier version of this check missed entirely,
+    /// because it required workouts to exist before it would say anything.
+    private func routeTip(_ insights: TripInsights) -> RouteTip? {
+        guard !routeTipDismissed else { return nil }
+        let outdoor = insights.workoutChapters.filter { Self.routeBearing.contains($0.activityKey) }
+        if !outdoor.isEmpty {
+            return outdoor.allSatisfy { !$0.hasRoute } ? .routeless : nil
+        }
+        return wasActive(insights) ? .missing : nil
+    }
+
+    /// Evidence the trip involved real activity, so "no workouts" reads as something missing
+    /// rather than something that never happened.
+    ///
+    /// Without a gate like this the note would greet everyone who spent a week on a beach.
+    /// 12,000 steps a day is a walking holiday; 40 flights is about 120 m of climbing; 1,500 m
+    /// of altitude is a mountain. Any one of them means the trip had legs.
+    private func wasActive(_ insights: TripInsights) -> Bool {
+        let days = max((Calendar.current.dateComponents([.day], from: trip.startDate,
+                                                        to: trip.endDate).day ?? 0) + 1, 1)
+        if let steps = insights.persona?.steps, Double(steps) / Double(days) >= 12_000 { return true }
+        if let flights = insights.flightsClimbed, flights >= 40 { return true }
+        if let peak = trip.highestAltitude, peak >= 1_500 { return true }
+        return false
+    }
+
+    private func routeTipCard(_ tip: RouteTip) -> some View {
+        InsightCard(icon: "map", tint: .teal,
+                    title: tip == .routeless ? "No routes in these workouts"
+                                             : "No workouts from this trip") {
+            Text(tip == .routeless
+                 ? "Photrail can retrace the route of a workout on a map. These ones arrived without one."
+                 : "Photrail can retrace a recorded workout on a map. Nothing from this trip reached Apple Health.")
+                .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+            // Plain factual text, no logos: Strava's brand guidelines allow naming them this way
+            // but not in a heading or anywhere more prominent than Photrail itself.
+            Text("If you record in the Strava app, open Settings → Manage Apps and Devices → Health, tap Connect, enable Workouts & Routes, then turn on Send to Health.")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Activities uploaded to Strava from a Garmin or similar device don't carry their route, and neither will Health.")
+                .font(.caption).foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Got it") { routeTipDismissed = true }
+                .font(.caption.weight(.semibold))
+                .padding(.top, 2)
+        }
     }
 
     // MARK: - Feature cards

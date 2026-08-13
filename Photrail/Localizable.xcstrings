@@ -953,6 +953,23 @@
         }
       }
     },
+    "Activities uploaded to Strava from a Garmin or similar device don't carry their route, and neither will Health." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activities uploaded to Strava from a Garmin or similar device don't carry their route, and neither will Health."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activiteiten die vanaf een Garmin of vergelijkbaar toestel naar Strava zijn ge\u00fcpload, bevatten geen route \u2014 en Health dus ook niet."
+          }
+        }
+      }
+    },
     "Activity" : {
       "localizations" : {
         "nl" : {
@@ -2187,6 +2204,23 @@
         }
       }
     },
+    "Got it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Begrepen"
+          }
+        }
+      }
+    },
     "gyros" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2363,6 +2397,23 @@
         }
       }
     },
+    "If you record in the Strava app, open Settings \u2192 Manage Apps and Devices \u2192 Health, tap Connect, enable Workouts & Routes, then turn on Send to Health." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you record in the Strava app, open Settings \u2192 Manage Apps and Devices \u2192 Health, tap Connect, enable Workouts & Routes, then turn on Send to Health."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neem je op met de Strava-app? Open Settings \u2192 Manage Apps and Devices \u2192 Health, tik op Connect, zet Workouts & Routes aan en schakel daarna Send to Health in."
+          }
+        }
+      }
+    },
     "Include in stats" : {
       "localizations" : {
         "nl" : {
@@ -2522,9 +2573,6 @@
           }
         }
       }
-    },
-    "Map data © Apple" : {
-
     },
     "Maybe later" : {
       "localizations" : {
@@ -2791,6 +2839,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Geen thuis ingesteld"
+          }
+        }
+      }
+    },
+    "No workouts from this trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No workouts from this trip"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen workouts van deze reis"
+          }
+        }
+      }
+    },
+    "No routes in these workouts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No routes in these workouts"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen routes in deze workouts"
           }
         }
       }
@@ -3256,6 +3338,40 @@
     },
     "PHOTRAIL · %@" : {
 
+    },
+    "Photrail can retrace a recorded workout on a map. Nothing from this trip reached Apple Health." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail can retrace a recorded workout on a map. Nothing from this trip reached Apple Health."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail kan een opgenomen workout op een kaart natekenen. Van deze reis is er niets in Apple Health terechtgekomen."
+          }
+        }
+      }
+    },
+    "Photrail can retrace the route of a workout on a map. These ones arrived without one." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail can retrace the route of a workout on a map. These ones arrived without one."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail kan de route van een workout op een kaart natekenen. Deze kwamen zonder route binnen."
+          }
+        }
+      }
     },
     "Photrail needs access to your photo library to read location data. Your photos stay on your device." : {
       "localizations" : {
