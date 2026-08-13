@@ -283,6 +283,16 @@
         }
       }
     },
+    "%@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
     "%@× around the Earth" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -894,22 +904,22 @@
         }
       }
     },
-    "Achievements unlocked" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prestaties ontgrendeld"
-          }
-        }
-      }
-    },
     "Achievements" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Prestaties"
+          }
+        }
+      }
+    },
+    "Achievements unlocked" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prestaties ontgrendeld"
           }
         }
       }
@@ -2468,6 +2478,9 @@
         }
       }
     },
+    "m" : {
+
+    },
     "Made with Photrail" : {
 
     },
@@ -2870,16 +2883,6 @@
         }
       }
     },
-    "Notifications are off in iOS Settings" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Meldingen staan uit in iOS-instellingen"
-          }
-        }
-      }
-    },
     "Not yet visited" : {
       "localizations" : {
         "nl" : {
@@ -2926,6 +2929,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Niets om te herstellen"
+          }
+        }
+      }
+    },
+    "Notifications are off in iOS Settings" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meldingen staan uit in iOS-instellingen"
           }
         }
       }
@@ -3207,6 +3220,9 @@
 
     },
     "PHOTRAIL" : {
+
+    },
+    "PHOTRAIL · %@" : {
 
     },
     "Photrail needs access to your photo library to read location data. Your photos stay on your device." : {
@@ -3654,16 +3670,6 @@
         }
       }
     },
-    "Searching\u2026" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zoeken\u2026"
-          }
-        }
-      }
-    },
     "Search a city or place" : {
       "localizations" : {
         "nl" : {
@@ -3731,6 +3737,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zoek je thuisstad. Gebruikt voor de berekening van je verste reis en om alledaagse foto's dicht bij huis uit te sluiten van je reispersoonlijkheid."
+          }
+        }
+      }
+    },
+    "Searching…" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoeken…"
           }
         }
       }
@@ -3908,6 +3924,23 @@
         }
       }
     },
+    "Share image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share image"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afbeelding delen"
+          }
+        }
+      }
+    },
     "Share Memory" : {
       "localizations" : {
         "nl" : {
@@ -3968,6 +4001,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reis delen"
+          }
+        }
+      }
+    },
+    "Share video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share video"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video delen"
           }
         }
       }
@@ -4303,6 +4353,16 @@
         }
       }
     },
+    "Tap to see what you've earned" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik om te zien wat je hebt verdiend"
+          }
+        }
+      }
+    },
     "Tap to see your travel stats here" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4310,16 +4370,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tik om hier je reisstatistieken te zien"
-          }
-        }
-      }
-    },
-    "Tap to see what you've earned" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tik om te zien wat je hebt verdiend"
           }
         }
       }
@@ -5413,12 +5463,19 @@
         }
       }
     },
-    "Your %@ Travel Snapshot" : {
+    "Your %@ film" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your %@ film"
+          }
+        },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jouw reisoverzicht van %@"
+            "value" : "Jouw film van %@"
           }
         }
       }

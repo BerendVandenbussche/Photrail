@@ -14,9 +14,23 @@ struct RecapView: View {
     }
 
     @State private var page: Slide = .intro
-    @State private var theme: RecapTheme = .dark
     @State private var collageImages: [UIImage] = []
     @State private var peakImage: UIImage?
+
+    // Finale film.
+    @State private var loopStart = Date()
+    @State private var filmAssets = RecapFilmAssets.empty
+    @State private var filmLoaded = false
+    @State private var exporting = false
+    @State private var exportProgress: Double = 0
+    @State private var videoError: String?
+
+    /// The shot list, which depends on what actually loaded — a year whose photos are all
+    /// offline drops the montage rather than cutting to black.
+    private var film: RecapFilm? {
+        guard filmLoaded else { return nil }
+        return RecapFilm(recap: recap, assets: filmAssets)
+    }
 
     private static let top = Color(red: 0.07, green: 0.09, blue: 0.24)
     private static let bottom = Color(red: 0.22, green: 0.13, blue: 0.42)
@@ -54,7 +68,14 @@ struct RecapView: View {
             topBar
         }
         .preferredColorScheme(.dark)
-        .task { await preloadCollage(); await preloadPeak() }
+        .task { await preloadCollage(); await preloadPeak(); await preloadFilm() }
+        .overlay { if exporting { exportOverlay } }
+        .interactiveDismissDisabled(exporting)
+        .alert("Couldn't create the video", isPresented: videoErrorBinding) {
+            Button("OK", role: .cancel) { videoError = nil }
+        } message: {
+            Text(videoError ?? "")
+        }
     }
 
     @ViewBuilder
@@ -62,11 +83,9 @@ struct RecapView: View {
         switch slide {
         case .intro:            intro
         case .mostPhotographed: collagePage
-        case .highestPeak:      cardPage(RecapShareCardView(recap: recap, theme: theme,
-                                                            focus: .highestPeak, peakImage: peakImage))
+        case .highestPeak:      cardPage(RecapShareCardView(recap: recap, focus: .highestPeak, peakImage: peakImage))
         case .finale:           finale
-        default:                cardPage(RecapShareCardView(recap: recap, theme: theme,
-                                                            focus: focus(for: slide)))
+        default:                cardPage(RecapShareCardView(recap: recap, focus: focus(for: slide)))
         }
     }
 
@@ -91,7 +110,7 @@ struct RecapView: View {
     @ViewBuilder
     private var collagePage: some View {
         if recap.highlightPhotoIDs.isEmpty {
-            cardPage(RecapShareCardView(recap: recap, theme: theme, focus: .snapshot))
+            cardPage(RecapShareCardView(recap: recap, focus: .snapshot))
         } else if collageImages.isEmpty {
             ProgressView().tint(.white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -124,52 +143,158 @@ struct RecapView: View {
     }
 
     private var finale: some View {
-        VStack(spacing: 18) {
-            Text("Your \(String(recap.year)) Travel Snapshot")
+        VStack(spacing: 14) {
+            Text("Your \(String(recap.year)) film")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
-                .padding(.top, 8)
+                .padding(.top, 6)
 
-            let scale: CGFloat = 0.62
-            RecapShareCardView(recap: recap, theme: theme)
-                .frame(width: RecapShareCardView.canvasSize.width, height: RecapShareCardView.canvasSize.height)
-                .scaleEffect(scale)
-                .frame(width: RecapShareCardView.canvasSize.width * scale,
-                       height: RecapShareCardView.canvasSize.height * scale)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
+            finaleCard
+            finaleActions
+        }
+    }
 
-            HStack(spacing: 8) {
-                ForEach(RecapTheme.allCases) { t in
-                    Button { theme = t } label: {
-                        Text(t.title)
-                            .font(.subheadline.weight(theme == t ? .semibold : .regular))
-                            .padding(.horizontal, 14).padding(.vertical, 7)
-                            .background(theme == t ? Color.white.opacity(0.9) : Color.white.opacity(0.12),
-                                        in: Capsule())
-                            .foregroundStyle(theme == t ? .black : .white)
-                    }
+    /// The finale plays the very film it exports. `RecapFilmView` is a pure function of
+    /// progress, so what loops here and what lands in the `.mp4` are identical by construction
+    /// — the same guarantee the still slides get from rendering the real share card.
+    @ViewBuilder
+    private var finaleCard: some View {
+        let scale: CGFloat = 0.58
+        Group {
+            if let film {
+                TimelineView(.animation) { timeline in
+                    RecapFilmView(recap: recap, assets: filmAssets, film: film,
+                                  progress: loopProgress(at: timeline.date, film: film))
+                }
+            } else {
+                // Photos are still being pulled — possibly from iCloud. The card is the same
+                // size either way, so nothing jumps when it arrives.
+                ZStack {
+                    RoundedRectangle(cornerRadius: 36, style: .continuous)
+                        .fill(Color.white.opacity(0.08))
+                    ProgressView().tint(.white)
                 }
             }
+        }
+        .frame(width: RecapFilmView.canvasSize.width, height: RecapFilmView.canvasSize.height)
+        .scaleEffect(scale)
+        .frame(width: RecapFilmView.canvasSize.width * scale,
+               height: RecapFilmView.canvasSize.height * scale)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
+        .onAppear { loopStart = Date() }
+    }
 
-            Button {
-                if let image = ShareCardRenderer.render(
-                    RecapShareCardView(recap: recap, theme: theme),
-                    baseSize: RecapShareCardView.canvasSize,
-                    opaque: theme != .transparent
-                ) {
-                    SharePresenter.present([image])
-                }
-            } label: {
-                Label("Share", systemImage: "square.and.arrow.up")
+    /// Restarts from the top after a beat on the end card, so the brand line — which resolves
+    /// last — is actually readable before it loops.
+    private func loopProgress(at date: Date, film: RecapFilm) -> Double {
+        let cycle = film.duration + 1.0
+        let elapsed = date.timeIntervalSince(loopStart).truncatingRemainder(dividingBy: cycle)
+        return min(elapsed / film.duration, 1)
+    }
+
+    private var finaleActions: some View {
+        VStack(spacing: 12) {
+            Button { Task { await exportVideo() } } label: {
+                Label("Share video", systemImage: "square.and.arrow.up")
                     .font(.headline)
                     .frame(maxWidth: .infinity).padding(.vertical, 15)
                     .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
                     .foregroundStyle(.black)
             }
-            .padding(.horizontal, 36)
-            .padding(.bottom, 28)
+            .disabled(exporting || film == nil)
+
+            // No theme picker. Once the finale plays a film, a light/transparent switch that
+            // silently applies to the *still* export and nothing you can see is a puzzle, not
+            // a choice — every recap card is dark, matching the film.
+            Button { shareFinaleImage() } label: {
+                Text("Share image")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity).padding(.vertical, 11)
+                    .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 14))
+                    .foregroundStyle(.white)
+            }
+            .disabled(exporting)
         }
+        .padding(.horizontal, 36)
+        .padding(.bottom, 20)
+    }
+
+    private func shareFinaleImage() {
+        if let image = ShareCardRenderer.render(
+            RecapShareCardView(recap: recap),
+            baseSize: RecapShareCardView.canvasSize,
+            opaque: true
+        ) {
+            SharePresenter.present([image])
+        }
+    }
+
+    // MARK: - Video export
+
+    /// Pulls every photo the film needs, once. Deliberately last of the three preloads: the
+    /// user lands on the intro slide and swipes through nine others before reaching the
+    /// finale, which is plenty of time even when the photos come from iCloud.
+    private func preloadFilm() async {
+        guard !filmLoaded, !recap.isEmpty else { return }
+        filmAssets = await RecapFilmAssets.load(for: recap)
+        filmLoaded = true
+    }
+
+    private func exportVideo() async {
+        guard let film else { return }
+        exporting = true
+        exportProgress = 0
+        defer { exporting = false }
+
+        do {
+            let url = try ShareVideoFile.makeURL(named: "Photrail \(recap.year) — Year in Travel")
+            let output = try await ShareVideoRenderer.export(
+                config: ShareVideoRenderer.Config(duration: film.duration),
+                outputURL: url,
+                onProgress: { exportProgress = $0 }
+            ) { progress in
+                RecapFilmView(recap: recap, assets: filmAssets, film: film, progress: progress)
+            }
+            // Cleaned up only once the sheet is done: Instagram and TikTok read the file
+            // lazily after their extension launches, so deleting any earlier ships a 0-byte
+            // video. The handler fires on cancel too.
+            SharePresenter.present([output]) {
+                ShareVideoFile.remove(output)
+            }
+        } catch is CancellationError {
+            // Nothing to report — the user backed out.
+        } catch {
+            videoError = error.localizedDescription
+        }
+    }
+
+    private var exportOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.55).ignoresSafeArea()
+            VStack(spacing: 14) {
+                ProgressView(value: exportProgress)
+                    .progressViewStyle(.linear)
+                    .frame(width: 180)
+                Text("Creating video…")
+                    .font(.subheadline.weight(.semibold))
+                // The film takes long enough that a bar alone reads as a hang; the number
+                // is what tells you it's still moving.
+                Text(exportProgress.formatted(.percent.precision(.fractionLength(0))))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            .padding(28)
+            .background(Color(.secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        // Rendering keeps the main actor busy throughout, so block interaction rather than
+        // letting the UI feel broken.
+        .transition(.opacity)
+    }
+
+    private var videoErrorBinding: Binding<Bool> {
+        Binding(get: { videoError != nil }, set: { if !$0 { videoError = nil } })
     }
 
     // MARK: - Top bar (share + close)
@@ -217,10 +342,10 @@ struct RecapView: View {
             return
         }
         if let image = ShareCardRenderer.render(
-            RecapShareCardView(recap: recap, theme: theme, focus: focus(for: page),
+            RecapShareCardView(recap: recap, focus: focus(for: page),
                                peakImage: page == .highestPeak ? peakImage : nil),
             baseSize: RecapShareCardView.canvasSize,
-            opaque: theme != .transparent
+            opaque: true
         ) {
             SharePresenter.present([image])
         }

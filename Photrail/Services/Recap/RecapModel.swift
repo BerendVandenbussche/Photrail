@@ -22,8 +22,23 @@ struct RecapModel: Sendable, Identifiable {
     let favoriteCountryName: String?
     let favoriteCountryFlag: String?
 
-    let biggestTripTitle: String?
-    let biggestTripSubtitle: String?
+    /// The year's headline trips, most-photographed first — at most two, and a second only
+    /// when the year genuinely had two (see `RecapModel.make`). The film gives each one a
+    /// scene; the still cards only ever use the first.
+    let headlineTrips: [TripBadge]
+
+    struct TripBadge: Identifiable, Sendable {
+        let id: String
+        let title: String        // flag(s) + English name
+        let subtitle: String     // "N photos · date range"
+        /// The trip's already-chosen cover when the user has opened it, otherwise its first
+        /// photo — deliberately *never* a fresh `PhotoCurator` pass, which is a full Vision
+        /// sweep and far too expensive here.
+        let photoID: String?
+    }
+
+    var biggestTripTitle: String? { headlineTrips.first?.title }
+    var biggestTripSubtitle: String? { headlineTrips.first?.subtitle }
 
     let pins: [GeoPhoto.Coordinate]
     /// Trips in chronological order — the year's journey, country by country.
@@ -95,8 +110,7 @@ struct RecapModel: Sendable, Identifiable {
         RecapModel(year: year, title: "Explorer", score: 0, countries: 0, cities: 0,
                    trips: 0, photos: 0, wonders: 0, continents: 0, distanceKm: 0,
                    dominantTitle: nil, topSlices: [], favoriteCountryName: nil,
-                   favoriteCountryFlag: nil, biggestTripTitle: nil,
-                   biggestTripSubtitle: nil, pins: [], journey: [],
+                   favoriteCountryFlag: nil, headlineTrips: [], pins: [], journey: [],
                    newCountries: [], busiestMonth: nil, longestTripText: nil,
                    highestAltitude: nil, highestAltitudePlace: nil, highestPeakPhotoID: nil,
                    highlightPhotoIDs: [], seenWonders: [])
@@ -125,6 +139,36 @@ extension RecapModel {
         // Every detected trip is already a journey away from home town.
         let awayTrips = stats.trips
         let biggest = awayTrips.max { $0.photoCount < $1.photoCount }
+
+        // A year can genuinely have two headline trips — Cambodia *and* Canada — and showing
+        // only the larger one buries half of what made the year. A second scene costs ~3
+        // seconds of a video people watch on a feed, so the bar is a real one:
+        //   · a different set of countries (going back to the same place isn't a second trip),
+        //   · at least four days away (a journey, not a long weekend), and
+        //   · at least 30% of the biggest trip's photos.
+        //
+        // Length carries the weight here, not the photo ratio. How much someone shoots varies
+        // enormously by trip — a three-week Canada trip can easily come in at 40% of a
+        // three-week Cambodia trip without being any less of a journey — so the ratio is only
+        // a floor against a day out that happened to be photographed heavily.
+        let headlineTrips: [TripBadge] = {
+            guard let biggest else { return [] }
+            func badge(_ trip: Trip) -> TripBadge {
+                TripBadge(id: trip.id,
+                          title: "\(trip.isMultiCountry ? trip.flagsLine : trip.flag) \(trip.englishDisplayName)",
+                          subtitle: "\(trip.photoCount) photos · \(trip.dateRangeText)",
+                          photoID: TripCoverStore.coverID(for: trip.id) ?? trip.photoIDs.first)
+            }
+            func days(_ trip: Trip) -> Int {
+                (Calendar.current.dateComponents([.day], from: trip.startDate, to: trip.endDate).day ?? 0) + 1
+            }
+            let runnerUp = awayTrips
+                .filter { $0.id != biggest.id && Set($0.countryCodes) != Set(biggest.countryCodes) }
+                .filter { days($0) >= 4 }
+                .filter { Double($0.photoCount) >= Double(biggest.photoCount) * 0.3 }
+                .max { $0.photoCount < $1.photoCount }
+            return [badge(biggest)] + (runnerUp.map { [badge($0)] } ?? [])
+        }()
 
         // Superlatives — shown only on shareable cards, which stay English by design.
         let busiest = stats.timelineEntries.max { $0.photoCount < $1.photoCount }?.month
@@ -200,8 +244,7 @@ extension RecapModel {
             topSlices: Array((profile?.visibleSlices ?? []).prefix(3)),
             favoriteCountryName: favorite.map { Locale(identifier: "en_US").localizedString(forRegionCode: $0.id) ?? $0.name },
             favoriteCountryFlag: favorite?.flag,
-            biggestTripTitle: biggest.map { "\($0.isMultiCountry ? $0.flagsLine : $0.flag) \($0.englishDisplayName)" },
-            biggestTripSubtitle: biggest.map { "\($0.photoCount) photos · \($0.dateRangeText)" },
+            headlineTrips: headlineTrips,
             pins: stats.countries
                 .map { $0.representativeCoordinate }
                 .filter { $0.latitude != 0 || $0.longitude != 0 },
