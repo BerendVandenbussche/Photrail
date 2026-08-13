@@ -145,10 +145,11 @@ final class VideoFrameWriter: @unchecked Sendable {
 
     /// Draws `image` into a pooled pixel buffer.
     ///
-    /// Four things have to be right at once here, and each fails in its own distinctive way:
+    /// Three things have to be right at once here, and each fails in its own distinctive way:
     /// the byte order (wrong ⇒ red and blue swapped, or a nil context), the row stride
-    /// (wrong ⇒ the image skews diagonally), the vertical flip (missing ⇒ upside-down video),
-    /// and pooling (skipped ⇒ a memory spike as every frame allocates 8 MB afresh).
+    /// (wrong ⇒ the image skews diagonally), and pooling (skipped ⇒ a memory spike as every
+    /// frame allocates 8 MB afresh). A fourth, the vertical flip, must *not* be applied —
+    /// see the note at the `draw` call.
     private static func pixelBuffer(from image: CGImage,
                                     pool: CVPixelBufferPool,
                                     size: CGSize) throws -> CVPixelBuffer {
@@ -184,9 +185,12 @@ final class VideoFrameWriter: @unchecked Sendable {
             throw WriterError.cannotCreateContext
         }
 
-        // Core Graphics draws from the bottom-left; pixel buffer rows run top-down.
-        context.translateBy(x: 0, y: size.height)
-        context.scaleBy(x: 1, y: -1)
+        // No flip. A bitmap context writes its first row of memory as the *top* row of the
+        // rendered image, which is exactly where a pixel buffer expects the top row — so
+        // `draw` lands upright on its own. Flipping here (the reflex, because Core Graphics
+        // is bottom-left origin) is what made every exported video play upside down and
+        // mirrored. The bottom-left origin does apply to the drawing *rectangle*, but the
+        // rect covers the whole frame, so it makes no difference.
         context.interpolationQuality = .high
         context.draw(image, in: CGRect(origin: .zero, size: size))
 
