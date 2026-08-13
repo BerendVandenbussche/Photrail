@@ -601,9 +601,32 @@ final class AppViewModel {
         return granted
     }
 
+    /// Guards against several trips asking at once on the same launch.
+    private var didRefreshHealthAuthorization = false
+
+    /// Asks for any Health types the app has started reading since the user last saw the sheet,
+    /// and throws away the insights cache when it does.
+    ///
+    /// Both halves are needed. iOS never re-presents the sheet for a type added after the user
+    /// granted access, so `workoutRoute` — added late — was never authorised for existing users
+    /// and every workout came back without its GPS track. And the cache is keyed on the trip's
+    /// photos and dates, not on what Health returned, so the routeless chapters would survive
+    /// the new permission indefinitely. Reinstalling the app happened to fix both at once; this
+    /// is so nobody has to.
+    private func refreshHealthAuthorizationIfNeeded() async {
+        guard !didRefreshHealthAuthorization,
+              insightsEnabled,
+              HealthKitService.needsAuthorizationRefresh else { return }
+        didRefreshHealthAuthorization = true
+        guard await healthKit.requestAuthorization() else { return }
+        TripInsightsStore.clearAll()
+        insightsRevision &+= 1
+    }
+
     /// Compute (or reuse cached) insights for a trip. HealthKit queries run inside the
     /// service actor, off the main actor; the pure engine assembles the result.
     func computeInsights(for trip: Trip) async -> TripInsights {
+        await refreshHealthAuthorizationIfNeeded()
         let signature = Self.insightsSignature(for: trip)
         if let cached = cachedInsights(for: trip) { return cached }
 

@@ -30,26 +30,51 @@ actor HealthKitService {
 
     static var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
+    /// **Bump `readTypesVersion` whenever you add anything to this set.**
+    ///
+    /// iOS presents the permission sheet only for types it has never asked about, and it will
+    /// not re-ask on its own. A type added after a user first granted access is therefore
+    /// silently never authorised — reads return empty forever, and reinstalling the app is the
+    /// only thing that fixes it. That is exactly what happened to `workoutRoute`: every user who
+    /// turned Insights on before it was added has been getting workouts with no GPS track.
     private var readTypes: Set<HKObjectType> {
-        var types: Set<HKObjectType> = [
+        [
             HKQuantityType(.heartRate),
             HKQuantityType(.flightsClimbed),
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.stepCount),
             HKObjectType.workoutType(),
+            HKSeriesType.workoutRoute()   // added in v2 — see `readTypesVersion`
         ]
-        types.insert(HKSeriesType.workoutRoute())
-        return types
+    }
+
+    /// The shape of `readTypes`. Bumping it re-presents the sheet once, for the new types only.
+    static let readTypesVersion = 2
+    private static let versionKey = "healthKitReadTypesVersion"
+
+    /// True when the app now asks for Health types it hadn't asked for last time the sheet was
+    /// presented — including the case of a user who granted access before this versioning
+    /// existed, which reads as version 0.
+    ///
+    /// Callers should gate this on the user having opted into Insights at all: someone who never
+    /// turned the feature on shouldn't be shown a permission sheet out of nowhere.
+    static var needsAuthorizationRefresh: Bool {
+        isAvailable && UserDefaults.standard.integer(forKey: versionKey) < readTypesVersion
     }
 
     /// Present the native permission sheet (read-only). Returns whether the request
     /// completed without error. Note: HealthKit deliberately hides *read* grant status,
     /// so a `true` here does not guarantee the user allowed any specific type — callers
     /// must treat "no samples returned" the same as "denied".
+    ///
+    /// Re-presenting is cheap and quiet: iOS shows the sheet only for types the user hasn't
+    /// already decided on, so for an up-to-date install this is a no-op.
     func requestAuthorization() async -> Bool {
         guard Self.isAvailable else { return false }
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
+            // Stamped only on success, so a transient failure retries next time.
+            UserDefaults.standard.set(Self.readTypesVersion, forKey: Self.versionKey)
             return true
         } catch {
             return false
