@@ -284,7 +284,10 @@ struct TripDetector: Sendable {
             .map { Trip.WonderHit(id: $0.wonder.id, name: $0.wonder.name,
                                   emoji: $0.wonder.emoji,
                                   isOfficial: $0.wonder.category == .sevenWonders,
-                                  photoID: $0.representativePhotoID) }
+                                  photoID: $0.representativePhotoID,
+                                  // Capped: the film only ever classifies a handful, and a
+                                  // sprawling site like the Great Wall can match hundreds.
+                                  photoIDs: Array($0.photoIDs.prefix(20))) }
 
         return Trip(
             id: id,

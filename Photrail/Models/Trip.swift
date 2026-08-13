@@ -140,6 +140,13 @@ struct Trip: Identifiable, Sendable {
         let emoji: String
         let isOfficial: Bool      // true = one of the New 7 Wonders; false = landmark
         let photoID: String?      // a representative photo, if any
+        /// Every photo taken inside the wonder's radius, newest first.
+        ///
+        /// `photoID` is just the newest of these, which is a location match and nothing more —
+        /// at Christ the Redeemer that's as likely to be the monkeys on the roof as the statue.
+        /// Callers that can afford a Vision pass should run `PhotoCurator.bestPhoto` over these
+        /// instead; the trip film does.
+        var photoIDs: [String] = []
     }
 
     /// Indicative distance traveled across the trip: sum of the legs between stops,

@@ -819,15 +819,13 @@ final class AppViewModel {
         // For each seen wonder, find a photo that actually depicts it (not a nearby selfie).
         var wonderPhotos: [String: String] = [:]
         for wonderStat in yearStats.wonders where wonderStat.seen {
-            let subject: PhotoCurator.Subject
-            switch TravelPersonalityEngine.wonderKind(forID: wonderStat.wonder.id) {
-            case .mountain: subject = .mountain
-            case .natural:  subject = .nature
-            case .coastal:  subject = .coastal
-            case .cultural: subject = .landmark
-            }
-            let candidates = Array(wonderStat.photoIDs.prefix(12))
-            if let id = await photoCurator.bestPhoto(candidateIDs: candidates, subject: subject) {
+            // Shared with the trip film and the wonder rows, so all three agree on which photo
+            // represents a place — and so the Vision pass runs once per wonder rather than once
+            // per recap. `WonderCover` also picks the subject more precisely than the
+            // personality engine's kind, which calls the Statue of Liberty "coastal": true of
+            // the visit, and exactly wrong for choosing a photo of it.
+            if let id = await WonderCover.resolve(wonderID: wonderStat.wonder.id,
+                                                  candidates: wonderStat.photoIDs) {
                 wonderPhotos[wonderStat.wonder.id] = id
             }
         }

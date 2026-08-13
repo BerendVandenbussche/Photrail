@@ -20,6 +20,9 @@ struct TripDetailView: View {
     /// Cached Health insights for this trip — drives the activity "vibe" pill and the
     /// share card's theme so the two always agree.
     @State private var insights: TripInsights?
+    /// Vision-picked photo per wonder, so the row shows the monument rather than whatever was
+    /// shot last inside its radius. Resolved once per wonder and cached in `WonderCoverStore`.
+    @State private var wonderCovers: [String: String] = [:]
 
     /// The trip's "vibe" pill: the workout-derived activity when there's a strong signal,
     /// otherwise the location-inferred type.
@@ -101,6 +104,7 @@ struct TripDetailView: View {
         .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
         .task { await loadCover() }
         .task { await loadInsights() }
+        .task { await loadWonderCovers() }
         .onAppear {
             note = TripNoteStore.note(for: trip.id)
             customName = trip.customName
@@ -328,7 +332,7 @@ struct TripDetailView: View {
                     else { showPaywall = true }
                 } label: {
                     HStack(spacing: 14) {
-                        if let id = wonder.photoID {
+                        if let id = wonderCovers[wonder.id] ?? wonder.photoID {
                             PhotoThumbnail(assetID: id, size: 48, cornerRadius: 10)
                         } else {
                             Text(wonder.emoji)
@@ -371,6 +375,20 @@ struct TripDetailView: View {
         }
         guard let id else { return }
         coverImage = await loadImage(id: id, target: CGSize(width: 1080, height: 1080))
+    }
+
+    /// Picks a real photo of each wonder on this trip. Runs one wonder at a time rather than in
+    /// a group: the rows fill in as they resolve, and a trip with several wonders doesn't put
+    /// several Vision passes on the device at once while the rest of the view is still loading.
+    private func loadWonderCovers() async {
+        for wonder in trip.wonders {
+            let candidates = wonder.photoIDs.isEmpty
+                ? [wonder.photoID].compactMap { $0 }
+                : wonder.photoIDs
+            if let id = await WonderCover.resolve(wonderID: wonder.id, candidates: candidates) {
+                wonderCovers[wonder.id] = id
+            }
+        }
     }
 
     /// Resolve the activity vibe/theme source: cached insights, or a compute if enabled.

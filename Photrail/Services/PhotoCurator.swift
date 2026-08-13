@@ -86,20 +86,65 @@ actor PhotoCurator {
     }
 
     /// What a photo should depict for `bestPhoto(_:subject:)`.
-    enum Subject { case mountain, landmark, nature, coastal }
+    enum Subject {
+        case mountain, landmark, nature, coastal
+        /// Distinctly-shaped monuments — Christ the Redeemer, the Moai, the Statue of Liberty.
+        /// Worth its own case because `.landmark` matches on "building" and "architecture",
+        /// which a statue doesn't score on and a nearby rooftop does.
+        case statue
+        case tower
+        case bridge
+
+        /// What a photo of a given wonder should actually show.
+        ///
+        /// Deliberately separate from `TravelPersonalityEngine.wonderKind(forID:)`, which
+        /// answers a different question — what a *visit* says about the traveller — and puts the
+        /// Statue of Liberty under "coastal" because it's on the water. True, and exactly wrong
+        /// for picking a photo of it: it makes a shot of the harbour beat a shot of the statue.
+        static func forWonder(id: String) -> Subject {
+            switch id {
+            case "christ-redeemer", "statue-liberty", "moai":               return .statue
+            case "eiffel-tower", "big-ben", "burj-khalifa", "leaning-tower": return .tower
+            case "golden-gate":                                             return .bridge
+            case "machu-picchu", "mount-fuji":                              return .mountain
+            case "grand-canyon", "niagara-falls":                           return .nature
+            case "santorini":                                               return .coastal
+            default:                                                        return .landmark
+            }
+        }
+    }
+
+    /// Labels that mean "this photo is of something else entirely" — the wildlife, the lunch,
+    /// the pet — regardless of which monument we were looking for.
+    ///
+    /// This is the fix for the Christ the Redeemer problem: the monkeys on the roof score on
+    /// "building" and used to sail through unopposed.
+    ///
+    /// Every entry has to survive a *substring* match (see `labelScore`), which rules out short
+    /// words that hide inside real ones — "cat" would flag every cathedral.
+    private static let offSubjectLabels: Set<String> = [
+        "animal", "primate", "monkey", "wildlife", "bird", "insect", "pet", "rodent", "reptile",
+        "food", "meal", "dessert", "beverage", "drink"
+    ]
 
     /// Best photo among the candidates that actually depicts `subject`, or nil if none do.
     /// Used to surface a real photo of a mountain peak or a wonder/landmark — not a nearby selfie.
-    func bestPhoto(candidateIDs: [String], subject: Subject, minMatch: Float = 0.25) async -> String? {
+    /// - Parameter allowFallback: when nothing clears `minMatch`, return the *least wrong*
+    ///   candidate rather than nil. Vision's taxonomy is coarse and a monument can easily fail to
+    ///   score on any of our labels, and the caller's alternative is usually "newest photo taken
+    ///   nearby" — which is how the monkeys on the roof at Christ the Redeemer kept winning.
+    ///   Ranking by "least off-subject" still buries the wildlife and the lunch.
+    func bestPhoto(candidateIDs: [String], subject: Subject,
+                   minMatch: Float = 0.25, allowFallback: Bool = false) async -> String? {
         guard !candidateIDs.isEmpty else { return nil }
         let keys = Self.labels(for: subject)
         let avoid = Self.avoidLabels(for: subject)
         var best: (id: String, score: Double)?
+        var fallback: (id: String, score: Double)?
         for asset in fetchAssets(candidateIDs) {
             guard let cg = await thumbnail(for: asset)?.cgImage else { continue }
             let labels = classify(cg)
             let match = labelScore(labels, keys)
-            guard match >= minMatch else { continue }            // must convincingly show the subject
             // Penalize photos dominated by the wrong scenery (e.g. a mountain panorama
             // when we want the statue/monument that happens to sit on a mountain).
             let off = labelScore(labels, avoid)
@@ -109,9 +154,15 @@ actor PhotoCurator {
                 aesthetics = Double(obs.overallScore)
             }
             let total = aesthetics + Double(match) - 1.3 * Double(off)
+            guard match >= minMatch else {            // didn't convincingly show the subject
+                if allowFallback, fallback == nil || total > fallback!.score {
+                    fallback = (asset.localIdentifier, total)
+                }
+                continue
+            }
             if best == nil || total > best!.score { best = (asset.localIdentifier, total) }
         }
-        return best?.id
+        return best?.id ?? fallback?.id
     }
 
     private func classify(_ cg: CGImage) -> [String: Float] {
@@ -175,16 +226,24 @@ actor PhotoCurator {
         case .landmark: return ["architecture", "monument", "building", "temple", "church", "cathedral", "castle", "palace", "ruins", "statue", "tower", "structure", "landmark", "pyramid", "historic", "arch", "skyscraper", "bridge", "fountain"]
         case .nature:   return ["nature", "landscape", "mountain", "valley", "canyon", "waterfall", "forest", "desert", "cliff", "rock", "lake", "river", "outdoor"]
         case .coastal:  return ["beach", "ocean", "sea", "coast", "water", "island", "sunset", "harbor", "bay", "cliff"]
+        case .statue:   return ["statue", "sculpture", "monument", "memorial", "carving", "figurine", "landmark"]
+        case .tower:    return ["tower", "skyscraper", "spire", "steeple", "clock", "architecture", "structure", "landmark", "building"]
+        case .bridge:   return ["bridge", "suspension", "viaduct", "architecture", "structure", "landmark"]
         }
     }
 
     /// Labels that should count *against* a photo for a given subject (wrong scenery).
     private static func avoidLabels(for subject: Subject) -> Set<String> {
+        // Wildlife and lunch count against *every* subject — see `offSubjectLabels`.
         switch subject {
-        case .landmark: return ["mountain", "valley", "landscape", "snow", "beach", "ocean", "sea", "hill", "field", "forest", "sky"]
-        case .mountain: return ["building", "architecture", "indoor", "room", "interior", "office"]
-        case .nature:   return ["building", "architecture", "indoor", "room", "interior", "street"]
-        case .coastal:  return ["mountain", "indoor", "building", "room", "interior"]
+        case .landmark: return offSubjectLabels.union(["mountain", "valley", "landscape", "snow", "beach", "ocean", "sea", "hill", "field", "forest", "sky"])
+        case .mountain: return offSubjectLabels.union(["building", "architecture", "indoor", "room", "interior", "office"])
+        case .nature:   return offSubjectLabels.union(["building", "architecture", "indoor", "room", "interior", "street"])
+        case .coastal:  return offSubjectLabels.union(["mountain", "indoor", "building", "room", "interior"])
+        // Not "sky": a statue on a hilltop is almost always shot against it.
+        case .statue:   return offSubjectLabels.union(["beach", "ocean", "sea", "forest", "interior", "room", "street", "vehicle"])
+        case .tower:    return offSubjectLabels.union(["beach", "ocean", "forest", "mountain", "interior", "room"])
+        case .bridge:   return offSubjectLabels.union(["forest", "mountain", "interior", "room"])
         }
     }
 

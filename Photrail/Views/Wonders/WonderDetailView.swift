@@ -6,6 +6,20 @@ struct WonderDetailView: View {
     var trip: Trip? = nil
     @Environment(\.dismiss) private var dismiss
 
+    /// The Vision-picked photo of the wonder, hoisted to the front of the grid.
+    ///
+    /// `stat.photoIDs` is newest-first, which is a fine order for browsing and a poor one for
+    /// the lead tile — the most recent photo taken at Christ the Redeemer is as often the
+    /// monkeys on the roof as the statue.
+    @State private var coverID: String?
+
+    private var orderedPhotoIDs: [String] {
+        guard let coverID, let index = stat.photoIDs.firstIndex(of: coverID) else { return stat.photoIDs }
+        var ids = stat.photoIDs
+        ids.remove(at: index)
+        return [coverID] + ids
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -20,9 +34,13 @@ struct WonderDetailView: View {
                     statsRow
                         .padding(.horizontal, 20)
                     if let trip { tripLink(trip) }
-                    PhotoGridSection(photoIDs: stat.photoIDs, limit: 60)
+                    PhotoGridSection(photoIDs: orderedPhotoIDs, limit: 60)
                 }
                 .padding(.top, 8)
+            }
+            .task {
+                coverID = await WonderCover.resolve(wonderID: stat.wonder.id,
+                                                    candidates: stat.photoIDs)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
