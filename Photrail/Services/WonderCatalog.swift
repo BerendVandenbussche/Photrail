@@ -64,7 +64,8 @@ enum WonderCatalog {
         // most of all. The radius reaches both riverbanks and the gorge without touching
         // Niagara-on-the-Lake or Buffalo.
         Wonder(id: "niagara-falls", name: "Niagara Falls", countryCode: "US", emoji: "💦",
-               category: .landmark, latitude: 43.0870, longitude: -79.0640, radiusMeters: 3_500),
+               category: .landmark, latitude: 43.0870, longitude: -79.0640, radiusMeters: 3_500,
+               alsoInCountryCodes: ["CA"]),
         Wonder(id: "mount-fuji", name: "Mount Fuji", countryCode: "JP", emoji: "🗻",
                category: .landmark, latitude: 35.3606, longitude: 138.7274, radiusMeters: 8_000),
         // Centred on the island rather than on Oia, which is where this sat before: its 4 km

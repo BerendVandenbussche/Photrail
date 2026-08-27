@@ -18,7 +18,7 @@ struct CountryDetailView: View {
     /// Wonders & landmarks the user has photographed in this country.
     private var seenWonders: [WonderStat] {
         wonders
-            .filter { $0.wonder.countryCode == country.id && $0.seen }
+            .filter { $0.wonder.countryCodes.contains(country.id) && $0.seen }
             .sorted { ($0.wonder.category == .sevenWonders ? 0 : 1, $0.wonder.name)
                     < ($1.wonder.category == .sevenWonders ? 0 : 1, $1.wonder.name) }
     }
