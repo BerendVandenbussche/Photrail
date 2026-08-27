@@ -301,19 +301,19 @@ private struct PlaceSearchSheet: View {
         }
     }
 
-    private func resolve(_ completion: MKLocalSearchCompletion) {
+    private func resolve(_ suggestion: LocalSearchCompleter.Suggestion) {
         resolving = true
         Task {
-            let place = await completer.resolve(completion)
+            let place = await completer.resolve(suggestion)
             resolving = false
             guard let place else { return }
             // Keep the picked place inside the selected country.
             if let resolved = place.countryCode, resolved.uppercased() != countryCode.uppercased() {
-                mismatch = completion.title
+                mismatch = suggestion.title
                 return
             }
-            // Prefer the completion's short title over the resolver's "Name, Country" display.
-            onPick(completion.title, place.latitude, place.longitude)
+            // Prefer the suggestion's short title over the resolver's "Name, Country" display.
+            onPick(suggestion.title, place.latitude, place.longitude)
             dismiss()
         }
     }

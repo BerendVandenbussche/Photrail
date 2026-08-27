@@ -69,10 +69,10 @@ struct HomeLocationView: View {
         }
     }
 
-    private func select(_ completion: MKLocalSearchCompletion) async {
+    private func select(_ suggestion: LocalSearchCompleter.Suggestion) async {
         resolving = true
         defer { resolving = false }
-        guard let place = await completer.resolve(completion) else { return }
+        guard let place = await completer.resolve(suggestion) else { return }
         appVM.setHome(name: place.name,
                       latitude: place.latitude,
                       longitude: place.longitude,
