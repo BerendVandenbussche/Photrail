@@ -42,7 +42,7 @@ final class AppViewModel {
     var scanProgress: ScanProgress = .idle
     var stats: TravelStats = .empty {
         didSet {
-            refreshCountryBounds()
+            refreshCountryCoverage()
             checkAchievements()
         }
     }
@@ -54,9 +54,11 @@ final class AppViewModel {
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
 
-    /// Cached country border bounding boxes (from the offline geocoder), keyed by ISO code.
-    /// Populated lazily so the Places grid can show a "geographic spread" coverage bar.
-    private(set) var countryBorderBounds: [String: GeoBounds] = [:]
+    /// How much of each visited country you've actually covered, 0…1, keyed by ISO code.
+    /// Built off the main actor after a scan — see `refreshCountryCoverage()`.
+    private(set) var countryCoverage: [String: Double] = [:]
+    /// Guards against rebuilding coverage for a set of countries that hasn't changed.
+    private var coverageSignature: String = ""
 
     /// A recap presented from an App Intent (Siri / Shortcuts). Drives a root sheet.
     var presentedRecap: RecapModel?
@@ -204,11 +206,34 @@ final class AppViewModel {
     }
 
     struct FurthestTrip { let trip: Trip; let distanceKm: Double }
-    struct MostActiveTrip { let trip: Trip; let stepsPerDay: Int }
+    struct MostActiveTrip {
+        let trip: Trip
+        let activity: TripActivityRecord
 
-    /// The cached verdict from the last Health sweep. Holds only a trip id — see
-    /// `MostActiveTripRecord` — and is resolved into a `Trip` by `mostActiveTrip`.
-    private var mostActiveRecord: MostActiveTripRecord?
+        /// The two signals that carried this trip, biggest first — "182,431 steps · 14 workouts".
+        /// Showing the blend's inputs rather than its score, because a score out of nothing means
+        /// nothing to the reader, while the numbers behind it are recognisable from the Health app.
+        var summary: String {
+            let parts: [(points: Double, text: String)] = [
+                (Double(activity.steps) / 2_000, String(localized: "\(activity.steps.formatted()) steps")),
+                (Double(activity.flights) / 3, String(localized: "\(activity.flights.formatted()) floors")),
+                (Double(activity.kcal) / 75, String(localized: "\(activity.kcal.formatted()) kcal")),
+                (Double(activity.workoutMinutes) / 6, String(localized: "\(activity.workoutCount) workouts")),
+            ]
+            return parts
+                .filter { $0.points > 0 }
+                .sorted { $0.points > $1.points }
+                .prefix(2)
+                .map(\.text)
+                .joined(separator: " · ")
+        }
+    }
+    struct MostClimbedTrip { let trip: Trip; let floors: Int }
+
+    /// The cached verdicts from the last Health sweep. Each holds only a trip id — see
+    /// `TripSuperlativeRecord` — and is resolved into a `Trip` by the accessor below it.
+    private var mostActiveRecord: TripActivityRecord?
+    private var mostClimbedRecord: TripSuperlativeRecord?
 
     /// Set the user's home from an Apple Maps search result.
     func setHome(name: String, latitude: Double, longitude: Double, countryCode: String?) {
@@ -241,21 +266,43 @@ final class AppViewModel {
         return nil
     }
 
-    /// Fetch border bounding boxes for any visited countries we haven't cached yet.
-    private func refreshCountryBounds() {
-        let missing = stats.countries.map(\.id).filter { countryBorderBounds[$0] == nil }
-        guard !missing.isEmpty else { return }
-        let geocoder = offlineGeocoder
+    /// Rebuild each country's coverage share: the visited regions clipped to its borders,
+    /// as a fraction of its land area.
+    ///
+    /// This is the same pipeline the country page draws — deliberately, because the two used
+    /// to disagree. The grid used to divide bounding boxes, which reads as "the spread of your
+    /// photos" and gave Belgium 80% while its own detail page said 100% off the real shapes.
+    /// One formula now feeds both.
+    private func refreshCountryCoverage() {
+        let countries = stats.countries.filter { !$0.visitedPlaces.isEmpty }
+        // Cheap enough to run per scan, but not per `stats` assignment — the same country set
+        // with the same cities has the same answer.
+        let signature = countries.map { "\($0.id):\($0.cities.count)" }.joined(separator: ",")
+        guard signature != coverageSignature else { return }
+        coverageSignature = signature
+        guard !countries.isEmpty else {
+            countryCoverage = [:]
+            return
+        }
+
+        let placesByCountry = Dictionary(uniqueKeysWithValues: countries.map { ($0.id, $0.visitedPlaces) })
         Task { [weak self] in
-            var fetched: [String: GeoBounds] = [:]
-            for code in missing {
-                if let bounds = await geocoder.bounds(for: code) { fetched[code] = bounds }
-            }
-            guard !fetched.isEmpty else { return }
-            await MainActor.run {
-                guard let self else { return }
-                self.countryBorderBounds.merge(fetched) { _, new in new }
-            }
+            guard let self else { return }
+            let rings = await borderRings(for: Array(placesByCountry.keys))
+            let shares = await Task.detached(priority: .utility) {
+                var result: [String: Double] = [:]
+                for (code, places) in placesByCountry {
+                    guard let countryRings = rings[code] else { continue }
+                    let regions = VisitedRegionBuilder.regions(from: places,
+                                                               borderRings: [code: countryRings])
+                    if let share = VisitedRegionBuilder.coverageShare(of: regions,
+                                                                      countryRings: countryRings) {
+                        result[code] = share
+                    }
+                }
+                return result
+            }.value
+            countryCoverage = shares
         }
     }
 
@@ -273,16 +320,9 @@ final class AppViewModel {
         return result
     }
 
-    /// How much of a country's extent your photos span, 0…1 ("geographic spread"):
-    /// the area of your photos' bounding box relative to the country's border bounding box.
-    /// Returns nil until the country's borders are cached or if there's nothing to show.
-    func coverage(for country: CountryStat) -> Double? {
-        guard let visited = country.visitedBounds,
-              let border = countryBorderBounds[country.id] else { return nil }
-        let borderArea = border.areaKm2
-        guard borderArea > 0 else { return nil }
-        return min(1, max(0, visited.areaKm2 / borderArea))
-    }
+    /// How much of a country you've covered, 0…1 — the same number its detail page shows.
+    /// Nil until `refreshCountryCoverage()` has run, or when there's nothing to show.
+    func coverage(for country: CountryStat) -> Double? { countryCoverage[country.id] }
 
     /// Countries ranked by number of distinct trips (excluding home).
     var mostVisitedCountries: [CountryStat] {
@@ -314,19 +354,60 @@ final class AppViewModel {
               let record = mostActiveRecord,
               let trip = stats.trips.first(where: { $0.id == record.tripID })
         else { return nil }
-        return MostActiveTrip(trip: trip, stepsPerDay: record.averageStepsPerDay)
+        return MostActiveTrip(trip: trip, activity: record)
     }
 
-    /// Picks the winner from the sweep's steps-per-day, subject to two guards:
+    /// The trip with the most floors climbed. Same shape as `mostActiveTrip`.
+    ///
+    /// Deliberately *not* suppressed when the same trip also tops the step count: ranking by
+    /// total means a long trip often wins both, and hiding the card would leave a hole in the
+    /// row rather than the second, differently-measured fact it is there to show.
+    var mostClimbedTrip: MostClimbedTrip? {
+        guard insightsEnabled,
+              let record = mostClimbedRecord,
+              let trip = stats.trips.first(where: { $0.id == record.tripID })
+        else { return nil }
+        return MostClimbedTrip(trip: trip, floors: record.value)
+    }
+
+    /// How much a trip moved you, blended across every signal the cheap sweep has.
+    ///
+    /// Each divisor is what one comparably hard day looks like in that channel — roughly
+    /// 2,000 steps, 3 floors, 75 kcal or 6 workout minutes per point — so no single signal can
+    /// run away with the ranking, and a trip missing one entirely (no Watch, so no calories) is
+    /// still ranked fairly on the rest rather than dropped.
+    static func activityScore(_ record: TripActivityRecord) -> Double {
+        Double(record.steps) / 2_000
+            + Double(record.flights) / 3
+            + Double(record.kcal) / 75
+            + Double(record.workoutMinutes) / 6
+    }
+
+    /// Picks the most active trip: the highest blended score, with the same two guards as
+    /// `rankTrips` — a superlative needs a field of at least two, and the winner has to clear
+    /// a floor so a trip whose window caught one stray sample cannot take the crown.
+    private static func rankMostActive(_ activity: [TripActivityRecord]) -> TripActivityRecord? {
+        guard activity.count >= 2,
+              let best = activity.max(by: { activityScore($0) < activityScore($1) }),
+              activityScore(best) >= 10
+        else { return nil }
+        return best
+    }
+
+    /// Picks the winner from one of the sweep's trip totals, subject to two guards:
     /// a superlative needs a field of at least two, and a trip whose window caught one stray
     /// sample should not take the crown off the back of it.
-    private static func rankMostActive(_ stepsPerDay: [String: Double]) -> MostActiveTripRecord? {
-        guard stepsPerDay.count >= 2,
-              let best = stepsPerDay.max(by: { $0.value < $1.value }),
-              best.value >= 1_500
+    ///
+    /// Ranked by trip total, not per day. Per-day averages were tried first and read badly: a
+    /// single-day trip is one exceptional day with nothing to average it down, so day trips swept
+    /// both cards while a fortnight of real walking lost. Totals reward the trip that actually
+    /// added up to the most, which is what a lifetime superlative should mean.
+    private static func rankTrips(_ totals: [String: Int], minimum: Int) -> TripSuperlativeRecord? {
+        guard totals.count >= 2,
+              let best = totals.max(by: { $0.value < $1.value }),
+              best.value >= minimum
         else { return nil }
-        return MostActiveTripRecord(tripID: best.key,
-                                    averageStepsPerDay: Int(best.value.rounded()))
+        return TripSuperlativeRecord(tripID: best.key, value: best.value)
     }
 
     /// True whenever a scan is running or queued — used to schedule/cancel BGProcessingTask.
@@ -408,7 +489,10 @@ final class AppViewModel {
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
         }
-        self.mostActiveRecord = MostActiveTripStore.load()
+        self.mostActiveRecord = TripSuperlativeStore.load(TripActivityRecord.self,
+                                                          for: TripSuperlativeStore.mostActive)
+        self.mostClimbedRecord = TripSuperlativeStore.load(TripSuperlativeRecord.self,
+                                                          for: TripSuperlativeStore.mostClimbed)
         if let data = UserDefaults.standard.data(forKey: "manualTrips"),
            let decoded = try? JSONDecoder().decode([ManualTrip].self, from: data) {
             self.manualTrips = decoded
@@ -692,11 +776,11 @@ final class AppViewModel {
     }
 
     /// What one cheap Health sweep of a trip yields. `direction` feeds the lifetime personality
-    /// tilt; `averageStepsPerDay` feeds the "Most active" highlight. Both fall out of the same
-    /// three statistics queries, so neither costs the other anything.
+    /// tilt; `activity` feeds the "Most active" and "Most climbed" highlights. Both come out of
+    /// the same handful of aggregates, so neither costs the other anything.
     struct TripHealthSweep: Sendable {
         let direction: TravelCategoryScores?   // nil when there is no directional signal
-        let averageStepsPerDay: Double?        // nil when Health has no steps for these dates
+        let activity: TripActivityRecord?      // nil when Health has nothing for these dates
     }
 
     /// A trip's Health signals, for the lifetime personality tilt and the activity ranking.
@@ -709,18 +793,30 @@ final class AppViewModel {
 
         let flights = await healthKit.flightsClimbed(start: windowStart, end: windowEnd)
         let steps = await healthKit.steps(start: windowStart, end: windowEnd)
+        // The one query this sweep didn't already make. Watch-only in practice, which is why
+        // it is a contributor to the activity blend rather than the whole of it.
+        let energy = await healthKit.activeEnergyKcal(start: windowStart, end: windowEnd)
         let workouts = await healthKit.workouts(start: windowStart, end: windowEnd, includeRoutes: false)
 
         let days = max(1, (cal.dateComponents([.day], from: trip.startDate, to: trip.endDate).day ?? 0) + 1)
+        // Still per day for the personality tilt: that blend compares trips of any length
+        // against fixed thresholds, so it needs a rate rather than a total.
         let avgSteps = steps.map { Double($0) / Double(days) }
         let activityKeys = workouts.map { TravelInsightsEngine.activity(for: $0.activityRawValue).key }
 
         let direction = TravelPersonalityEngine.healthDirection(
             flightsClimbed: flights, averageStepsPerDay: avgSteps, workoutActivityKeys: activityKeys)
+        let workoutMinutes = workouts.reduce(0.0) { $0 + $1.end.timeIntervalSince($1.start) } / 60
+        let activity = TripActivityRecord(tripID: trip.id,
+                                          steps: steps ?? 0,
+                                          flights: flights ?? 0,
+                                          kcal: Int((energy ?? 0).rounded()),
+                                          workoutMinutes: Int(workoutMinutes.rounded()),
+                                          workoutCount: workouts.count)
         // A trip can legitimately have steps but no directional tilt, so the two are nil-ed
         // independently — the personality blend keeps the exact gate it had before.
         return TripHealthSweep(direction: direction.total > 0 ? direction : nil,
-                               averageStepsPerDay: avgSteps)
+                               activity: Self.activityScore(activity) > 0 ? activity : nil)
     }
 
     private func refreshStatsWithManual() async {
@@ -1311,7 +1407,7 @@ final class AppViewModel {
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
         // `insightsEnabled` is part of the signature so toggling Health opt-in recomputes.
-        let signature = "v10-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeName ?? "")-hk\(insightsEnabled ? 1 : 0)"
+        let signature = "v13-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeName ?? "")-hk\(insightsEnabled ? 1 : 0)"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {
@@ -1353,18 +1449,24 @@ final class AppViewModel {
         // only three cheap aggregates + workout types per trip, no photos / heart rate /
         // routes / authorship — so it never blocks the UI. Degrades to photo-only with no data.
         var healthDirectionByTrip: [String: TravelCategoryScores] = [:]
-        var stepsPerDayByTrip: [String: Double] = [:]
+        var activityByTrip: [TripActivityRecord] = []
         if insightsEnabled, HealthKitService.isAvailable {
             for trip in trips {
                 let sweep = await healthSweep(for: trip)
                 if let direction = sweep.direction { healthDirectionByTrip[trip.id] = direction }
-                if let steps = sweep.averageStepsPerDay { stepsPerDayByTrip[trip.id] = steps }
+                if let activity = sweep.activity { activityByTrip.append(activity) }
             }
         }
         // Written unconditionally, including the nil case: Health being switched off, or a
         // trip losing its data, has to take the card down rather than leave a stale verdict up.
-        mostActiveRecord = Self.rankMostActive(stepsPerDayByTrip)
-        MostActiveTripStore.save(mostActiveRecord)
+        // The minimums only have to clear noise — a trip whose window caught a stray sample —
+        // not prove the trip was strenuous.
+        let flightsByTrip = Dictionary(uniqueKeysWithValues:
+            activityByTrip.filter { $0.flights > 0 }.map { ($0.tripID, $0.flights) })
+        mostActiveRecord = Self.rankMostActive(activityByTrip)
+        mostClimbedRecord = Self.rankTrips(flightsByTrip, minimum: 20)
+        TripSuperlativeStore.save(mostActiveRecord, for: TripSuperlativeStore.mostActive)
+        TripSuperlativeStore.save(mostClimbedRecord, for: TripSuperlativeStore.mostClimbed)
 
         let profile = await Task.detached(priority: .utility) {
             TravelPersonalityEngine().makeProfile(photos: photos,

@@ -109,15 +109,7 @@ struct CountryCoverageCard: View {
         loaded = true
 
         let rings = await appVM.borderRings(for: [country.id])[country.id] ?? []
-        let places = country.cities
-            .filter { $0.photoCount > 0 }
-            .map {
-                VisitedRegionBuilder.Place(
-                    coordinate: CLLocationCoordinate2D(
-                        latitude: $0.representativeCoordinate.latitude,
-                        longitude: $0.representativeCoordinate.longitude),
-                    countryCode: country.id)
-            }
+        let places = country.visitedPlaces
         guard !places.isEmpty else {
             borderRings = rings
             return
@@ -127,13 +119,7 @@ struct CountryCoverageCard: View {
         let result = await Task.detached(priority: .userInitiated) {
             let built = VisitedRegionBuilder.regions(from: places,
                                                      borderRings: rings.isEmpty ? [:] : [code: rings])
-            let countryArea = rings.reduce(0) { $0 + VisitedRegionBuilder.areaKm2(of: $1) }
-            // Regions within a country are kept apart by the merge pass, so summing them
-            // doesn't double-count overlapping shapes.
-            let visitedArea = built.reduce(0) { total, region in
-                total + region.polygons.reduce(0) { $0 + VisitedRegionBuilder.areaKm2(of: $1) }
-            }
-            let share = countryArea > 0 ? min(1, visitedArea / countryArea) : nil
+            let share = VisitedRegionBuilder.coverageShare(of: built, countryRings: rings)
             return (built, share)
         }.value
 

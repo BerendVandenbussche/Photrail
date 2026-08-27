@@ -197,7 +197,7 @@ struct DashboardView: View {
     }
 
     /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt), plus the
-    /// most active trip once the user has opted into Health.
+    /// most active and most climbed trips once the user has opted into Health.
     ///
     /// A horizontally scrolling row rather than a fixed pair: `containerRelativeFrame(count: 2)`
     /// gives each card exactly the width it had as a 2-up `HStack`, so with Health off the row
@@ -208,7 +208,8 @@ struct DashboardView: View {
         let top = stats.mostPhotographedCountry
         let furthest = appVM.furthestTrip
         let active = appVM.mostActiveTrip
-        if top != nil || furthest != nil || active != nil || appVM.homeName == nil {
+        let climbed = appVM.mostClimbedTrip
+        if top != nil || furthest != nil || active != nil || climbed != nil || appVM.homeName == nil {
             VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(title: "Highlights", systemImage: "sparkles")
                     .padding(.horizontal, 20)
@@ -251,7 +252,17 @@ struct DashboardView: View {
                                 HighlightCard(emoji: "👟",
                                               label: "Most active",
                                               title: active.trip.displayName,
-                                              subtitle: "\(active.stepsPerDay) steps a day")
+                                              subtitle: "\(active.summary)")
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        if let climbed {
+                            NavigationLink { TripDetailView(trip: climbed.trip) } label: {
+                                HighlightCard(emoji: "🧗",
+                                              label: "Most climbed",
+                                              title: climbed.trip.displayName,
+                                              subtitle: "\(climbed.floors.formatted()) floors")
                             }
                             .buttonStyle(.plain)
                         }

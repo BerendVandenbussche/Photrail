@@ -160,12 +160,44 @@
         }
       }
     },
+    "%@ floors" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ floors"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ verdiepingen"
+          }
+        }
+      }
+    },
     "%@ is in a different country. Add it under that country instead." : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ ligt in een ander land. Voeg het daar toe onder dat land."
+          }
+        }
+      }
+    },
+    "%@ kcal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kcal"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kcal"
           }
         }
       }
@@ -697,22 +729,6 @@
         }
       }
     },
-    "%lld steps a day" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld steps a day"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld stappen per dag"
-          }
-        }
-      }
-    },
     "%lld trips" : {
       "localizations" : {
         "en" : {
@@ -759,6 +775,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld reizen"
+          }
+        }
+      }
+    },
+    "%lld workouts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld workouts"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld trainingen"
           }
         }
       }
@@ -981,7 +1013,7 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activiteiten die vanaf een Garmin of vergelijkbaar toestel naar Strava zijn ge\u00fcpload, bevatten geen route \u2014 en Health dus ook niet."
+            "value" : "Activiteiten die vanaf een Garmin of vergelijkbaar toestel naar Strava zijn geüpload, bevatten geen route — en Health dus ook niet."
           }
         }
       }
@@ -2413,19 +2445,19 @@
         }
       }
     },
-    "If you record in the Strava app, open Settings \u2192 Manage Apps and Devices \u2192 Health, tap Connect, enable Workouts & Routes, then turn on Send to Health." : {
+    "If you record in the Strava app, open Settings → Manage Apps and Devices → Health, tap Connect, enable Workouts & Routes, then turn on Send to Health." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If you record in the Strava app, open Settings \u2192 Manage Apps and Devices \u2192 Health, tap Connect, enable Workouts & Routes, then turn on Send to Health."
+            "value" : "If you record in the Strava app, open Settings → Manage Apps and Devices → Health, tap Connect, enable Workouts & Routes, then turn on Send to Health."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neem je op met de Strava-app? Open Settings \u2192 Manage Apps and Devices \u2192 Health, tik op Connect, zet Workouts & Routes aan en schakel daarna Send to Health in."
+            "value" : "Neem je op met de Strava-app? Open Settings → Manage Apps and Devices → Health, tik op Connect, zet Workouts & Routes aan en schakel daarna Send to Health in."
           }
         }
       }
@@ -2674,6 +2706,22 @@
         }
       }
     },
+    "Most climbed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most climbed"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meest geklommen"
+          }
+        }
+      }
+    },
     "Most photographed" : {
       "localizations" : {
         "nl" : {
@@ -2875,40 +2923,6 @@
         }
       }
     },
-    "No workouts from this trip" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No workouts from this trip"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen workouts van deze reis"
-          }
-        }
-      }
-    },
-    "No routes in these workouts" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No routes in these workouts"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen routes in deze workouts"
-          }
-        }
-      }
-    },
     "No photos available" : {
       "localizations" : {
         "nl" : {
@@ -2935,6 +2949,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nog geen plekken"
+          }
+        }
+      }
+    },
+    "No routes in these workouts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No routes in these workouts"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen routes in deze workouts"
           }
         }
       }
@@ -2995,6 +3026,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nog geen reizen"
+          }
+        }
+      }
+    },
+    "No workouts from this trip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No workouts from this trip"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen workouts van deze reis"
           }
         }
       }

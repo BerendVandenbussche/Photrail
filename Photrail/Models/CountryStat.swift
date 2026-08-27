@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocation
 
 struct CountryStat: Identifiable, Sendable, Hashable {
     let id: String      // ISO country code
@@ -24,6 +25,20 @@ struct CountryStat: Identifiable, Sendable, Hashable {
     /// Country name in the app's current language (derived from the ISO code), falling
     /// back to the stored name. iOS provides these translations — no manual work needed.
     var localizedName: String { Locale.current.localizedString(forRegionCode: id) ?? name }
+
+    /// The visited points this country's coverage is measured from: one per city that
+    /// actually has photos. Shared by the Places grid's bar and the country page's map so
+    /// the two can never be computed from different inputs.
+    var visitedPlaces: [VisitedRegionBuilder.Place] {
+        cities
+            .filter { $0.photoCount > 0 }
+            .map {
+                VisitedRegionBuilder.Place(
+                    coordinate: CLLocationCoordinate2D(latitude: $0.representativeCoordinate.latitude,
+                                                       longitude: $0.representativeCoordinate.longitude),
+                    countryCode: id)
+            }
+    }
 
     // Identity is the ISO code — enough for navigation routing.
     static func == (lhs: CountryStat, rhs: CountryStat) -> Bool { lhs.id == rhs.id }

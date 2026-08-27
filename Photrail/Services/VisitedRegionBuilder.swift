@@ -111,6 +111,22 @@ enum VisitedRegionBuilder {
 
     // MARK: - Area
 
+    /// What share of a country these regions cover, 0…1, or nil when the country's outline
+    /// is unknown. Regions within a country are kept apart by the merge pass, so summing
+    /// them doesn't double-count overlapping shapes.
+    ///
+    /// This is *the* coverage number: the Places grid's bar and the country page's readout
+    /// both come through here, so they cannot drift apart.
+    static func coverageShare(of regions: [Region],
+                              countryRings: [[CLLocationCoordinate2D]]) -> Double? {
+        let countryArea = countryRings.reduce(0) { $0 + areaKm2(of: $1) }
+        guard countryArea > 0 else { return nil }
+        let visitedArea = regions.reduce(0.0) { total, region in
+            total + region.polygons.reduce(0) { $0 + areaKm2(of: $1) }
+        }
+        return min(1, visitedArea / countryArea)
+    }
+
     /// Approximate area of a closed ring in km². Uses the shoelace formula with longitude
     /// scaled by cos(latitude), which is accurate enough for comparing a visited region to
     /// the country containing it (both shrink by the same factor).
