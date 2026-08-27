@@ -8,7 +8,26 @@ import Foundation
 /// Returns nil when no dataset is bundled (caller then skips remoteness scoring).
 actor OfflinePlaces {
 
-    private struct Place { let lat, lon: Double }
+    /// One populated place from the Natural Earth dataset.
+    ///
+    /// Only `lat`/`lon` feed the remoteness grid; the rest exists so the same parse can answer
+    /// "name me a few notable places in this country" for trip suggestions, rather than the app
+    /// bundling and parsing a second copy of the file.
+    private struct Place {
+        let lat, lon: Double
+        let name: String
+        let countryCode: String
+        let population: Int
+        /// 1 when the place is its country's capital — the obvious first thing to name.
+        let isCapital: Bool
+    }
+
+    /// A named place, for suggesting somewhere to go rather than measuring distance to it.
+    struct NamedPlace: Sendable {
+        let name: String
+        let latitude, longitude: Double
+        let population: Int
+    }
 
     private var places: [Place] = []
     private var grid: [Int: [Int]] = [:]
@@ -60,6 +79,30 @@ actor OfflinePlaces {
         return result
     }
 
+    /// The most recognisable places in each of the given countries, best first — a capital
+    /// ahead of a bigger non-capital, then by population. Keyed by ISO country code; countries
+    /// the dataset has nothing for are simply absent.
+    ///
+    /// Batched because the caller asks about every unvisited country at once, and one actor
+    /// hop for 150 countries is the difference between free and noticeable.
+    func notablePlaces(inCountries codes: [String], limit: Int = 3) -> [String: [NamedPlace]] {
+        loadIfNeeded()
+        let wanted = Set(codes.map { $0.uppercased() })
+        guard !wanted.isEmpty, !places.isEmpty else { return [:] }
+
+        var byCountry: [String: [Place]] = [:]
+        for place in places where wanted.contains(place.countryCode) && !place.name.isEmpty {
+            byCountry[place.countryCode, default: []].append(place)
+        }
+        return byCountry.mapValues { candidates in
+            candidates
+                .sorted { ($0.isCapital ? 1 : 0, $0.population) > ($1.isCapital ? 1 : 0, $1.population) }
+                .prefix(limit)
+                .map { NamedPlace(name: $0.name, latitude: $0.lat, longitude: $0.lon,
+                                  population: $0.population) }
+        }
+    }
+
     private static func key(_ lat: Int, _ lon: Int) -> Int { (lat + 90) * 1000 + (lon + 180) }
 
     private func loadIfNeeded() {
@@ -77,7 +120,12 @@ actor OfflinePlaces {
             guard let geometry = feature["geometry"] as? [String: Any],
                   (geometry["type"] as? String) == "Point",
                   let coords = geometry["coordinates"] as? [Double], coords.count >= 2 else { continue }
-            let place = Place(lat: coords[1], lon: coords[0])
+            let properties = feature["properties"] as? [String: Any] ?? [:]
+            let place = Place(lat: coords[1], lon: coords[0],
+                              name: (properties["name"] as? String) ?? "",
+                              countryCode: ((properties["iso_a2"] as? String) ?? "").uppercased(),
+                              population: (properties["pop_max"] as? NSNumber)?.intValue ?? 0,
+                              isCapital: ((properties["adm0cap"] as? NSNumber)?.intValue ?? 0) == 1)
             let index = places.count
             places.append(place)
             grid[Self.key(Int(floor(place.lat)), Int(floor(place.lon))), default: []].append(index)

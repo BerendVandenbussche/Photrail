@@ -50,6 +50,17 @@ actor OfflineCountryGeocoder {
         return Self.centroid(of: outer)
     }
 
+    /// Representative coordinates for many countries in a single actor hop. Codes the bundled
+    /// borders don't cover are absent from the result rather than nil-valued.
+    func representativeCoordinates(for codes: [String]) -> [String: (latitude: Double, longitude: Double)] {
+        loadIfNeeded()
+        var result: [String: (latitude: Double, longitude: Double)] = [:]
+        for code in codes {
+            if let point = representativeCoordinate(for: code) { result[code.uppercased()] = point }
+        }
+        return result
+    }
+
     /// Absolute area of a ring via the shoelace formula (degrees²; only used to compare
     /// polygons of the same country, so a planar approximation is fine).
     private static func ringArea(_ ring: [(Double, Double)]?) -> Double {

@@ -235,6 +235,25 @@ final class AppViewModel {
     private var mostActiveRecord: TripActivityRecord?
     private var mostClimbedRecord: TripSuperlativeRecord?
 
+    /// The cached "where next?" shortlist and whichever entry is currently on the card.
+    private var suggestionState: StoredTripSuggestion?
+    /// The in-flight pitch generation, so cycling to another destination can cancel the one
+    /// being written for the destination the user just moved off.
+    private var pitchTask: Task<Void, Never>?
+
+    /// The destination to suggest next, or nil when there isn't enough travel to reason from.
+    ///
+    /// Lifetime-gated at the view layer rather than here, so the locked card can still show
+    /// what is behind the paywall.
+    var tripSuggestion: TripSuggestion? {
+        guard let state = suggestionState, let entry = state.current else { return nil }
+        return TripSuggestion(destination: entry.candidate,
+                              match: entry.match,
+                              pitch: state.pitch,
+                              generatedByModel: state.generatedByModel,
+                              hasAlternatives: state.shortlist.count > 1)
+    }
+
     /// Set the user's home from an Apple Maps search result.
     func setHome(name: String, latitude: Double, longitude: Double, countryCode: String?) {
         homeName = name
@@ -489,6 +508,7 @@ final class AppViewModel {
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
         }
+        self.suggestionState = TripSuggestionStore.load()
         self.mostActiveRecord = TripSuperlativeStore.load(TripActivityRecord.self,
                                                           for: TripSuperlativeStore.mostActive)
         self.mostClimbedRecord = TripSuperlativeStore.load(TripSuperlativeRecord.self,
@@ -1485,11 +1505,158 @@ final class AppViewModel {
         UserDefaults.standard.set(signature, forKey: "personalitySignature")
     }
 
+    // MARK: - Where next?
+
+    /// What the ranking depends on. A new country, a new wonder, a move, a shift in the
+    /// personality or a change of app language all invalidate it; nothing else does.
+    private func tripSuggestionSignature(profile: TravelPersonalityProfile) -> String {
+        let dominant = profile.dominantCategory?.rawValue ?? "-"
+        return "v1-\(dominant)-\(profile.photoCount)-\(stats.countryCount)-\(stats.wondersSeenCount)"
+            + "-\(homeCountryCode ?? "")-\(Locale.current.language.minimalIdentifier)"
+    }
+
+    /// Rebuild the shortlist of places to suggest.
+    ///
+    /// Runs after `recomputePersonality()` in `completeScan()`, because the profile it matches
+    /// against has just been written. Skipped entirely when the signature is unchanged — the
+    /// same traveller with the same history gets the same answer, and rebuilding it would only
+    /// make the card flicker to a different destination for no reason.
+    ///
+    /// The pitch is deliberately *not* written here: it can involve a language model, and a
+    /// scan must never wait on one. See `generateTripPitchIfNeeded()`.
+    private func refreshTripSuggestion() async {
+        // Below this there is nothing to reason from, and a confident suggestion drawn from
+        // four photos would be worse than no card at all.
+        guard let profile = personalityProfile, profile.isMeaningful, stats.countryCount >= 3 else {
+            clearTripSuggestion()
+            return
+        }
+
+        let signature = tripSuggestionSignature(profile: profile)
+        if let existing = suggestionState, existing.signature == signature, !existing.shortlist.isEmpty {
+            return
+        }
+
+        let builder = DestinationCandidateBuilder(coastline: offlineCoastline,
+                                                  places: offlinePlaces,
+                                                  geocoder: offlineGeocoder)
+        let scored = await builder.build(
+            visitedCountryCodes: Set(stats.countries.map(\.id)),
+            seenWonderIDs: Set(stats.wonders.filter(\.seen).map(\.wonder.id)),
+            homeCountryCode: homeCountryCode)
+        guard !scored.isEmpty else {
+            clearTripSuggestion()
+            return
+        }
+
+        // Distance from home, per candidate — feeds the reachability adjustment. Left empty
+        // when no home is set, which switches that adjustment off rather than guessing an origin.
+        var distances: [String: Double] = [:]
+        if let home = homeCoordinate {
+            let origin = CLLocation(latitude: home.latitude, longitude: home.longitude)
+            for item in scored {
+                let there = CLLocation(latitude: item.candidate.latitude,
+                                       longitude: item.candidate.longitude)
+                distances[item.candidate.id] = origin.distance(from: there) / 1000
+            }
+        }
+
+        let ranked = DestinationRanker.rank(scored, profile: profile, homeDistanceKm: distances)
+        let shortlist = DestinationRanker.shortlist(from: ranked)
+        guard !shortlist.isEmpty else {
+            clearTripSuggestion()
+            return
+        }
+
+        let state = StoredTripSuggestion(shortlist: shortlist, index: 0, pitch: nil,
+                                         generatedByModel: false, signature: signature)
+        suggestionState = state
+        TripSuggestionStore.save(state)
+    }
+
+    private func clearTripSuggestion() {
+        guard suggestionState != nil else { return }
+        suggestionState = nil
+        TripSuggestionStore.save(nil)
+    }
+
+    /// Write the sentence under the suggested destination, if it hasn't been written yet.
+    ///
+    /// Called from the card's `.task`, so the first launch after a scan pays for it and every
+    /// launch after that reads the cached text. On an Apple Intelligence device this runs the
+    /// on-device model; everywhere else it composes the localized template and returns at once.
+    func generateTripPitchIfNeeded() async {
+        guard hasLifetime,
+              let state = suggestionState, state.pitch == nil,
+              state.shortlist.indices.contains(state.index)
+        else { return }
+
+        // Whatever was being written for the previous destination is now the wrong sentence.
+        pitchTask?.cancel()
+        let task = Task { [weak self] in await self?.writePitch(for: state) ?? () }
+        pitchTask = task
+        await task.value
+    }
+
+    private func writePitch(for state: StoredTripSuggestion) async {
+        // Before the user has cycled, the writer may choose from the whole shortlist — every
+        // entry is one the ranker already vouched for. After a cycle the choice is theirs.
+        let list = state.pinned ? [state.shortlist[state.index]] : state.shortlist
+        let result = await TripPitchWriterFactory.make().pitch(shortlist: list,
+                                                               context: makeSuggestionContext())
+
+        // The model can take seconds; a rescan or a cycle may have moved things underneath.
+        guard !Task.isCancelled,
+              var latest = suggestionState,
+              latest.signature == state.signature,
+              latest.index == state.index,
+              latest.pitch == nil
+        else { return }
+
+        if !latest.pinned, latest.shortlist.indices.contains(result.index) {
+            latest.index = result.index
+        }
+        latest.pitch = result.text
+        latest.generatedByModel = result.generatedByModel
+        suggestionState = latest
+        TripSuggestionStore.save(latest)
+    }
+
+    /// Move to the next entry in the shortlist. Writing the new pitch is left to the card's
+    /// `.task`, which re-fires because the destination it is keyed on has changed — one driver
+    /// for generation rather than two racing each other.
+    func nextTripSuggestion() {
+        guard var state = suggestionState, state.shortlist.count > 1 else { return }
+        state.index = (state.index + 1) % state.shortlist.count
+        state.pitch = nil
+        state.generatedByModel = false
+        state.pinned = true
+        suggestionState = state
+        TripSuggestionStore.save(state)
+    }
+
+    /// The traveller summary a pitch is allowed to draw on. Names and counts only — see
+    /// `TripSuggestionContext`.
+    private func makeSuggestionContext() -> TripSuggestionContext {
+        let profile = personalityProfile
+        let top = (profile?.visibleSlices ?? [])
+            .prefix(3)
+            .map { CategoryShare(category: $0.category, percentage: $0.percentage) }
+        return TripSuggestionContext(
+            dominant: profile?.dominantCategory,
+            topCategories: Array(top),
+            recentCountryNames: stats.recentCountries.prefix(4).map(\.name),
+            seenWonderNames: stats.wonders.filter(\.seen).prefix(6).map(\.wonder.name),
+            countryCount: stats.countryCount,
+            languageIdentifier: Locale.current.language.minimalIdentifier)
+    }
+
     private func completeScan() async {
         publishWidgetStats()
         indexTripsForSearch()
         await runNudges()
         await recomputePersonality()
+        await refreshTripSuggestion()
         withAnimation { scanProgress = .complete }
         try? await Task.sleep(nanoseconds: 3_000_000_000)
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }

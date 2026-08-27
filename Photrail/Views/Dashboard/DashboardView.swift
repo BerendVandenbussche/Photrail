@@ -75,6 +75,8 @@ struct DashboardView: View {
 
                         highlightsSection
 
+                        nextTripSection
+
                         recentTripsSection
 
                     } else if !scanProgress.isActive {
@@ -194,6 +196,24 @@ struct DashboardView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// "Where next?" — the only forward-looking thing on the page. Absent rather than empty
+    /// when there isn't enough travel behind it to reason from; see `refreshTripSuggestion()`.
+    ///
+    /// Keyed on the destination so cycling to another one restarts the pitch generation, which
+    /// is the single driver for it.
+    @ViewBuilder
+    private var nextTripSection: some View {
+        if let suggestion = appVM.tripSuggestion {
+            NextTripSection(suggestion: suggestion,
+                            locked: !appVM.hasLifetime,
+                            onUnlock: { showPaywall = true },
+                            onAnother: { appVM.nextTripSuggestion() })
+                .task(id: suggestion.destination.id) {
+                    await appVM.generateTripPitchIfNeeded()
+                }
+        }
     }
 
     /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt), plus the

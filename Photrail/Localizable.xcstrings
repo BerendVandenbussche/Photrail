@@ -176,6 +176,22 @@
         }
       }
     },
+    "%@ is a strong match for the way you travel, and you haven't been yet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is a strong match for the way you travel, and you haven't been yet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ past goed bij hoe jij reist, en je bent er nog nooit geweest."
+          }
+        }
+      }
+    },
     "%@ is in a different country. Add it under that country instead." : {
       "localizations" : {
         "nl" : {
@@ -224,6 +240,22 @@
     },
     "%@ km on the ground" : {
 
+    },
+    "%@ match" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ match"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ overeenkomst"
+          }
+        }
+      }
     },
     "%@ of %lld · %lld%% seen" : {
       "extractionState" : "stale",
@@ -2472,6 +2504,22 @@
         }
       }
     },
+    "It's in %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's in %@."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het ligt in %@."
+          }
+        }
+      }
+    },
     "Itinerary" : {
       "localizations" : {
         "nl" : {
@@ -2618,6 +2666,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kaart"
+          }
+        }
+      }
+    },
+    "Matched to how you travel, worked out entirely on your device." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matched to how you travel, worked out entirely on your device."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afgestemd op hoe jij reist, volledig berekend op je apparaat."
           }
         }
       }
@@ -4324,6 +4388,22 @@
         }
       }
     },
+    "Show me another" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show me another"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laat een andere zien"
+          }
+        }
+      }
+    },
     "Show my places" : {
       "localizations" : {
         "nl" : {
@@ -4479,6 +4559,22 @@
         }
       }
     },
+    "Start with %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start with %@."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Begin bij %@."
+          }
+        }
+      }
+    },
     "Still finding your cities… A city only appears here once it's been resolved, which takes a little longer than the rest of the scan. Check back in a moment if yours isn't listed yet." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4486,6 +4582,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je steden worden nog gezocht… Een stad verschijnt hier pas nadat ze is herkend, wat iets langer duurt dan de rest van de scan. Kom zo terug als de jouwe er nog niet bij staat."
+          }
+        }
+      }
+    },
+    "Suggested on your device" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggested on your device"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorgesteld op je apparaat"
           }
         }
       }
@@ -5344,6 +5456,22 @@
         }
       }
     },
+    "Where next?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where next?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waarheen nu?"
+          }
+        }
+      }
+    },
     "Where's home?" : {
       "localizations" : {
         "nl" : {
@@ -5542,6 +5670,38 @@
         }
       }
     },
+    "Writing your suggestion" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Writing your suggestion"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je suggestie wordt geschreven"
+          }
+        }
+      }
+    },
+    "Written on your device by Apple Intelligence" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Written on your device by Apple Intelligence"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Op je apparaat geschreven door Apple Intelligence"
+          }
+        }
+      }
+    },
     "Year" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5705,6 +5865,22 @@
         }
       }
     },
+    "You travel like a %1$@. %2$@ is that kind of place, and you haven't been yet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You travel like a %1$@. %2$@ is that kind of place, and you haven't been yet."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je reist als een %1$@. %2$@ is precies zo'n plek, en je bent er nog nooit geweest."
+          }
+        }
+      }
+    },
     "You travelled every month of %@! 🌍" : {
       "localizations" : {
         "nl" : {
@@ -5778,6 +5954,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je kaart, reizen en statistieken zijn voor altijd gratis. Levenslang ontgrendelt de extra's — één betaling, voorgoed van jou."
+          }
+        }
+      }
+    },
+    "Your next trip, picked for you" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next trip, picked for you"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je volgende reis, voor jou gekozen"
           }
         }
       }
