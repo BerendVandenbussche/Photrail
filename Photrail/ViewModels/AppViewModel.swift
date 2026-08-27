@@ -204,6 +204,11 @@ final class AppViewModel {
     }
 
     struct FurthestTrip { let trip: Trip; let distanceKm: Double }
+    struct MostActiveTrip { let trip: Trip; let stepsPerDay: Int }
+
+    /// The cached verdict from the last Health sweep. Holds only a trip id — see
+    /// `MostActiveTripRecord` — and is resolved into a `Trip` by `mostActiveTrip`.
+    private var mostActiveRecord: MostActiveTripRecord?
 
     /// Set the user's home from an Apple Maps search result.
     func setHome(name: String, latitude: Double, longitude: Double, countryCode: String?) {
@@ -301,6 +306,29 @@ final class AppViewModel {
         return best.map { FurthestTrip(trip: $0.0, distanceKm: $0.1) }
     }
 
+    /// The trip with the highest average steps per day, or nil when there is nothing honest to
+    /// show. Resolved against the current trips, so a cached winner whose trip no longer exists
+    /// simply disappears rather than pointing at a ghost.
+    var mostActiveTrip: MostActiveTrip? {
+        guard insightsEnabled,
+              let record = mostActiveRecord,
+              let trip = stats.trips.first(where: { $0.id == record.tripID })
+        else { return nil }
+        return MostActiveTrip(trip: trip, stepsPerDay: record.averageStepsPerDay)
+    }
+
+    /// Picks the winner from the sweep's steps-per-day, subject to two guards:
+    /// a superlative needs a field of at least two, and a trip whose window caught one stray
+    /// sample should not take the crown off the back of it.
+    private static func rankMostActive(_ stepsPerDay: [String: Double]) -> MostActiveTripRecord? {
+        guard stepsPerDay.count >= 2,
+              let best = stepsPerDay.max(by: { $0.value < $1.value }),
+              best.value >= 1_500
+        else { return nil }
+        return MostActiveTripRecord(tripID: best.key,
+                                    averageStepsPerDay: Int(best.value.rounded()))
+    }
+
     /// True whenever a scan is running or queued — used to schedule/cancel BGProcessingTask.
     var isScanNeeded: Bool {
         switch scanProgress {
@@ -380,6 +408,7 @@ final class AppViewModel {
            let cached = try? JSONDecoder().decode(TravelPersonalityProfile.self, from: data) {
             self.personalityProfile = cached
         }
+        self.mostActiveRecord = MostActiveTripStore.load()
         if let data = UserDefaults.standard.data(forKey: "manualTrips"),
            let decoded = try? JSONDecoder().decode([ManualTrip].self, from: data) {
             self.manualTrips = decoded
@@ -662,11 +691,18 @@ final class AppViewModel {
         return insights
     }
 
-    /// A trip's Health "direction" for the lifetime personality tilt. Cheap by design —
-    /// three statistics queries + a route-less workout fetch, all on the HealthKit actor
-    /// (off the main thread). No photos, heart rate, routes, or authorship. Returns nil when
-    /// Health has nothing for the trip's dates.
-    private func healthDirection(for trip: Trip) async -> TravelCategoryScores? {
+    /// What one cheap Health sweep of a trip yields. `direction` feeds the lifetime personality
+    /// tilt; `averageStepsPerDay` feeds the "Most active" highlight. Both fall out of the same
+    /// three statistics queries, so neither costs the other anything.
+    struct TripHealthSweep: Sendable {
+        let direction: TravelCategoryScores?   // nil when there is no directional signal
+        let averageStepsPerDay: Double?        // nil when Health has no steps for these dates
+    }
+
+    /// A trip's Health signals, for the lifetime personality tilt and the activity ranking.
+    /// Cheap by design — three statistics queries + a route-less workout fetch, all on the
+    /// HealthKit actor (off the main thread). No photos, heart rate, routes, or authorship.
+    private func healthSweep(for trip: Trip) async -> TripHealthSweep {
         let cal = Calendar.current
         let windowStart = cal.startOfDay(for: trip.startDate)
         let windowEnd = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: trip.endDate)) ?? trip.endDate
@@ -681,7 +717,10 @@ final class AppViewModel {
 
         let direction = TravelPersonalityEngine.healthDirection(
             flightsClimbed: flights, averageStepsPerDay: avgSteps, workoutActivityKeys: activityKeys)
-        return direction.total > 0 ? direction : nil
+        // A trip can legitimately have steps but no directional tilt, so the two are nil-ed
+        // independently — the personality blend keeps the exact gate it had before.
+        return TripHealthSweep(direction: direction.total > 0 ? direction : nil,
+                               averageStepsPerDay: avgSteps)
     }
 
     private func refreshStatsWithManual() async {
@@ -1272,7 +1311,7 @@ final class AppViewModel {
         let home = homeCoordinate
         // Bump the trailing version to force a recompute when scoring logic changes.
         // `insightsEnabled` is part of the signature so toggling Health opt-in recomputes.
-        let signature = "v9-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeName ?? "")-hk\(insightsEnabled ? 1 : 0)"
+        let signature = "v10-\(geocodedCount)-\(stats.trips.count)-\(homeCountryCode ?? "")-\(homeName ?? "")-hk\(insightsEnabled ? 1 : 0)"
         let signatureKey = "personalitySignature"
         if personalityProfile != nil,
            UserDefaults.standard.string(forKey: signatureKey) == signature {
@@ -1314,13 +1353,18 @@ final class AppViewModel {
         // only three cheap aggregates + workout types per trip, no photos / heart rate /
         // routes / authorship — so it never blocks the UI. Degrades to photo-only with no data.
         var healthDirectionByTrip: [String: TravelCategoryScores] = [:]
+        var stepsPerDayByTrip: [String: Double] = [:]
         if insightsEnabled, HealthKitService.isAvailable {
             for trip in trips {
-                if let direction = await healthDirection(for: trip) {
-                    healthDirectionByTrip[trip.id] = direction
-                }
+                let sweep = await healthSweep(for: trip)
+                if let direction = sweep.direction { healthDirectionByTrip[trip.id] = direction }
+                if let steps = sweep.averageStepsPerDay { stepsPerDayByTrip[trip.id] = steps }
             }
         }
+        // Written unconditionally, including the nil case: Health being switched off, or a
+        // trip losing its data, has to take the card down rather than leave a stale verdict up.
+        mostActiveRecord = Self.rankMostActive(stepsPerDayByTrip)
+        MostActiveTripStore.save(mostActiveRecord)
 
         let profile = await Task.detached(priority: .utility) {
             TravelPersonalityEngine().makeProfile(photos: photos,

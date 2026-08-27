@@ -196,48 +196,73 @@ struct DashboardView: View {
         .buttonStyle(.plain)
     }
 
-    /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt),
-    /// shown as a 2-up grid of compact cards.
+    /// "Highlights" — most-photographed + furthest-from-home (or a set-home prompt), plus the
+    /// most active trip once the user has opted into Health.
+    ///
+    /// A horizontally scrolling row rather than a fixed pair: `containerRelativeFrame(count: 2)`
+    /// gives each card exactly the width it had as a 2-up `HStack`, so with Health off the row
+    /// fills the screen and does not scroll at all — identical to before. With the third card
+    /// present it peeks in from the right edge, which is what advertises the scroll.
     @ViewBuilder
     private var highlightsSection: some View {
         let top = stats.mostPhotographedCountry
         let furthest = appVM.furthestTrip
-        if top != nil || furthest != nil || appVM.homeName == nil {
+        let active = appVM.mostActiveTrip
+        if top != nil || furthest != nil || active != nil || appVM.homeName == nil {
             VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(title: "Highlights", systemImage: "sparkles")
                     .padding(.horizontal, 20)
 
-                HStack(alignment: .top, spacing: 12) {
-                    if let top {
-                        Button { selectedCountry = top } label: {
-                            HighlightCard(emoji: top.flag,
-                                          label: "Most photographed",
-                                          title: top.localizedName,
-                                          subtitle: "\(top.photoCount) photos · \(top.cityCount) cities")
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 12) {
+                        if let top {
+                            Button { selectedCountry = top } label: {
+                                HighlightCard(emoji: top.flag,
+                                              label: "Most photographed",
+                                              title: top.localizedName,
+                                              subtitle: "\(top.photoCount) photos · \(top.cityCount) cities")
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
-                    }
 
-                    if let furthest {
-                        Button { selectedCountry = stats.countries.first { $0.id == furthest.trip.countryCode } } label: {
-                            HighlightCard(emoji: "✈️",
-                                          label: "Furthest from home",
-                                          title: furthest.trip.cities.first.map { "\($0), \(furthest.trip.localizedCountry)" } ?? furthest.trip.localizedCountry,
-                                          subtitle: "\(Int(furthest.distanceKm).formatted()) km away")
+                        if let furthest {
+                            Button { selectedCountry = stats.countries.first { $0.id == furthest.trip.countryCode } } label: {
+                                HighlightCard(emoji: "✈️",
+                                              label: "Furthest from home",
+                                              title: furthest.trip.cities.first.map { "\($0), \(furthest.trip.localizedCountry)" } ?? furthest.trip.localizedCountry,
+                                              subtitle: "\(Int(furthest.distanceKm).formatted()) km away")
+                            }
+                            .buttonStyle(.plain)
+                        } else if appVM.homeName == nil {
+                            Button { appVM.selectedTab = .me } label: {
+                                HighlightCard(emoji: "🏠",
+                                              label: "Furthest from home",
+                                              title: "Set your home city",
+                                              subtitle: "See which trip took you the furthest",
+                                              highlighted: true)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
-                    } else if appVM.homeName == nil {
-                        Button { appVM.selectedTab = .me } label: {
-                            HighlightCard(emoji: "🏠",
-                                          label: "Furthest from home",
-                                          title: "Set your home city",
-                                          subtitle: "See which trip took you the furthest",
-                                          highlighted: true)
+
+                        // Only exists once Health insights are on and at least two trips have
+                        // step data — no prompt card, no empty slot.
+                        if let active {
+                            NavigationLink { TripDetailView(trip: active.trip) } label: {
+                                HighlightCard(emoji: "👟",
+                                              label: "Most active",
+                                              title: active.trip.displayName,
+                                              subtitle: "\(active.stepsPerDay) steps a day")
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .scrollTargetLayout()
                 }
-                .padding(.horizontal, 20)
+                .scrollTargetBehavior(.viewAligned)
+                // Content margins rather than padding on the stack, so cards scroll to the
+                // screen edge instead of being clipped inside an inset container, while the
+                // first card still lines up with the section header.
+                .contentMargins(.horizontal, 20, for: .scrollContent)
             }
         }
     }
@@ -431,6 +456,10 @@ private struct HighlightCard: View {
                     .strokeBorder(Color.accentColor.opacity(0.25), lineWidth: 1)
             }
         }
+        // Exactly the width these tiles had as a fixed 2-up row, measured against the
+        // enclosing scroll view. Sized here, after the padding and background, so the whole
+        // tile is what gets the width — and so all four call sites stay unchanged.
+        .containerRelativeFrame(.horizontal, count: 2, spacing: 12)
         .contentShape(Rectangle())
     }
 }

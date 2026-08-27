@@ -697,6 +697,22 @@
         }
       }
     },
+    "%lld steps a day" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld steps a day"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld stappen per dag"
+          }
+        }
+      }
+    },
     "%lld trips" : {
       "localizations" : {
         "en" : {
@@ -2638,6 +2654,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meer opties"
+          }
+        }
+      }
+    },
+    "Most active" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most active"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meest actief"
           }
         }
       }
