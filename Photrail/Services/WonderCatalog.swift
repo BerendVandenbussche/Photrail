@@ -67,7 +67,12 @@ enum WonderCatalog {
                category: .landmark, latitude: 43.0870, longitude: -79.0640, radiusMeters: 3_500),
         Wonder(id: "mount-fuji", name: "Mount Fuji", countryCode: "JP", emoji: "🗻",
                category: .landmark, latitude: 35.3606, longitude: 138.7274, radiusMeters: 8_000),
+        // Centred on the island rather than on Oia, which is where this sat before: its 4 km
+        // radius reached Imerovigli and nothing else, so a stay in Fira (7.2 km), Kamari (14.0)
+        // or Perissa (14.9) missed Santorini entirely. From here the farthest corner of Thira —
+        // Oia in the north, the Akrotiri ruins in the south, Thirasia across the caldera — is
+        // under 8 km, while the nearest other island, Anafi, is 31 km away.
         Wonder(id: "santorini", name: "Santorini", countryCode: "GR", emoji: "🏝️",
-               category: .landmark, latitude: 36.4618, longitude: 25.3753, radiusMeters: 4_000),
+               category: .landmark, latitude: 36.4068, longitude: 25.4293, radiusMeters: 10_000),
     ]
 }
