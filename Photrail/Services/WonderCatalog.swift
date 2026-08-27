@@ -58,8 +58,13 @@ enum WonderCatalog {
         // Natural wonders
         Wonder(id: "grand-canyon", name: "Grand Canyon", countryCode: "US", emoji: "🏜️",
                category: .landmark, latitude: 36.0544, longitude: -112.1401, radiusMeters: 20_000),
+        // Centred on the falls themselves, between the American Falls and Horseshoe Falls,
+        // rather than on downtown Niagara Falls NY — which is 2.5 km downstream and left every
+        // viewpoint outside the radius, the Canadian side (Table Rock, Fallsview, Clifton Hill)
+        // most of all. The radius reaches both riverbanks and the gorge without touching
+        // Niagara-on-the-Lake or Buffalo.
         Wonder(id: "niagara-falls", name: "Niagara Falls", countryCode: "US", emoji: "💦",
-               category: .landmark, latitude: 43.0962, longitude: -79.0377, radiusMeters: 2_000),
+               category: .landmark, latitude: 43.0870, longitude: -79.0640, radiusMeters: 3_500),
         Wonder(id: "mount-fuji", name: "Mount Fuji", countryCode: "JP", emoji: "🗻",
                category: .landmark, latitude: 35.3606, longitude: 138.7274, radiusMeters: 8_000),
         Wonder(id: "santorini", name: "Santorini", countryCode: "GR", emoji: "🏝️",
