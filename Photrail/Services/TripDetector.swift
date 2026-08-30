@@ -75,11 +75,15 @@ struct TripDetector: Sendable {
 
         var trips: [Trip] = []
         var current: [GeoPhoto] = []
+        // Ids are derived from the start day, which is very nearly unique but not quite —
+        // see `makeTrip`. Carried through the walk so a collision can be resolved against
+        // every trip already built.
+        var usedTripIDs: Set<String> = []
 
         for photo in relevant {
             // Back home → the current journey is over.
             if isHome(photo) {
-                if !current.isEmpty { trips.append(makeTrip(current)); current = [] }
+                if !current.isEmpty { trips.append(makeTrip(current, usedIDs: &usedTripIDs)); current = [] }
                 continue
             }
             guard let last = current.last else { current = [photo]; continue }
@@ -92,10 +96,10 @@ struct TripDetector: Sendable {
             if sameTrip {
                 current.append(photo)                                  // still the same journey
             } else {
-                trips.append(makeTrip(current)); current = [photo]     // new journey
+                trips.append(makeTrip(current, usedIDs: &usedTripIDs)); current = [photo]   // new journey
             }
         }
-        if !current.isEmpty { trips.append(makeTrip(current)) }
+        if !current.isEmpty { trips.append(makeTrip(current, usedIDs: &usedTripIDs)) }
 
         return trips.sorted { $0.startDate > $1.startDate }
     }
@@ -205,7 +209,7 @@ struct TripDetector: Sendable {
         return visits
     }
 
-    private func makeTrip(_ photos: [GeoPhoto]) -> Trip {
+    private func makeTrip(_ photos: [GeoPhoto], usedIDs: inout Set<String>) -> Trip {
         let first = photos.first!
 
         // Countries on the trip, ordered by first appearance; primary = most photographed.
@@ -270,12 +274,24 @@ struct TripDetector: Sendable {
         let start = photos.map(\.date).min() ?? first.date
         let end = photos.map(\.date).max() ?? first.date
 
-        // Stable id keyed on the start *day*. Trips are sequential and non-overlapping,
-        // so the start day identifies a trip uniquely — and, unlike a country+timestamp
-        // key, it doesn't drift when photo counts change or the primary country flips,
-        // so per-trip data (notes, cover) stays attached.
+        // Stable id keyed on the start *day*: unlike a country+timestamp key it doesn't
+        // drift when photo counts change or the primary country flips, so per-trip data
+        // (notes, cover, name) stays attached.
+        //
+        // The start day is *nearly* unique, not quite. A journey ends the moment a photo is
+        // taken back home, so cross a border in the morning, come home, and go out again
+        // that evening and two trips share a start day. A duplicate id put the same trip in
+        // a SwiftUI list twice and made every trip-keyed store ambiguous, so collisions get
+        // a suffix — the same convention the stop ids below use for a city visited twice.
+        // The first trip of the day keeps the bare id, so nothing already saved detaches.
         let d = Calendar.current.dateComponents([.year, .month, .day], from: start)
-        let id = String(format: "trip-%04d-%02d-%02d", d.year ?? 0, d.month ?? 0, d.day ?? 0)
+        let baseID = String(format: "trip-%04d-%02d-%02d", d.year ?? 0, d.month ?? 0, d.day ?? 0)
+        var id = baseID
+        if !usedIDs.insert(id).inserted {
+            var occurrence = 2
+            while !usedIDs.insert("\(baseID)#\(occurrence)").inserted { occurrence += 1 }
+            id = "\(baseID)#\(occurrence)"
+        }
 
         let highestAltitude = photos.compactMap(\.altitude).max()
 

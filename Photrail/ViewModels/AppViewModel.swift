@@ -304,7 +304,11 @@ final class AppViewModel {
             return
         }
 
-        let placesByCountry = Dictionary(uniqueKeysWithValues: countries.map { ($0.id, $0.visitedPlaces) })
+        // Same reasoning as `flightsByTrip` below: country ids come from a code-keyed map and
+        // should never repeat, but this runs from `stats.didSet` on every launch, so it must
+        // not be the thing that trips.
+        let placesByCountry = Dictionary(countries.map { ($0.id, $0.visitedPlaces) },
+                                         uniquingKeysWith: +)
         Task { [weak self] in
             guard let self else { return }
             let rings = await borderRings(for: Array(placesByCountry.keys))
@@ -1481,8 +1485,14 @@ final class AppViewModel {
         // trip losing its data, has to take the card down rather than leave a stale verdict up.
         // The minimums only have to clear noise — a trip whose window caught a stray sample —
         // not prove the trip was strenuous.
-        let flightsByTrip = Dictionary(uniqueKeysWithValues:
-            activityByTrip.filter { $0.flights > 0 }.map { ($0.tripID, $0.flights) })
+        // `uniquingKeysWith:` rather than `uniqueKeysWithValues:`. Trip ids are unique as of
+        // the fix in `TripDetector.makeTrip`, but a dictionary that traps on a duplicate turns
+        // a cosmetic data defect into a launch crash the user cannot escape by relaunching —
+        // this ran inside the scan that starts on every launch. Keeping the larger total is
+        // the right answer for a superlative anyway.
+        let flightsByTrip = Dictionary(
+            activityByTrip.filter { $0.flights > 0 }.map { ($0.tripID, $0.flights) },
+            uniquingKeysWith: max)
         mostActiveRecord = Self.rankMostActive(activityByTrip)
         mostClimbedRecord = Self.rankTrips(flightsByTrip, minimum: 20)
         TripSuperlativeStore.save(mostActiveRecord, for: TripSuperlativeStore.mostActive)

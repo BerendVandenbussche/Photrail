@@ -89,7 +89,7 @@ final class TripDetectorTests: XCTestCase {
             photo(ghent, day: 2),
             photo(toronto, day: 3), photo(toronto, day: 8),
         ]
-        let trips = detector.detect(from: photos, homeCountryCode: "BE", homeCoordinate: home)
+        let trips = detector.detect(from: photos, homeCoordinate: home, homeCountryCode: "BE")
         XCTAssertEqual(trips.count, 2, "A stop in the home country splits Prague from Canada")
         XCTAssertEqual(Set(trips.flatMap(\.countryCodes)), ["CZ", "CA"])
         for trip in trips { XCTAssertFalse(trip.countryCodes.contains("BE"), "Home country isn't a trip") }
@@ -106,7 +106,7 @@ final class TripDetectorTests: XCTestCase {
             photo(frankfurtAirport, day: 0, seq: 6),
             photo(saoPaulo, day: 0, seq: 14), photo(saoPaulo, day: 5),
         ]
-        let trips = detector.detect(from: photos, homeCountryCode: "BE", homeCoordinate: home)
+        let trips = detector.detect(from: photos, homeCoordinate: home, homeCountryCode: "BE")
         XCTAssertEqual(trips.count, 1, "One Brazil trip")
         XCTAssertEqual(trips[0].countryCodes, ["BR"], "The Frankfurt layover isn't part of the trip")
     }
@@ -185,5 +185,42 @@ final class TripDetectorTests: XCTestCase {
             from: photo(bangkok, day: 0), to: photo(sydney, day: 0, seq: 6),
             gapDays: 0.25, home: homeLoc)
         XCTAssertEqual(sameDay, 1)
+    }
+
+    // MARK: - Identity
+
+    /// The 5.2.0 launch crash. Two trips can start on the same calendar day — a border hop
+    /// in the morning, home for lunch, out again in the evening — and both used to be given
+    /// the id `trip-YYYY-MM-DD`. That duplicate reached a `Dictionary(uniqueKeysWithValues:)`
+    /// in the personality recompute, which traps, killing the app during the launch scan on
+    /// every launch.
+    func testTripsStartingOnTheSameDayGetDistinctIDs() {
+        let brussels = (lat: 50.85, lon: 4.35, code: "BE", name: "Belgium", city: "Brussels")
+        let photos = [
+            photo(paris, day: 0, seq: 8),       // morning in Paris
+            photo(brussels, day: 0, seq: 12),   // home for lunch — ends the trip
+            photo(paris, day: 0, seq: 19),      // back out that evening — a second trip
+        ]
+        let trips = detector.detect(from: photos, homeCoordinate: home, homeCountryCode: "BE")
+
+        XCTAssertEqual(trips.count, 2, "Going home between them makes these two trips")
+        XCTAssertEqual(Set(trips.map(\.id)).count, trips.count, "Trip ids must be unique")
+    }
+
+    /// The disambiguation must not renumber the trip that was already there: notes, covers
+    /// and names are keyed by id, so the first trip of a day keeps the bare one.
+    func testFirstTripOfTheDayKeepsTheUnsuffixedID() {
+        let brussels = (lat: 50.85, lon: 4.35, code: "BE", name: "Belgium", city: "Brussels")
+        let photos = [
+            photo(paris, day: 0, seq: 8),
+            photo(brussels, day: 0, seq: 12),
+            photo(paris, day: 0, seq: 19),
+        ]
+        // `detect` returns newest first, so the earlier trip is last.
+        let trips = detector.detect(from: photos, homeCoordinate: home, homeCountryCode: "BE")
+        let chronological = trips.sorted { $0.startDate < $1.startDate }
+
+        XCTAssertFalse(chronological[0].id.contains("#"), "The first trip keeps its original id")
+        XCTAssertTrue(chronological[1].id.hasSuffix("#2"), "The collision is the one that moves")
     }
 }
