@@ -318,7 +318,7 @@ struct ProfileView: View {
             }
 
             settingsSection("Achievements & friends",
-                            footer: "Game Center shares your achievements and your number of countries, cities and kilometres with your Game Center friends.") {
+                            footer: "Game Center shares your achievements, your number of countries, cities and kilometres, and your highest point with your Game Center friends.") {
                 NavigationLink { AchievementsView() } label: {
                     row(icon: "trophy.fill", title: "Achievements",
                         detail: "\(appVM.unlockedAchievementIDs.count) of \(AchievementCatalog.count)")

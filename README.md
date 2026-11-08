@@ -281,7 +281,7 @@ Conventions:
 - **Apple Health** (Trip Insights) is **opt-in and read-only**, queried entirely on-device; nothing is written back and no health data leaves the phone. Revocable in the Health app / Settings.
 - Image data is only loaded when displaying thumbnails; all travel data lives in a local SwiftData database. Photo library access is **read-only** and revocable anytime.
 - **Compare links** carry your country list in the URL **fragment** (after `#`), which browsers never send to a server — the website only shows a download page. Nothing is uploaded; you choose who gets the link.
-- **Game Center** is **opt-in** (off by default). When on, your achievements and your number of countries, cities and kilometres go to Apple's Game Center so friends can compare. Turning it off stops reporting.
+- **Game Center** is **opt-in** (off by default). When on, your achievements, your number of countries, cities and kilometres, and your highest point go to Apple's Game Center so friends can compare. Turning it off stops reporting.
 - Ships an Apple **privacy manifest** (`PrivacyInfo.xcprivacy`, app + widget): no tracking, no data collected, `UserDefaults` declared with reason `CA92.1`. App Store label: **Data Not Collected**.
 
 ## Contributing
@@ -347,7 +347,7 @@ Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-tar
 - **Year in Travel recap** — a Wrapped-style story you tap through like Instagram stories (tap right/left, hold to pause, auto-advance): distance, most-photographed country, route map, first-visited countries, personality, wonders, biggest trip, highest peak, Vision best shots. Every slide is shareable; the finale plays the year's **film** and shows a **Travel Score** tier.
 - **Trip films** — any trip becomes a short vertical video (maps, photos, stats) for Instagram, TikTok or WhatsApp, rendered on-device. The first film is free; unlimited with Lifetime.
 - **Compare with a friend** — a QR code / link with your countries; a friend opens it and sees where you've both been. No backend.
-- **Achievements & Game Center** — secret milestones with an unlock toast and a shareable video; optionally synced to Game Center achievements and leaderboards (countries, cities, kilometres).
+- **Achievements & Game Center** — secret milestones with an unlock toast and a shareable video; optionally synced to Game Center achievements and leaderboards (countries, cities, kilometres, highest point — plane photos above 7,000 m are ignored).
 - **Vision-curated best shots** — on-device aesthetics + scene classification pick the year's most beautiful photos, matched to personality and time-spaced.
 - **Premium share system** — card templates (Personality, Summary, Wonders, Trip) + recap cards, map/transparent/photo backgrounds, 1080×1920 with branding.
 

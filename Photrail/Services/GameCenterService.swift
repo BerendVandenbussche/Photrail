@@ -17,6 +17,8 @@ enum GameCenterService {
         static let countries = "photrail.leaderboard.countries"
         static let cities = "photrail.leaderboard.cities"
         static let distance = "photrail.leaderboard.distance"
+        /// Highest point reached on a trip, in metres. Plane photos are filtered out upstream.
+        static let altitude = "photrail.leaderboard.altitude"
     }
 
     static var isAuthenticated: Bool { GKLocalPlayer.local.isAuthenticated }
@@ -62,12 +64,15 @@ enum GameCenterService {
     /// Submits the leaderboard numbers. "Best score" leaderboards keep the highest, so a
     /// lower number after excluding photos doesn't lower the rank — acceptable for a hobby
     /// comparison.
-    static func submit(countries: Int, cities: Int, distanceKm: Int) async {
+    static func submit(countries: Int, cities: Int, distanceKm: Int, altitudeMeters: Int) async {
         guard isAuthenticated else { return }
         let player = GKLocalPlayer.local
-        for (score, id) in [(countries, Leaderboard.countries),
-                            (cities, Leaderboard.cities),
-                            (distanceKm, Leaderboard.distance)] {
+        var scores = [(countries, Leaderboard.countries),
+                      (cities, Leaderboard.cities),
+                      (distanceKm, Leaderboard.distance)]
+        // No altitude in any photo: stay off that leaderboard rather than post a 0.
+        if altitudeMeters > 0 { scores.append((altitudeMeters, Leaderboard.altitude)) }
+        for (score, id) in scores {
             try? await GKLeaderboard.submitScore(score, context: 0, player: player, leaderboardIDs: [id])
         }
     }

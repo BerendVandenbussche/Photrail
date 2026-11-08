@@ -28,6 +28,17 @@ struct GeoPhoto: Codable, Identifiable, Sendable {
 }
 
 extension GeoPhoto {
+    /// Higher than any summit travellers actually reach (Aconcagua is 6,961 m). A photo above
+    /// it was taken from a plane — through the window at cruising altitude, 10–12 km up.
+    static let maxGroundAltitude: Double = 7_000
+
+    /// `altitude`, unless it's too high to be standing on the ground. Use this for "highest
+    /// point" records: a single photo of the clouds would otherwise top every one of them.
+    var groundAltitude: Double? {
+        guard let altitude, altitude <= Self.maxGroundAltitude else { return nil }
+        return altitude
+    }
+
     /// Convenience flag emoji derived from ISO country code.
     var flagEmoji: String {
         guard let code = countryCode else { return "🌍" }

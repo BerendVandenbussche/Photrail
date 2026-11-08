@@ -293,7 +293,8 @@ struct TripDetector: Sendable {
             id = "\(baseID)#\(occurrence)"
         }
 
-        let highestAltitude = photos.compactMap(\.altitude).max()
+        // Ground altitude only: a photo out of the plane window isn't the trip's highest point.
+        let highestAltitude = photos.compactMap(\.groundAltitude).max()
 
         let wonders = WonderDetector().detect(photos: photos)
             .filter { $0.photoCount > 0 }

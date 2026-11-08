@@ -560,14 +560,16 @@ final class AppViewModel {
         guard gameCenterEnabled, GameCenterService.isAuthenticated,
               navState == .dashboard, !stats.countries.isEmpty else { return }
         let distance = Int(Self.totalDistanceKm(trips: stats.trips, home: homeCoordinate).rounded())
+        // Trips already ignore plane photos (`GeoPhoto.groundAltitude`).
+        let altitude = Int((stats.trips.compactMap(\.highestAltitude).max() ?? 0).rounded())
         let snapshot = [unlockedAchievementIDs.sorted().joined(separator: ","),
-                        "\(stats.countryCount)", "\(stats.cityCount)", "\(distance)"]
+                        "\(stats.countryCount)", "\(stats.cityCount)", "\(distance)", "\(altitude)"]
             .joined(separator: "|")
         let key = "lastGameCenterReport"
         guard force || UserDefaults.standard.string(forKey: key) != snapshot else { return }
         await GameCenterService.report(achievementIDs: unlockedAchievementIDs)
         await GameCenterService.submit(countries: stats.countryCount, cities: stats.cityCount,
-                                       distanceKm: distance)
+                                       distanceKm: distance, altitudeMeters: altitude)
         UserDefaults.standard.set(snapshot, forKey: key)
     }
 
@@ -1430,7 +1432,8 @@ final class AppViewModel {
         var highestAltitude: Double?
         var highestAltitudePlace: String?
         var highestPeakPhotoID: String?
-        if let peak = yearPhotos.compactMap({ p in p.altitude.map { ($0, p) } }).max(by: { $0.0 < $1.0 }),
+        // Ground altitude only, so a photo from a plane can't become the year's "peak".
+        if let peak = yearPhotos.compactMap({ p in p.groundAltitude.map { ($0, p) } }).max(by: { $0.0 < $1.0 }),
            peak.0 >= 1000 {
             highestAltitude = peak.0
             highestAltitudePlace = peak.1.country.map { "\(peak.1.flagEmoji) \($0)" }
