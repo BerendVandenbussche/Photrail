@@ -30,6 +30,7 @@ struct MainTabView: View {
             WhatsNewView(announcement: announcement)
         }
         .sheet(item: $appVM.presentedComparison) { payload in CompareView(payload: payload) }
+        .sheet(item: $appVM.presentedPostcard) { request in PostcardView(request: request) }
         // `TripDetailView` sets its own navigation title, toolbar and pushes a stop detail,
         // so it needs a stack of its own when it isn't reached by a NavigationLink.
         .sheet(item: $appVM.presentedTrip) { trip in
@@ -61,6 +62,7 @@ struct MainTabView: View {
         .onChange(of: router.pendingPlannedTripID) { _, _ in applyPendingIntent() }
         .onChange(of: router.pendingTripDuring) { _, _ in applyPendingIntent() }
         .onChange(of: router.pendingComparison) { _, _ in applyPendingIntent() }
+        .onChange(of: router.pendingPostcardDay) { _, _ in applyPendingIntent() }
         .sheet(item: $appVM.planEditor, onDismiss: {
             if let id = appVM.planToShowAfterEditor {
                 appVM.planToShowAfterEditor = nil
@@ -93,6 +95,10 @@ struct MainTabView: View {
         if let payload = router.pendingComparison {
             router.pendingComparison = nil
             appVM.showComparison(payload)
+        }
+        if let day = router.pendingPostcardDay {
+            router.pendingPostcardDay = nil
+            appVM.showPostcard(AppViewModel.PostcardRequest(day: day))
         }
         if router.openYearRecap {
             router.openYearRecap = false

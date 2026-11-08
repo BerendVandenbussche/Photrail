@@ -170,6 +170,16 @@
         }
       }
     },
+    "%@ Day %lld in %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Dag %lld in %@"
+          }
+        }
+      }
+    },
     "%@ floors" : {
       "localizations" : {
         "en" : {
@@ -352,6 +362,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ Dat is %2$@× de %3$@!"
+          }
+        }
+      }
+    },
+    "%@ Today in %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Vandaag in %@"
           }
         }
       }
@@ -2103,6 +2123,16 @@
         }
       }
     },
+    "Daily postcard" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dagelijkse postkaart"
+          }
+        }
+      }
+    },
     "Date" : {
       "localizations" : {
         "nl" : {
@@ -3478,6 +3508,16 @@
         }
       }
     },
+    "Next day" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende dag"
+          }
+        }
+      }
+    },
     "Next trip" : {
       "localizations" : {
         "nl" : {
@@ -3584,6 +3624,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Geen foto's beschikbaar"
+          }
+        }
+      }
+    },
+    "No photos from day %lld yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen foto's van dag %lld"
           }
         }
       }
@@ -3891,6 +3941,16 @@
     },
     "OK" : {
 
+    },
+    "On a travel day with photos, Photrail sends one notification in the evening to turn the day into a postcard." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Op een reisdag met foto's stuurt Photrail 's avonds één melding om van die dag een postkaart te maken."
+          }
+        }
+      }
     },
     "On This Day" : {
       "localizations" : {
@@ -4398,6 +4458,26 @@
         }
       }
     },
+    "Postcard" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Postkaart"
+          }
+        }
+      }
+    },
+    "Postcards" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Postkaarten"
+          }
+        }
+      }
+    },
     "Powered by Apple Health" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4445,6 +4525,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "pretzels"
+          }
+        }
+      }
+    },
+    "Previous day" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorige dag"
           }
         }
       }
@@ -5210,6 +5300,16 @@
         }
       }
     },
+    "Share postcard" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel postkaart"
+          }
+        }
+      }
+    },
     "Share poster" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5749,7 +5849,6 @@
       }
     },
     "Test notice on" : {
-      "extractionState" : "stale",
       "localizations" : {
         "nl" : {
           "stringUnit" : {
@@ -5930,6 +6029,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vandaag"
+          }
+        }
+      }
+    },
+    "Today's postcard" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Postkaart van vandaag"
           }
         }
       }
@@ -7118,6 +7227,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je geanimeerde jaaroverzicht, klaar om te delen."
+          }
+        }
+      }
+    },
+    "Your day is ready to be a postcard." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je dag is klaar om een postkaart te worden."
           }
         }
       }

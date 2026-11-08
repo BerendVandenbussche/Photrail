@@ -41,6 +41,22 @@ struct DashboardView: View {
                         .buttonStyle(.plain)
                         .padding(.horizontal, 20)
                         .transition(.opacity.combined(with: .move(edge: .top)))
+
+                        // Photos from today on this trip: offer the day as a postcard.
+                        if appVM.hasPostcardToday {
+                            Button {
+                                appVM.presentedPostcard = AppViewModel.PostcardRequest(
+                                    day: Date(), tripID: live.trip?.id)
+                            } label: {
+                                Label("Today's postcard", systemImage: "envelope.open.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                                    .background(Color.accentColor.opacity(0.12),
+                                                in: RoundedRectangle(cornerRadius: 14))
+                                    .foregroundStyle(.tint)
+                            }
+                            .padding(.horizontal, 20)
+                        }
                     } else if let next = appVM.nextTripCountdown {
                         NavigationLink { PlannedTripDetailView(planID: next.id) } label: {
                             UpcomingTripCard(plan: next)

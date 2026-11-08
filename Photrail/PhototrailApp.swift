@@ -19,9 +19,10 @@ struct PhotrailApp: App {
 
         UNUserNotificationCenter.current().delegate = notificationDelegate
 
-        BackgroundTaskService.registerHandlers { [vm] in
-            await vm.runBackgroundScan()
-        }
+        BackgroundTaskService.registerHandlers(
+            scanHandler: { [vm] in await vm.runBackgroundScan() },
+            postcardHandler: { [vm] in await vm.checkTodaysPostcard() }
+        )
     }
 
     /// Build the SwiftData container. The store is a derived cache (rebuildable by

@@ -16,6 +16,7 @@ struct TripDetailView: View {
     @Environment(AppViewModel.self) private var appVM
     @State private var coverImage: UIImage?
     @State private var showSharePreview = false
+    @State private var postcardRequest: AppViewModel.PostcardRequest?
     @State private var note: String = ""
     @State private var showNoteEditor = false
     @State private var selectedWonder: WonderStat?
@@ -105,6 +106,8 @@ struct TripDetailView: View {
                 .accessibilityLabel(Text("Share"))
             }
         }
+        // Its own sheet: this page is itself a root sheet when opened from a notification.
+        .sheet(item: $postcardRequest) { PostcardView(request: $0) }
         .sheet(isPresented: $showSharePreview, onDismiss: refreshFilmStatus) {
             TripSharePreview(trip: displayTrip, cover: coverImage, insights: insights)
         }
@@ -244,10 +247,26 @@ struct TripDetailView: View {
                 .buttonStyle(.plain)
 
                 if !trip.photoIDs.isEmpty {
-                    Button { showSharePreview = true } label: {
-                        TripFilmButton(status: filmStatus)
+                    HStack(spacing: 8) {
+                        Button { showSharePreview = true } label: {
+                            TripFilmButton(status: filmStatus)
+                        }
+                        .buttonStyle(.plain)
+
+                        // A postcard per day, starting on the last one.
+                        Button {
+                            postcardRequest = AppViewModel.PostcardRequest(day: trip.endDate, tripID: trip.id)
+                        } label: {
+                            Label("Postcards", systemImage: "envelope.fill")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14).padding(.vertical, 8)
+                                .background(.ultraThinMaterial, in: Capsule())
+                                .environment(\.colorScheme, .dark)
+                                .contentShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                     .padding(.top, 8)
                 }
             }

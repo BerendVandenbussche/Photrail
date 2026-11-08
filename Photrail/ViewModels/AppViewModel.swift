@@ -377,7 +377,8 @@ final class AppViewModel {
               !scanProgress.isActive,
               !stats.trips.isEmpty,
               presentedTrip == nil, presentedPlan == nil, planEditor == nil,
-              presentedRecap == nil, !presentedAchievements, presentedComparison == nil
+              presentedRecap == nil, !presentedAchievements, presentedComparison == nil,
+              presentedPostcard == nil
         else { return }
         presentedWhatsNew = announcement
     }
@@ -509,16 +510,27 @@ final class AppViewModel {
     /// this link on purpose — and the comparison follows once it's gone: one view can't swap
     /// sheets within a single update.
     func showComparison(_ payload: ComparePayload) {
+        presentAfterClosingSheets { $0.presentedComparison = payload }
+    }
+
+    /// Open a day's postcard (a tapped notification), the same way as `showComparison`.
+    func showPostcard(_ request: PostcardRequest) {
+        presentAfterClosingSheets { $0.presentedPostcard = request }
+    }
+
+    /// Runs `present` straight away, or — when a root sheet is up — closes it first and runs
+    /// `present` once it's gone: one view can't swap sheets within a single update.
+    private func presentAfterClosingSheets(_ present: @escaping (AppViewModel) -> Void) {
         let sheetOpen = presentedTrip != nil || presentedPlan != nil || planEditor != nil
             || presentedRecap != nil || presentedAchievements || presentedWhatsNew != nil
-            || presentedComparison != nil
-        guard sheetOpen else { presentedComparison = payload; return }
+            || presentedComparison != nil || presentedPostcard != nil
+        guard sheetOpen else { present(self); return }
         presentedTrip = nil; presentedPlan = nil; planEditor = nil
         presentedRecap = nil; presentedAchievements = false; presentedWhatsNew = nil
-        presentedComparison = nil
-        Task { @MainActor in
+        presentedComparison = nil; presentedPostcard = nil
+        Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(600))
-            presentedComparison = payload
+            if let self { present(self) }
         }
     }
 
@@ -526,6 +538,140 @@ final class AppViewModel {
     func compareURL(name: String?) -> URL {
         CompareLink.url(for: ComparePayload(name: name, emoji: profileEmoji,
                                             countryCodes: Set(stats.countries.map(\.id))))
+    }
+
+    // MARK: - Daily postcard
+
+    /// A day to open as a postcard. `tripID` pins the trip (from a trip page); without it, the
+    /// trip is found from the day (a notification, Today).
+    struct PostcardRequest: Identifiable {
+        let id = UUID()
+        let day: Date
+        var tripID: String? = nil
+    }
+    var presentedPostcard: PostcardRequest?
+
+    /// Opt-out: on by default. Off removes tonight's notification and stops the background check.
+    var dailyPostcardEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(dailyPostcardEnabled, forKey: "dailyPostcardEnabled")
+            if dailyPostcardEnabled {
+                Task { await checkTodaysPostcard() }
+            } else {
+                NotificationService.cancelAllPostcards()
+                BackgroundTaskService.cancelPostcardCheck()
+            }
+        }
+    }
+
+    /// The plan whose dates include `day`.
+    func postcardPlan(for day: Date) -> PlannedTrip? {
+        let start = Calendar.current.startOfDay(for: day)
+        return plannedTrips.first { start >= $0.startDate && start <= $0.endDate }
+    }
+
+    /// The photo trip a postcard of `day` comes from.
+    func postcardTrip(for day: Date, tripID: String? = nil) -> Trip? {
+        if let tripID { return stats.trips.first { $0.id == tripID } }
+        if let plan = postcardPlan(for: day), let trip = plan.matchingTrip(in: stats.trips) { return trip }
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: day)
+        return stats.trips.first {
+            !$0.isManual && start >= calendar.startOfDay(for: $0.startDate)
+                && start <= calendar.startOfDay(for: $0.endDate)
+        }
+    }
+
+    /// Every day of the postcard's trip, to browse with ‹ ›. Just `day` when there's no trip.
+    func postcardDays(for request: PostcardRequest) -> [Date] {
+        let calendar = Calendar.current
+        let day = calendar.startOfDay(for: request.day)
+        guard let trip = postcardTrip(for: request.day, tripID: request.tripID) else { return [day] }
+        var days: [Date] = []
+        var current = calendar.startOfDay(for: trip.startDate)
+        let last = max(calendar.startOfDay(for: trip.endDate), day)
+        while current <= last, days.count < 120 {
+            days.append(current)
+            guard let next = calendar.date(byAdding: .day, value: 1, to: current) else { break }
+            current = next
+        }
+        return days
+    }
+
+    /// The postcard of `day`, or nil when nothing was photographed on that day of the trip.
+    func makePostcard(day: Date, tripID: String? = nil) async -> DayPostcard? {
+        guard let trip = postcardTrip(for: day, tripID: tripID) else { return nil }
+        let ids = Set(trip.photoIDs)
+        let photos = ((try? await store.allPhotos()) ?? []).filter { ids.contains($0.id) }
+        return DayPostcardBuilder.make(day: day, tripStart: trip.startDate,
+                                       plan: postcardPlan(for: day), photos: photos)
+    }
+
+    /// The day number a postcard of `day` would carry, for the empty state.
+    func postcardDayNumber(day: Date, tripID: String? = nil) -> Int {
+        if let plan = postcardPlan(for: day), let number = plan.dayNumber(now: day) { return number }
+        let calendar = Calendar.current
+        guard let trip = postcardTrip(for: day, tripID: tripID) else { return 1 }
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: trip.startDate),
+                                           to: calendar.startOfDay(for: day)).day ?? 0
+        return max(1, days + 1)
+    }
+
+    /// Whether today's postcard is worth offering on Today: on a trip, with photos from today.
+    var hasPostcardToday: Bool {
+        guard let trip = liveTrip?.trip else { return false }
+        return Calendar.current.isDateInToday(trip.endDate)
+    }
+
+    /// Schedules tonight's postcard notification — only when there are photos from today away
+    /// from home, so a day without photos never gets one (iOS can't cancel a local
+    /// notification at the moment it fires). Runs on app open, after a scan, and from the
+    /// background refresh, which it keeps scheduled while a trip is on or about to start.
+    func checkTodaysPostcard() async {
+        guard dailyPostcardEnabled else { return }
+        let now = Date()
+        let travelling = plannedTripUnderway != nil || liveTrip != nil
+            || upcomingTrips.first.map { $0.daysUntilStart(now: now) <= 1 } == true
+        if travelling { BackgroundTaskService.schedulePostcardCheck() }
+
+        let home = homeLatitude.flatMap { lat in homeLongitude.map { CLLocation(latitude: lat, longitude: $0) } }
+        let today = PostcardCheck.photosToday(home: home, now: now)
+        guard today.count > 0 else { return }
+
+        let flag: String, place: String, dayNumber: Int?
+        if let plan = plannedTripUnderway {
+            let stay = plan.stay(on: now)
+            flag = stay?.flag ?? plan.flag
+            place = stay?.localizedCountry ?? plan.displayName
+            dayNumber = plan.dayNumber(now: now)
+        } else if let trip = liveTrip?.trip {
+            flag = trip.flag
+            place = trip.localizedCountry
+            dayNumber = postcardDayNumber(day: now, tripID: trip.id)
+        } else if let lat = today.latitude, let lon = today.longitude,
+                  let home = homeCountryCode,
+                  let match = await offlineGeocoder.match(latitude: lat, longitude: lon),
+                  match.code != home {
+            // No plan and no trip in the stats yet (a background launch, or the first day):
+            // photos abroad are enough.
+            flag = CountryCatalog.flag(for: match.code)
+            place = CountryCatalog.name(for: match.code)
+            dayNumber = nil
+        } else {
+            return   // photos, but not on a trip
+        }
+        await NotificationService.schedulePostcard(day: now, dayNumber: dayNumber,
+                                                   flag: flag, place: place, now: now)
+    }
+
+    /// For testing from Profile: tonight's notification, right now, whatever the day held.
+    func sendTestPostcard() async {
+        let flag = liveTrip?.trip?.flag ?? plannedTripUnderway?.flag ?? "🇵🇹"
+        let place = liveTrip?.trip?.localizedCountry ?? plannedTripUnderway?.displayName
+            ?? CountryCatalog.name(for: "PT")
+        await NotificationService.requestProvisionalAuthorization()
+        await NotificationService.schedulePostcard(day: Date(), dayNumber: 3, flag: flag,
+                                                   place: place, now: Date(), immediately: true)
     }
 
     // MARK: - Game Center
@@ -959,6 +1105,7 @@ final class AppViewModel {
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
         self.unlockedAchievementIDs = AchievementStore.load()
         self.gameCenterEnabled = UserDefaults.standard.bool(forKey: "gameCenterEnabled")
+        self.dailyPostcardEnabled = UserDefaults.standard.object(forKey: "dailyPostcardEnabled") as? Bool ?? true
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
         // and will redirect to .permissionDenied if access was revoked.
@@ -1338,6 +1485,7 @@ final class AppViewModel {
         case .active:
             foregroundRevision &+= 1
             Task { await connectGameCenter(interactive: false) }
+            Task { await checkTodaysPostcard() }
             // If a scan was interrupted by backgrounding, resume it now.
             switch scanProgress {
             case .scanning, .resolvingCountries, .geocoding:
@@ -2154,6 +2302,7 @@ final class AppViewModel {
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }
         checkWhatsNew()
         await connectGameCenter(interactive: false)
+        await checkTodaysPostcard()
     }
 }
 

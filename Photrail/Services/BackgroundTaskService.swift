@@ -8,14 +8,41 @@ import BackgroundTasks
 /// The system decides the exact time it fires, typically overnight while charging.
 struct BackgroundTaskService {
     static let scanTaskID = "com.berend.photrail.scan"
+    /// A short refresh during a trip: "photos from today?" → schedule tonight's postcard.
+    static let postcardTaskID = "com.berend.photrail.postcard"
 
     // MARK: - Registration (call once at app launch, before the first runloop cycle)
 
-    static func registerHandlers(scanHandler: @escaping () async -> Void) {
+    static func registerHandlers(scanHandler: @escaping () async -> Void,
+                                 postcardHandler: @escaping () async -> Void) {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: scanTaskID, using: nil) { task in
             guard let processingTask = task as? BGProcessingTask else { return }
             handleScanTask(processingTask, scanHandler: scanHandler)
         }
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: postcardTaskID, using: nil) { task in
+            guard let refreshTask = task as? BGAppRefreshTask else { return }
+            let work = Task {
+                // The handler reschedules the next check itself while the trip goes on.
+                await postcardHandler()
+                refreshTask.setTaskCompleted(success: true)
+            }
+            refreshTask.expirationHandler = {
+                work.cancel()
+                refreshTask.setTaskCompleted(success: false)
+            }
+        }
+    }
+
+    /// Ask iOS for a postcard check in about three hours. iOS decides when it really runs (more
+    /// often for apps in regular use); submitting again replaces the pending request.
+    static func schedulePostcardCheck() {
+        let request = BGAppRefreshTaskRequest(identifier: postcardTaskID)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 3 * 3600)
+        try? BGTaskScheduler.shared.submit(request)
+    }
+
+    static func cancelPostcardCheck() {
+        BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: postcardTaskID)
     }
 
     // MARK: - Scheduling

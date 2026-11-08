@@ -41,10 +41,12 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.berend.photrail.scan</string>
+		<string>com.berend.photrail.postcard</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>
+		<string>fetch</string>
 	</array>
 
 	<!-- Privacy -->

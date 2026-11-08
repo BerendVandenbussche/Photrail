@@ -26,4 +26,6 @@ final class IntentRouter {
     /// A friend's compare link. Waits here until the dashboard is up: before onboarding there
     /// are no countries of your own to compare with.
     var pendingComparison: ComparePayload?
+    /// A daily postcard notification was tapped: open that day's postcard.
+    var pendingPostcardDay: Date?
 }

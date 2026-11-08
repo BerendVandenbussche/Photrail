@@ -15,6 +15,7 @@ struct ProfileView: View {
     @State private var showPaywall = false
     @State private var notificationsDenied = false
     @State private var showCompare = false
+    @State private var showPostcardSample = false
 
     private var stats: TravelStats { appVM.stats }
     private var profile: TravelPersonalityProfile? { appVM.personalityProfile }
@@ -122,6 +123,9 @@ struct ProfileView: View {
             .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
             .sheet(isPresented: $showLocationGuide) { LocationDataGuideView() }
             .sheet(isPresented: $showCompare) { CompareShareView() }
+#if DEBUG
+            .sheet(isPresented: $showPostcardSample) { PostcardDebugSampleView() }
+#endif
             .confirmationDialog("Reindex photo library?",
                                 isPresented: $showReindexConfirm, titleVisibility: .visible) {
                 Button("Reindex", role: .destructive) { appVM.reindex() }
@@ -335,7 +339,8 @@ struct ProfileView: View {
                 }
             }
 
-            settingsSection("Notifications & insights") {
+            settingsSection("Notifications & insights",
+                            footer: "On a travel day with photos, Photrail sends one notification in the evening to turn the day into a postcard.") {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 14) {
                         settingsIcon("bell.fill")
@@ -367,6 +372,28 @@ struct ProfileView: View {
                 .onLongPressGesture(minimumDuration: 1.5) { Task { await sendTestNudge() } }
                 .task { await refreshNotificationStatus() }
                 rowDivider
+
+                toggleRow(icon: "envelope.fill", title: "Daily postcard", isOn: $appVM.dailyPostcardEnabled)
+                    .contentShape(.rect)
+                    // Testing: long-press sends tonight's postcard notification right away.
+                    .onLongPressGesture(minimumDuration: 1.5) { Task { await appVM.sendTestPostcard() } }
+                rowDivider
+#if DEBUG
+                // Debug only: the postcard with made-up data. Remove together with
+                // Views/Postcard/PostcardDebugSample.swift.
+                Button { showPostcardSample = true } label: {
+                    HStack(spacing: 14) {
+                        settingsIcon("ladybug.fill")
+                        Text(verbatim: "Postcard sample (debug)").foregroundStyle(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                    }
+                    .padding(14)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                rowDivider
+#endif
 
                 if appVM.hasLifetime {
                     toggleRow(icon: "heart.text.square.fill", title: "Trip Insights", isOn: $appVM.insightsEnabled)

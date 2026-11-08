@@ -15,6 +15,8 @@ enum NotificationRoute {
     /// The photo trip taken between these days — the "welcome back" reminder. Carries the
     /// dates rather than the plan's id because the plan is retired once its trip is found.
     case tripDuring(start: Date, end: Date)
+    /// The daily postcard of this day.
+    case postcard(day: Date)
 
     private static let kind = "route"
     private static let tripID = "tripID"
@@ -32,6 +34,8 @@ enum NotificationRoute {
             return [Self.kind: "tripDuring",
                     Self.start: String(start.timeIntervalSince1970),
                     Self.end: String(end.timeIntervalSince1970)]
+        case .postcard(let day):
+            return [Self.kind: "postcard", Self.start: String(day.timeIntervalSince1970)]
         }
     }
 
@@ -49,6 +53,9 @@ enum NotificationRoute {
             guard let start = (userInfo[Self.start] as? String).flatMap(TimeInterval.init),
                   let end = (userInfo[Self.end] as? String).flatMap(TimeInterval.init) else { return nil }
             self = .tripDuring(start: Date(timeIntervalSince1970: start), end: Date(timeIntervalSince1970: end))
+        case "postcard":
+            guard let day = (userInfo[Self.start] as? String).flatMap(TimeInterval.init) else { return nil }
+            self = .postcard(day: Date(timeIntervalSince1970: day))
         default:          return nil
         }
     }
@@ -210,6 +217,73 @@ enum NotificationService {
             withIdentifiers: PlanReminder.allCases.map { $0.id(for: id) })
     }
 
+    // MARK: - Daily postcard
+
+    static let postcardPrefix = "postcard-"
+
+    /// When tonight's postcard notification should go out.
+    enum PostcardTiming: Equatable {
+        case at(Date)   // 20:00 today
+        case now        // between 20:00 and 22:00: the evening is already here
+        case skip       // after 22:00: too late, tomorrow brings a new day
+    }
+
+    static func postcardTiming(now: Date, calendar: Calendar = .current) -> PostcardTiming {
+        let hour = calendar.component(.hour, from: now)
+        if hour < 20, let eight = calendar.date(bySettingHour: 20, minute: 0, second: 0, of: now) {
+            return .at(eight)
+        }
+        return hour < 22 ? .now : .skip
+    }
+
+    /// Schedules the day's postcard notification. One per day (`postcard-yyyyMMdd`): running
+    /// it again for the same day replaces the request, so checks can repeat freely. Only call
+    /// it once there are photos from the day — see `AppViewModel.checkTodaysPostcard()`.
+    /// - Parameter immediately: for testing from Profile.
+    static func schedulePostcard(day: Date, dayNumber: Int?, flag: String, place: String,
+                                 now: Date = Date(), immediately: Bool = false) async {
+        guard await isAuthorized() else { return }
+        let identifier = postcardPrefix + postcardDayKey(day)
+
+        // Already delivered today? Then the user has seen it — never send the day twice.
+        if !immediately {
+            let delivered = await UNUserNotificationCenter.current().deliveredNotifications()
+            if delivered.contains(where: { $0.request.identifier == identifier }) { return }
+        }
+
+        let trigger: UNNotificationTrigger?
+        switch immediately ? .now : postcardTiming(now: now) {
+        case .skip: return
+        case .now:  trigger = nil
+        case .at(let date):
+            let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+            trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = dayNumber.map { String(localized: "\(flag) Day \($0) in \(place)") }
+            ?? String(localized: "\(flag) Today in \(place)")
+        content.body = String(localized: "Your day is ready to be a postcard.")
+        content.sound = .default
+        content.userInfo = NotificationRoute.postcard(day: Calendar.current.startOfDay(for: day)).userInfo
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        try? await UNUserNotificationCenter.current().add(request)
+    }
+
+    /// Removes every pending postcard notification (the toggle was turned off).
+    static func cancelAllPostcards() {
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { requests in
+            let ids = requests.map(\.identifier).filter { $0.hasPrefix(NotificationService.postcardPrefix) }
+            center.removePendingNotificationRequests(withIdentifiers: ids)
+        }
+    }
+
+    private static func postcardDayKey(_ day: Date) -> String {
+        let c = Calendar.current.dateComponents([.year, .month, .day], from: day)
+        return String(format: "%04d%02d%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+
     private static func isAuthorized() async -> Bool {
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         return status == .authorized || status == .provisional
@@ -241,6 +315,8 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             case .tripDuring(let start, let end):
                 router.pendingTab = .today
                 router.pendingTripDuring = start...end
+            case .postcard(let day):
+                router.pendingPostcardDay = day
             }
         }
     }

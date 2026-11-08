@@ -346,6 +346,7 @@ Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-tar
 **Recap & sharing**
 - **Year in Travel recap** — a Wrapped-style story you tap through like Instagram stories (tap right/left, hold to pause, auto-advance): distance, most-photographed country, route map, first-visited countries, personality, wonders, biggest trip, highest peak, Vision best shots. Every slide is shareable; the finale plays the year's **film** and shows a **Travel Score** tier.
 - **Trip films** — any trip becomes a short vertical video (maps, photos, stats) for Instagram, TikTok or WhatsApp, rendered on-device. The first film is free; unlimited with Lifetime.
+- **Daily postcard** — on a travel day with photos, one evening notification turns the day into a story-size postcard (best photos, stamp, postmark, route map). Only scheduled once Photrail has seen photos from that day (on app open or a background refresh), so a day without photos never gets one. Opt-out in the Me tab.
 - **Compare with a friend** — a QR code / link with your countries; a friend opens it and sees where you've both been. No backend.
 - **Achievements & Game Center** — secret milestones with an unlock toast and a shareable video; optionally synced to Game Center achievements and leaderboards (countries, cities, kilometres, highest point — plane photos above 7,000 m are ignored).
 - **Vision-curated best shots** — on-device aesthetics + scene classification pick the year's most beautiful photos, matched to personality and time-spaced.
