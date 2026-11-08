@@ -23,13 +23,14 @@ struct TravelInsightsEngine: Sendable {
                steps: Int?,
                workouts: [HealthKitService.RawWorkout],
                authoredPhotoIDs: Set<String>? = nil,
+               activeSpan: ClosedRange<Date>? = nil,
                now: Date) -> TripInsights {
 
         let excitement = excitement(photos: photos, heartRate: heartRate,
                                     authoredPhotoIDs: authoredPhotoIDs)
         let milestone = flightsClimbed.flatMap { elevationMilestone(flights: $0) }
         let food = activeEnergyKcal.flatMap { foodEquivalent(kcal: $0, countryCode: trip.countryCode) }
-        let chapters = workoutChapters(workouts: workouts, photos: photos)
+        let chapters = workoutChapters(workouts: workouts, photos: photos, activeSpan: activeSpan)
         let persona = persona(steps: steps, photoCount: photos.count, trip: trip)
 
         return TripInsights(
@@ -150,15 +151,25 @@ struct TravelInsightsEngine: Sendable {
 
     // MARK: - 4. Workout Chapters
 
-    /// Group photos taken during each workout's window. Chapters with no photos are dropped
-    /// (nothing to show); a chapter with no route still renders its stats + sub-album.
-    func workoutChapters(workouts: [HealthKitService.RawWorkout], photos: [GeoPhoto]) -> [WorkoutChapter] {
+    /// Group photos taken during each workout's window. A chapter with no route still
+    /// renders its stats + sub-album, and one with no photos just its stats.
+    ///
+    /// Health is queried for whole calendar days, so the first and last day can include a
+    /// workout done at home (the morning run before the flight). A workout with photos is
+    /// placed by them; one without is kept only when it overlaps `activeSpan`, the stretch
+    /// the user was demonstrably away. No span means photo-less workouts are dropped.
+    func workoutChapters(workouts: [HealthKitService.RawWorkout], photos: [GeoPhoto],
+                         activeSpan: ClosedRange<Date>? = nil) -> [WorkoutChapter] {
         workouts.compactMap { workout in
             let ids = photos
                 .filter { $0.date >= workout.start && $0.date <= workout.end }
                 .sorted { $0.date < $1.date }
                 .map(\.id)
-            guard !ids.isEmpty else { return nil }
+            if ids.isEmpty {
+                guard let activeSpan,
+                      workout.end >= activeSpan.lowerBound,
+                      workout.start <= activeSpan.upperBound else { return nil }
+            }
             let (key, emoji) = Self.activity(for: workout.activityRawValue)
             return WorkoutChapter(id: workout.id, activityKey: key, emoji: emoji,
                                   start: workout.start, end: workout.end,

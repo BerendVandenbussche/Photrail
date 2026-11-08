@@ -4,7 +4,14 @@ import Photos
 /// Detail for a single trip: a hero photo, key stats, a map of the cities visited
 /// (joined in visit order), the itinerary, wonders seen, and the trip's photos.
 struct TripDetailView: View {
-    let trip: Trip
+    /// The trip as it was when the page opened. Read through `trip`, which follows the
+    /// latest scan, so a trip in progress grows while it's on screen.
+    private let opened: Trip
+
+    init(trip: Trip) { self.opened = trip }
+
+    private var trip: Trip { appVM.latest(opened) }
+    private var isLive: Bool { appVM.isLive(trip) }
 
     @Environment(AppViewModel.self) private var appVM
     @State private var coverImage: UIImage?
@@ -103,7 +110,9 @@ struct TripDetailView: View {
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
         .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
         .task { await loadCover() }
-        .task { await loadInsights() }
+        // Re-run when the trip gains photos or the app comes back to the foreground: a trip
+        // in progress keeps collecting workouts that weren't in Health the last time we read it.
+        .task(id: insightsRefreshKey) { await loadInsights() }
         .task { await loadWonderCovers() }
         .onAppear {
             note = TripNoteStore.note(for: trip.id)
@@ -184,6 +193,7 @@ struct TripDetailView: View {
                            startPoint: .center, endPoint: .bottom)
 
             VStack(alignment: .leading, spacing: 4) {
+                if isLive { LiveTripPill().padding(.bottom, 4) }
                 Text(trip.dateRangeText.uppercased())
                     .font(.system(size: 12, weight: .bold)).tracking(1.2)
                     .foregroundStyle(.white.opacity(0.85))
@@ -391,9 +401,14 @@ struct TripDetailView: View {
         }
     }
 
-    /// Resolve the activity vibe/theme source: cached insights, or a compute if enabled.
+    private var insightsRefreshKey: String {
+        "\(AppViewModel.insightsSignature(for: trip))-\(appVM.foregroundRevision)"
+    }
+
+    /// Resolve the activity vibe/theme source: cached insights first, then a compute when
+    /// enabled (which hands the cache straight back unless it may be out of date).
     private func loadInsights() async {
-        if let cached = appVM.cachedInsights(for: trip) { insights = cached; return }
+        if let cached = appVM.cachedInsights(for: trip) { insights = cached }
         guard appVM.insightsEnabled else { return }
         insights = await appVM.computeInsights(for: trip)
     }

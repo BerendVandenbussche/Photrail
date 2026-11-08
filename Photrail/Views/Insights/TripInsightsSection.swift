@@ -50,8 +50,14 @@ struct TripInsightsSection: View {
                 }
             }
         }
-        .task { if appVM.insightsEnabled, insights == nil { await load() } }
+        // Keyed so a trip in progress refreshes as it gains photos, and whenever the app
+        // returns to the foreground (new workouts may have synced from the Watch since).
+        .task(id: refreshKey) { if appVM.insightsEnabled { await load() } }
         .sheet(item: $selectedChapter) { WorkoutChapterView(chapter: $0) }
+    }
+
+    private var refreshKey: String {
+        "\(AppViewModel.insightsSignature(for: trip))-\(appVM.foregroundRevision)"
     }
 
     // MARK: - State transitions
@@ -237,8 +243,10 @@ struct TripInsightsSection: View {
                                 Text(chapter.durationText).font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Text("\(chapter.photoIDs.count)").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
-                            Image(systemName: "photo.stack").font(.caption).foregroundStyle(.tertiary)
+                            if !chapter.photoIDs.isEmpty {
+                                Text("\(chapter.photoIDs.count)").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                                Image(systemName: "photo.stack").font(.caption).foregroundStyle(.tertiary)
+                            }
                             Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                         }
                         .contentShape(Rectangle())

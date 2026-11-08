@@ -8,6 +8,10 @@ struct TravelStats: Sendable {
     var trips: [Trip]
     var allCities: [CityStat]
     var timelineEntries: [TimelineEntry]
+    /// When the newest placed photo was taken (exclusions applied, manual trips ignored).
+    /// Lets the app tell "still on the trip" from "back home": home photos never join a
+    /// trip, so a photo newer than the last trip means the user has moved on.
+    var latestPhotoDate: Date? = nil
 
     var countryCount: Int { countries.count }
     var cityCount: Int { allCities.count }

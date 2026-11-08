@@ -195,6 +195,25 @@ final class TravelInsightsEngineTests: XCTestCase {
         XCTAssertTrue(engine.workoutChapters(workouts: [workout], photos: []).isEmpty)
     }
 
+    func testWorkoutChapterWithoutPhotosKeptInsideTrip() {
+        let workout = HealthKitService.RawWorkout(
+            id: "w1", activityRawValue: 52, start: Date(timeIntervalSince1970: 100),
+            end: Date(timeIntervalSince1970: 200), distanceMeters: nil, energyKcal: nil, route: [])
+        let span = Date(timeIntervalSince1970: 150)...Date(timeIntervalSince1970: 10_000)
+        let chapters = engine.workoutChapters(workouts: [workout], photos: [], activeSpan: span)
+        XCTAssertEqual(chapters.count, 1)
+        XCTAssertTrue(chapters[0].photoIDs.isEmpty)
+    }
+
+    func testWorkoutChapterWithoutPhotosDroppedOutsideTrip() {
+        // The morning run at home before the flight: same calendar day, before the first photo.
+        let workout = HealthKitService.RawWorkout(
+            id: "w1", activityRawValue: 37, start: Date(timeIntervalSince1970: 100),
+            end: Date(timeIntervalSince1970: 200), distanceMeters: nil, energyKcal: nil, route: [])
+        let span = Date(timeIntervalSince1970: 5_000)...Date(timeIntervalSince1970: 10_000)
+        XCTAssertTrue(engine.workoutChapters(workouts: [workout], photos: [], activeSpan: span).isEmpty)
+    }
+
     // MARK: - Assembly
 
     func testBuildWithEmptyInputsHasNoContent() {

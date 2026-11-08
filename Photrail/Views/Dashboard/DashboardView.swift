@@ -24,6 +24,16 @@ struct DashboardView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
+                    // On a trip right now — lead with it, it's the thing they opened the app for.
+                    if let current = appVM.currentTrip {
+                        NavigationLink { TripDetailView(trip: current) } label: {
+                            CurrentTripCard(trip: current)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 20)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+
                     // Most of the library has no coordinates — say so before they conclude
                     // the trip detection is broken.
                     if appVM.shouldWarnAboutUntaggedPhotos {

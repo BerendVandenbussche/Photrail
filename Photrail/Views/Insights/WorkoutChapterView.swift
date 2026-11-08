@@ -2,7 +2,7 @@ import SwiftUI
 import MapKit
 
 /// A single Workout Chapter: the workout's stats, its GPS route (if any), and the photos
-/// taken during that workout grouped as a sub-album.
+/// taken during that workout grouped as a sub-album (left out when there are none).
 struct WorkoutChapterView: View {
     let chapter: WorkoutChapter
     @Environment(\.dismiss) private var dismiss
@@ -64,7 +64,9 @@ struct WorkoutChapterView: View {
             if let e = chapter.activeEnergyKcal, e > 0 {
                 chip("flame", "\(Int(e)) kcal", "Energy")
             }
-            chip("photo.stack", "\(chapter.photoIDs.count)", "Photos")
+            if !chapter.photoIDs.isEmpty {
+                chip("photo.stack", "\(chapter.photoIDs.count)", "Photos")
+            }
         }
         .padding(.horizontal, 20)
     }

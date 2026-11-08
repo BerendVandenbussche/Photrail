@@ -120,6 +120,35 @@ final class AppViewModel {
         return (stats.totalGeotaggedPhotos, untaggedPhotoCount)
     }
 
+    // MARK: - Live trip
+
+    /// Bumped each time the app returns to the foreground. Views showing data that can still
+    /// change underneath them (a trip in progress, its workouts) key their reloads on it.
+    private(set) var foregroundRevision = 0
+
+    /// The trip the user seems to be on right now: the latest photo trip, last photographed
+    /// today or yesterday, with nothing photographed since. Home photos never join a trip, so
+    /// a newer photo than the trip's last one means the user is back (or between trips).
+    /// Manual trips are left out — they have no photos to say where the user is.
+    var currentTrip: Trip? {
+        let calendar = Calendar.current
+        guard let trip = stats.trips.filter({ !$0.isManual }).max(by: { $0.endDate < $1.endDate }),
+              calendar.isDateInToday(trip.endDate) || calendar.isDateInYesterday(trip.endDate)
+        else { return nil }
+        if let latest = stats.latestPhotoDate, latest > trip.endDate { return nil }
+        return trip
+    }
+
+    /// Whether `trip` is the one the user is on right now.
+    func isLive(_ trip: Trip) -> Bool { currentTrip?.id == trip.id }
+
+    /// The freshest version of a trip, by id. A view opened on a trip holds a copy; this lets
+    /// it follow the trip as a rescan adds the day's photos. Falls back to the copy when the
+    /// id is gone (a rescan split or merged the trip).
+    func latest(_ trip: Trip) -> Trip {
+        stats.trips.first { $0.id == trip.id } ?? trip
+    }
+
     /// Dismissing the card. Permanent for a real notice; for a forced one it only ends the
     /// test, so trying the dismiss button can't silence the genuine warning afterwards.
     func dismissUntaggedPhotoNotice() {
@@ -790,7 +819,21 @@ final class AppViewModel {
 
     /// A signature of the trip's photo set, so cached insights are invalidated when it changes.
     static func insightsSignature(for trip: Trip) -> String {
-        "v4-\(trip.photoIDs.count)-\(Int(trip.startDate.timeIntervalSince1970))-\(Int(trip.endDate.timeIntervalSince1970))"
+        "v5-\(trip.photoIDs.count)-\(Int(trip.startDate.timeIntervalSince1970))-\(Int(trip.endDate.timeIntervalSince1970))"
+    }
+
+    /// Whether Health may have more to say about a trip than its cached insights do.
+    ///
+    /// The cache is keyed on the trip's photos, but Health keeps filling in a trip's dates
+    /// while it's under way, and for a while after: a Watch workout can take hours to reach
+    /// the phone. So until two days after the trip's last day, a result older than ten
+    /// minutes is recomputed. After that it is final. This also repairs results cached
+    /// mid-trip by earlier versions, which never refreshed.
+    static func insightsMayBeOutdated(_ insights: TripInsights, trip: Trip, now: Date) -> Bool {
+        let calendar = Calendar.current
+        guard let settled = calendar.date(byAdding: .day, value: 2,
+                                          to: calendar.startOfDay(for: trip.endDate)) else { return false }
+        return insights.computedAt < settled && now.timeIntervalSince(insights.computedAt) > 10 * 60
     }
 
     /// Fresh cached insights for a trip, or nil if none / stale.
@@ -844,8 +887,22 @@ final class AppViewModel {
     func computeInsights(for trip: Trip) async -> TripInsights {
         await refreshHealthAuthorizationIfNeeded()
         let signature = Self.insightsSignature(for: trip)
-        if let cached = cachedInsights(for: trip) { return cached }
+        if let cached = cachedInsights(for: trip),
+           !Self.insightsMayBeOutdated(cached, trip: trip, now: Date()) { return cached }
 
+        // The detail page and its insights section ask at the same moment; share one read.
+        let key = "\(trip.id)|\(signature)"
+        if let running = insightsInFlight[key] { return await running.value }
+        let task = Task { await buildInsights(for: trip, signature: signature) }
+        insightsInFlight[key] = task
+        let result = await task.value
+        insightsInFlight[key] = nil
+        return result
+    }
+
+    @ObservationIgnored private var insightsInFlight: [String: Task<TripInsights, Never>] = [:]
+
+    private func buildInsights(for trip: Trip, signature: String) async -> TripInsights {
         let now = Date()
         guard HealthKitService.isAvailable, insightsEnabled else {
             return .empty(tripID: trip.id, signature: signature, authorized: false, at: now)
@@ -872,7 +929,9 @@ final class AppViewModel {
         let insights = insightsEngine.build(
             trip: trip, signature: signature, authorized: true, photos: photos,
             heartRate: heartRate, flightsClimbed: flights, activeEnergyKcal: energy,
-            steps: steps, workouts: workouts, authoredPhotoIDs: authored, now: now)
+            steps: steps, workouts: workouts, authoredPhotoIDs: authored,
+            activeSpan: trip.startDate...max(trip.endDate, isLive(trip) ? now : trip.endDate),
+            now: now)
         TripInsightsStore.save(insights)
         insightsRevision &+= 1
         return insights
@@ -961,13 +1020,32 @@ final class AppViewModel {
             foregroundScanTask?.cancel()
             foregroundScanTask = nil
         case .active:
+            foregroundRevision &+= 1
             // If a scan was interrupted by backgrounding, resume it now.
-            if case .scanning = scanProgress { startForegroundScan() }
-            if case .resolvingCountries = scanProgress { startForegroundScan() }
-            if case .geocoding = scanProgress { startForegroundScan() }
+            switch scanProgress {
+            case .scanning, .resolvingCountries, .geocoding:
+                startForegroundScan()
+            default:
+                // The app may have sat in memory for days. Without this a trip in progress
+                // only grew on a cold launch: the day's photos (and the workouts matched to
+                // them) stayed invisible until the user reindexed by hand.
+                Task { await scanIfLibraryChanged() }
+            }
         default:
             break
         }
+    }
+
+    /// Start a scan when the photo library changed since the last one. The change token
+    /// makes this cheap, so it runs on every return to the foreground.
+    private func scanIfLibraryChanged() async {
+        guard navState == .dashboard || navState == .mapReveal, foregroundScanTask == nil else { return }
+        let current = await scanService.currentChangeToken()
+        let last = UserDefaults.standard.string(forKey: changeTokenKey)
+        // No token (rare) means "can't tell" — leave it to the next cold launch rather than
+        // rescanning the whole library on every app switch.
+        guard let current, current != last else { return }
+        startForegroundScan()
     }
 
     // MARK: - Background task entry point (called by BGProcessingTask handler)

@@ -141,7 +141,8 @@ struct StatisticsEngine: Sendable {
             wonders: wonders,
             trips: trips,
             allCities: allCities,
-            timelineEntries: timeline
+            timelineEntries: timeline,
+            latestPhotoDate: geocoded.map(\.date).max()
         )
     }
 }
