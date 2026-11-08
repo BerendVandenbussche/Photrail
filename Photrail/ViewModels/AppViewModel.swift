@@ -528,6 +528,49 @@ final class AppViewModel {
                                             countryCodes: Set(stats.countries.map(\.id))))
     }
 
+    // MARK: - Game Center
+
+    /// Opt-in: off until the user turns it on in Profile. Turning it on signs in (Apple's
+    /// sheet, if needed) and reports right away; a sign-in that fails or is cancelled turns it
+    /// back off. Turning it off stops reporting — Apple keeps what was already sent.
+    var gameCenterEnabled: Bool = false {
+        didSet {
+            UserDefaults.standard.set(gameCenterEnabled, forKey: "gameCenterEnabled")
+            if gameCenterEnabled && !oldValue {
+                Task { await connectGameCenter(interactive: true) }
+            }
+        }
+    }
+
+    /// Signs in and reports. `interactive` only when the user just flipped the toggle; on
+    /// launch and after a scan it's silent.
+    func connectGameCenter(interactive: Bool) async {
+        guard gameCenterEnabled else { return }
+        guard await GameCenterService.authenticate(interactive: interactive) else {
+            if interactive { gameCenterEnabled = false }
+            return
+        }
+        await reportToGameCenter(force: interactive)
+    }
+
+    /// Sends achievements and leaderboard numbers, but only when they changed since the last
+    /// report — this runs after every scan and on every return to the app.
+    private func reportToGameCenter(force: Bool = false) async {
+        // Never before the dashboard: until the first scan the stats are all zero.
+        guard gameCenterEnabled, GameCenterService.isAuthenticated,
+              navState == .dashboard, !stats.countries.isEmpty else { return }
+        let distance = Int(Self.totalDistanceKm(trips: stats.trips, home: homeCoordinate).rounded())
+        let snapshot = [unlockedAchievementIDs.sorted().joined(separator: ","),
+                        "\(stats.countryCount)", "\(stats.cityCount)", "\(distance)"]
+            .joined(separator: "|")
+        let key = "lastGameCenterReport"
+        guard force || UserDefaults.standard.string(forKey: key) != snapshot else { return }
+        await GameCenterService.report(achievementIDs: unlockedAchievementIDs)
+        await GameCenterService.submit(countries: stats.countryCount, cities: stats.cityCount,
+                                       distanceKm: distance)
+        UserDefaults.standard.set(snapshot, forKey: key)
+    }
+
     /// Emoji the user picked as their profile avatar.
     var profileEmoji: String {
         didSet { UserDefaults.standard.set(profileEmoji, forKey: "profileEmoji") }
@@ -913,6 +956,7 @@ final class AppViewModel {
 #endif
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
         self.unlockedAchievementIDs = AchievementStore.load()
+        self.gameCenterEnabled = UserDefaults.standard.bool(forKey: "gameCenterEnabled")
         // Skip the onboarding flash on relaunch: if the user already onboarded,
         // start straight on the dashboard. The async permission check still runs
         // and will redirect to .permissionDenied if access was revoked.
@@ -1291,6 +1335,7 @@ final class AppViewModel {
             foregroundScanTask = nil
         case .active:
             foregroundRevision &+= 1
+            Task { await connectGameCenter(interactive: false) }
             // If a scan was interrupted by backgrounding, resume it now.
             switch scanProgress {
             case .scanning, .resolvingCountries, .geocoding:
@@ -2105,6 +2150,7 @@ final class AppViewModel {
         try? await Task.sleep(nanoseconds: 3_000_000_000)
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }
         checkWhatsNew()
+        await connectGameCenter(interactive: false)
     }
 }
 

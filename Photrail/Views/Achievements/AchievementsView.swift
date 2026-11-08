@@ -38,6 +38,16 @@ struct AchievementsView: View {
         }
         .navigationTitle("Achievements")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if appVM.gameCenterEnabled {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { GameCenterService.showDashboard() } label: {
+                        Image(systemName: "gamecontroller.fill")
+                    }
+                    .accessibilityLabel(Text("Compare in Game Center"))
+                }
+            }
+        }
         .sheet(item: $sharing) { AchievementVideoPreview(achievement: $0) }
     }
 

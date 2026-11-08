@@ -12,16 +12,7 @@ enum SharePresenter {
     ///   cancelled. Used to clean up temporary files (e.g. exported videos) — which must not
     ///   be deleted any earlier, since the receiving app reads the URL lazily.
     static func present(_ items: [Any], onComplete: (() -> Void)? = nil) {
-        guard let scene = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
-                .first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
-              let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
-                ?? scene.windows.first?.rootViewController
-        else { return }
-
-        // Walk to the top-most presented controller (e.g. our composer/recap sheet).
-        var top = root
-        while let presented = top.presentedViewController { top = presented }
+        guard let top = topViewController() else { return }
 
         let activity = UIActivityViewController(activityItems: items, applicationActivities: nil)
         activity.completionWithItemsHandler = { _, _, _, _ in onComplete?() }
@@ -31,5 +22,19 @@ enum SharePresenter {
             popover.permittedArrowDirections = []
         }
         top.present(activity, animated: true)
+    }
+
+    /// The top-most presented view controller (e.g. our composer/recap sheet), to present
+    /// UIKit controllers on from SwiftUI.
+    static func topViewController() -> UIViewController? {
+        guard let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
+              let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
+                ?? scene.windows.first?.rootViewController
+        else { return nil }
+        var top = root
+        while let presented = top.presentedViewController { top = presented }
+        return top
     }
 }

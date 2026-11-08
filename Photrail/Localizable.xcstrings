@@ -7,206 +7,6 @@
     "???" : {
 
     },
-    "Been there together" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allebei geweest"
-          }
-        }
-      }
-    },
-    "Compare" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vergelijk"
-          }
-        }
-      }
-    },
-    "Compare our travels" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vergelijk onze reizen"
-          }
-        }
-      }
-    },
-    "Compare our travels in Photrail" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vergelijk onze reizen in Photrail"
-          }
-        }
-      }
-    },
-    "Compare with a friend" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vergelijk met een vriend"
-          }
-        }
-      }
-    },
-    "First name" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voornaam"
-          }
-        }
-      }
-    },
-    "Only %@" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alleen %@"
-          }
-        }
-      }
-    },
-    "Only you" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alleen jij"
-          }
-        }
-      }
-    },
-    "Only your countries are in the code. Nothing is uploaded." : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alleen je landen zitten in de code. Er wordt niets geüpload."
-          }
-        }
-      }
-    },
-    "QR code" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "QR-code"
-          }
-        }
-      }
-    },
-    "See where you've both been" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bekijk waar jullie allebei geweest zijn"
-          }
-        }
-      }
-    },
-    "Send link" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stuur link"
-          }
-        }
-      }
-    },
-    "Share yours back" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deel de jouwe terug"
-          }
-        }
-      }
-    },
-    "Together" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Samen"
-          }
-        }
-      }
-    },
-    "You" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jij"
-          }
-        }
-      }
-    },
-    "Your friend" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je vriend"
-          }
-        }
-      }
-    },
-    "Your friend scans this with their iPhone camera and sees where you've both been." : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je vriend scant dit met de iPhone-camera en ziet waar jullie allebei geweest zijn."
-          }
-        }
-      }
-    },
-    "Your name (optional)" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je naam (optioneel)"
-          }
-        }
-      }
-    },
-    "countries" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "landen"
-          }
-        }
-      }
-    },
-    "vs" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "vs"
-          }
-        }
-      }
-    },
     "· travel history, automatically" : {
       "localizations" : {
         "nl" : {
@@ -1681,6 +1481,16 @@
         }
       }
     },
+    "Been there together" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allebei geweest"
+          }
+        }
+      }
+    },
     "Beyond the crowds" : {
       "localizations" : {
         "nl" : {
@@ -1975,6 +1785,56 @@
         }
       }
     },
+    "Compare" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk"
+          }
+        }
+      }
+    },
+    "Compare in Game Center" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk in Game Center"
+          }
+        }
+      }
+    },
+    "Compare our travels" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk onze reizen"
+          }
+        }
+      }
+    },
+    "Compare our travels in Photrail" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk onze reizen in Photrail"
+          }
+        }
+      }
+    },
+    "Compare with a friend" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk met een vriend"
+          }
+        }
+      }
+    },
     "Continent" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2050,6 +1910,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kon de video niet maken"
+          }
+        }
+      }
+    },
+    "countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "landen"
           }
         }
       }
@@ -2677,6 +2547,16 @@
         }
       }
     },
+    "First name" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voornaam"
+          }
+        }
+      }
+    },
     "fish & chips" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2740,6 +2620,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verst van huis"
+          }
+        }
+      }
+    },
+    "Game Center" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Center"
           }
         }
       }
@@ -3234,6 +3124,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lagen"
+          }
+        }
+      }
+    },
+    "Leaderboards & achievements" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassementen & prestaties"
           }
         }
       }
@@ -4005,6 +3905,36 @@
         }
       }
     },
+    "Only %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen %@"
+          }
+        }
+      }
+    },
+    "Only you" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen jij"
+          }
+        }
+      }
+    },
+    "Only your countries are in the code. Nothing is uploaded." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen je landen zitten in de code. Er wordt niets geüpload."
+          }
+        }
+      }
+    },
     "Open %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4475,6 +4405,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aankopen niet beschikbaar"
+          }
+        }
+      }
+    },
+    "QR code" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR-code"
           }
         }
       }
@@ -4963,6 +4903,16 @@
         }
       }
     },
+    "See where you've both been" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk waar jullie allebei geweest zijn"
+          }
+        }
+      }
+    },
     "See which trip took you the furthest" : {
       "localizations" : {
         "nl" : {
@@ -5026,6 +4976,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gezien · %@"
+          }
+        }
+      }
+    },
+    "Send link" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stuur link"
           }
         }
       }
@@ -5277,6 +5237,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deel je reizen"
+          }
+        }
+      }
+    },
+    "Share yours back" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel de jouwe terug"
+          }
+        }
+      }
+    },
+    "Shares your achievements and your number of countries, cities and kilometres with your Game Center friends." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deelt je prestaties en je aantal landen, steden en kilometers met je Game Center-vrienden."
           }
         }
       }
@@ -5729,7 +5709,6 @@
       }
     },
     "Test notice on" : {
-      "extractionState" : "stale",
       "localizations" : {
         "nl" : {
           "stringUnit" : {
@@ -5910,6 +5889,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vandaag"
+          }
+        }
+      }
+    },
+    "Together" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Samen"
           }
         }
       }
@@ -6418,6 +6407,16 @@
         }
       }
     },
+    "vs" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vs"
+          }
+        }
+      }
+    },
     "waffles" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6854,6 +6853,16 @@
         }
       }
     },
+    "You" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jij"
+          }
+        }
+      }
+    },
     "You burned %lld kcal" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7092,6 +7101,26 @@
         }
       }
     },
+    "Your friend" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vriend"
+          }
+        }
+      }
+    },
+    "Your friend scans this with their iPhone camera and sees where you've both been." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vriend scant dit met de iPhone-camera en ziet waar jullie allebei geweest zijn."
+          }
+        }
+      }
+    },
     "Your home" : {
       "localizations" : {
         "nl" : {
@@ -7108,6 +7137,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je kaart, reizen en statistieken zijn voor altijd gratis. Levenslang ontgrendelt de extra's — één betaling, voorgoed van jou."
+          }
+        }
+      }
+    },
+    "Your name (optional)" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je naam (optioneel)"
           }
         }
       }

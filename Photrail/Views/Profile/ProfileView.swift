@@ -325,6 +325,32 @@ struct ProfileView: View {
             .buttonStyle(.plain)
             Divider().padding(.leading, 52)
 
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 14) {
+                    Image(systemName: "gamecontroller.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.tint)
+                        .frame(width: 24)
+                    Text("Game Center").foregroundStyle(.primary)
+                    Spacer()
+                    Toggle("", isOn: $appVM.gameCenterEnabled).labelsHidden()
+                }
+                Text("Shares your achievements and your number of countries, cities and kilometres with your Game Center friends.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 38)
+            }
+            .padding(14)
+            Divider().padding(.leading, 52)
+
+            if appVM.gameCenterEnabled {
+                Button { GameCenterService.showDashboard() } label: {
+                    row(icon: "person.2.fill", title: "Leaderboards & achievements", detail: nil)
+                }
+                .buttonStyle(.plain)
+                Divider().padding(.leading, 52)
+            }
+
             Button { showHomePicker = true } label: {
                 row(icon: "house.fill", title: "Home",
                     detail: appVM.homeDisplayName ?? String(localized: "Not set"))
