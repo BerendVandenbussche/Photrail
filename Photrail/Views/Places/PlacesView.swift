@@ -19,6 +19,7 @@ struct PlacesView: View {
     @State private var selectedContinent: ContinentStat?
     @State private var selectedWonder: WonderStat?
     @State private var showTripEditor = false
+    @State private var showLocationGuide = false
     @State private var editingTrip: ManualTrip?
 
     private var stats: TravelStats { appVM.stats }
@@ -31,9 +32,20 @@ struct PlacesView: View {
                     ContentUnavailableView {
                         Label("Nothing here yet", systemImage: "globe.europe.africa")
                     } description: {
-                        Text("Your places will appear as your photos are scanned — or add a trip you took by hand.")
+                        // Once the scan is done and the library isn't empty, "as your photos
+                        // are scanned" is a promise that will never be kept — the photos were
+                        // scanned and carried no coordinates. Say that instead.
+                        if appVM.libraryImageCount > 0 && !appVM.scanProgress.isActive {
+                            Text("None of your photos carry a location, so there are no places to show. You can still add a trip you took by hand.")
+                        } else {
+                            Text("Your places will appear as your photos are scanned — or add a trip you took by hand.")
+                        }
                     } actions: {
                         Button("Add a trip") { addTrip() }
+                        if appVM.libraryImageCount > 0 && !appVM.scanProgress.isActive {
+                            Button("Why is this empty?") { showLocationGuide = true }
+                                .buttonStyle(.borderless)
+                        }
                     }
                 } else {
                     content
@@ -52,6 +64,7 @@ struct PlacesView: View {
             .sheet(isPresented: $showTripEditor) {
                 ManualTripEditorView(existing: editingTrip)
             }
+            .sheet(isPresented: $showLocationGuide) { LocationDataGuideView() }
             .sheet(item: $selectedCountry) { country in
                 CountryDetailView(country: country,
                                   trips: stats.trips.filter { $0.countryCodes.contains(country.id) },

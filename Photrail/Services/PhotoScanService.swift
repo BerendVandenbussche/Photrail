@@ -17,6 +17,18 @@ actor PhotoScanService {
         return token.description
     }
 
+    /// How many images the library holds, geotagged or not.
+    ///
+    /// The difference between this and the number of photos we keep is the whole story when a
+    /// user reports that Photrail "found nothing": a library full of pictures that carry no GPS
+    /// is indistinguishable from an empty one unless we count both. Cheap — `PHFetchResult` is
+    /// lazy, so nothing is materialised.
+    func totalImageCount() -> Int {
+        let options = PHFetchOptions()
+        options.predicate = NSPredicate(format: "mediaType == %d", PHAssetMediaType.image.rawValue)
+        return PHAsset.fetchAssets(with: options).count
+    }
+
     /// Enumerate the photo library and return every geotagged image as a (un-geocoded) GeoPhoto.
     func fetchGeotaggedPhotos(progressHandler: (@Sendable (Double, Int) -> Void)? = nil) async throws -> [GeoPhoto] {
         let fetchOptions = PHFetchOptions()

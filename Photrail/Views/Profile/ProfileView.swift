@@ -7,6 +7,7 @@ struct ProfileView: View {
 
     @State private var showEmojiPicker = false
     @State private var showHomePicker = false
+    @State private var showLocationGuide = false
     @State private var showReindexConfirm = false
     @State private var yearRecap: RecapModel?
     @State private var pendingYear: Int?
@@ -116,6 +117,7 @@ struct ProfileView: View {
                 if let profile { PersonalityDetailView(category: category, profile: profile) }
             }
             .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
+            .sheet(isPresented: $showLocationGuide) { LocationDataGuideView() }
             .confirmationDialog("Reindex photo library?",
                                 isPresented: $showReindexConfirm, titleVisibility: .visible) {
                 Button("Reindex", role: .destructive) { appVM.reindex() }
@@ -380,9 +382,37 @@ struct ProfileView: View {
             Button { showReindexConfirm = true } label: {
                 row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
             }
+            Divider().padding(.leading, 52)
+
+            // The dashboard notice is dismissible for good, so the explanation needs a
+            // permanent home — otherwise dismissing it destroys the only way to find out why.
+            Button { showLocationGuide = true } label: {
+                row(icon: "location.slash", title: "Why are photos missing?",
+                    detail: forcedNoticeDetail)
+            }
+            .buttonStyle(.plain)
+            // Debug only: long-press forces the dashboard's untagged-photos notice on, so it
+            // can be checked on a device whose own library would never trigger it. The detail
+            // text above reports the state, and dismissing the card turns it back off.
+            .debugForceUntaggedNotice {
+#if DEBUG
+                withAnimation { appVM.forceUntaggedPhotoNotice.toggle() }
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+#endif
+            }
         }
         .card()
         .padding(.horizontal, 20)
+    }
+
+    /// Reports the debug override's state in the row itself, so it can't be left on by
+    /// accident. Always nil in Release.
+    private var forcedNoticeDetail: String? {
+#if DEBUG
+        appVM.forceUntaggedPhotoNotice ? String(localized: "Test notice on") : nil
+#else
+        nil
+#endif
     }
 
     private func row(icon: String, title: LocalizedStringKey, detail: String?) -> some View {

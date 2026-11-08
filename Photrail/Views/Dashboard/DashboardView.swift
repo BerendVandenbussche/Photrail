@@ -24,6 +24,19 @@ struct DashboardView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
+                    // Most of the library has no coordinates — say so before they conclude
+                    // the trip detection is broken.
+                    if appVM.shouldWarnAboutUntaggedPhotos {
+                        UntaggedPhotosNotice(
+                            untaggedCount: appVM.untaggedNoticeCounts.untagged,
+                            placedCount: appVM.untaggedNoticeCounts.placed,
+                            onDismiss: {
+                                withAnimation { appVM.dismissUntaggedPhotoNotice() }
+                            })
+                            .padding(.horizontal, 20)
+                            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    }
+
                     // Mini-map peek → opens the Map tab
                     Button { appVM.selectedTab = .map } label: {
                         ZStack(alignment: .bottomTrailing) {
@@ -81,7 +94,7 @@ struct DashboardView: View {
 
                     } else if !scanProgress.isActive {
                         // Empty state — scan finished but no geotagged photos found
-                        EmptyStateView()
+                        EmptyStateView(libraryImageCount: appVM.libraryImageCount)
                             .padding(.horizontal, 20)
                     }
 
@@ -496,20 +509,60 @@ private struct HighlightCard: View {
 }
 
 private struct EmptyStateView: View {
+    /// Every image in the library, geotagged or not.
+    let libraryImageCount: Int
+
+    /// A library with pictures in it and a library with none produce the same empty
+    /// dashboard, but the advice is opposite: one person needs to fix their camera
+    /// settings, the other just needs to take some photos. Saying "no geotagged photos
+    /// found" to someone holding 12,000 untagged pictures reads as the app being broken.
+    private var hasUntaggedPhotos: Bool { libraryImageCount > 0 }
+
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "map")
+            Image(systemName: hasUntaggedPhotos ? "location.slash" : "map")
                 .font(.system(size: 56))
                 .foregroundStyle(.tertiary)
-            Text("No geotagged photos found")
-                .font(.title3.weight(.semibold))
-            Text("Photos need location data enabled in your camera settings to appear here.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+
+            if hasUntaggedPhotos {
+                Text("None of your photos have a location")
+                    .font(.title3.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                Text("Photrail scanned \(libraryImageCount.formatted()) photos and none of them carry coordinates, so there's nothing to place on the map. This usually means your camera isn't allowed to use your location.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                LocationDataGuideLink()
+            } else {
+                Text("No geotagged photos found")
+                    .font(.title3.weight(.semibold))
+                Text("Photos need location data enabled in your camera settings to appear here.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                LocationDataGuideLink()
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
+    }
+}
+
+/// "?" affordance under the empty state. A plain circled question mark on its own reads
+/// as decoration here, so it carries a label.
+private struct LocationDataGuideLink: View {
+    @State private var showGuide = false
+
+    var body: some View {
+        Button { showGuide = true } label: {
+            Label("How do I fix this?", systemImage: "questionmark.circle")
+                .font(.subheadline.weight(.semibold))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.accentColor)
+        .padding(.top, 4)
+        .sheet(isPresented: $showGuide) { LocationDataGuideView() }
     }
 }
 

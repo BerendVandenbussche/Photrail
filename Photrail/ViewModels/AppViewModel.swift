@@ -54,6 +54,81 @@ final class AppViewModel {
     /// "On this day" memories for today — photos from this calendar day in past years.
     var memories: [Memory] = []
 
+    /// Every image in the photo library, geotagged or not, as counted by the last scan.
+    /// Only used to tell "you have no photos" apart from "none of your photos carry a
+    /// location" — two empty states that look identical but need opposite advice.
+    private(set) var libraryImageCount: Int = 0
+
+    /// Whether the user dismissed the "most of your photos have no location" notice.
+    /// Dismissed for good — the guide stays reachable from the Me tab.
+    var untaggedPhotoNoticeDismissed: Bool = false {
+        didSet { UserDefaults.standard.set(untaggedPhotoNoticeDismissed, forKey: "untaggedPhotoNoticeDismissed") }
+    }
+
+#if DEBUG
+    /// Debug-only override that forces the untagged-photos notice on whatever the real ratio
+    /// is, so the card can be checked on a device whose library is perfectly geotagged.
+    /// Toggled by long-pressing "Why are photos missing?" in the Me tab, and cleared by
+    /// dismissing the card. Inside `#if DEBUG`, so it cannot reach a Release build.
+    var forceUntaggedPhotoNotice: Bool = false {
+        didSet { UserDefaults.standard.set(forceUntaggedPhotoNotice, forKey: "forceUntaggedPhotoNotice") }
+    }
+#endif
+
+    /// Photos in the library that Photrail could not place. Approximate on purpose: it also
+    /// counts photos the user excluded by hand and any still waiting to be geocoded, which is
+    /// why the notice below only looks at it once the scan is finished.
+    var untaggedPhotoCount: Int {
+        max(0, libraryImageCount - stats.totalGeotaggedPhotos)
+    }
+
+    /// Warn when Photrail can only see a small corner of a large library.
+    ///
+    /// The reported symptom is "one trip detected in thousands of photos", and from inside the
+    /// app that is indistinguishable from someone who simply travels rarely. Only the ratio
+    /// tells them apart, so it is worth saying out loud.
+    ///
+    /// Both halves of the test matter. The absolute floor keeps it away from small libraries,
+    /// where a bad ratio means almost nothing. The ratio keeps it away from the ordinary case
+    /// of a travelling user whose library is mostly home photos — the untagged count alone is
+    /// large for nearly everyone, so on its own it would fire constantly and teach people to
+    /// ignore it.
+    ///
+    /// Deliberately not phrased as a misconfiguration anywhere it surfaces: a huge untagged
+    /// count is just as easily a library full of saved messaging-app images and screenshots,
+    /// which arrive stripped no matter what the camera is set to.
+    var shouldWarnAboutUntaggedPhotos: Bool {
+#if DEBUG
+        if forceUntaggedPhotoNotice { return true }
+#endif
+        guard !untaggedPhotoNoticeDismissed,
+              !scanProgress.isActive,
+              libraryImageCount > 0,
+              stats.totalGeotaggedPhotos > 0,       // zero is the empty state's job, not this one
+              untaggedPhotoCount >= 1_000           // not worth saying in a small library
+        else { return false }
+        return Double(stats.totalGeotaggedPhotos) / Double(libraryImageCount) < 0.25
+    }
+
+    /// The pair of numbers the notice prints.
+    var untaggedNoticeCounts: (placed: Int, untagged: Int) {
+#if DEBUG
+        // A forced run on a well-geotagged library has nothing untagged, and a card reading
+        // "the other 0" tests nothing. Stand in a realistic pair so the wrapping is honest.
+        if forceUntaggedPhotoNotice && untaggedPhotoCount == 0 { return (312, 14_206) }
+#endif
+        return (stats.totalGeotaggedPhotos, untaggedPhotoCount)
+    }
+
+    /// Dismissing the card. Permanent for a real notice; for a forced one it only ends the
+    /// test, so trying the dismiss button can't silence the genuine warning afterwards.
+    func dismissUntaggedPhotoNotice() {
+#if DEBUG
+        if forceUntaggedPhotoNotice { forceUntaggedPhotoNotice = false; return }
+#endif
+        untaggedPhotoNoticeDismissed = true
+    }
+
     /// How much of each visited country you've actually covered, 0…1, keyed by ISO code.
     /// Built off the main actor after a scan — see `refreshCountryCoverage()`.
     private(set) var countryCoverage: [String: Double] = [:]
@@ -534,6 +609,10 @@ final class AppViewModel {
         self.mapShowVisitedAreas = UserDefaults.standard.bool(forKey: "mapShowVisitedAreas")
         self.insightsEnabled = UserDefaults.standard.bool(forKey: "insightsEnabled")
         self.insightsPromptDismissed = UserDefaults.standard.bool(forKey: "insightsPromptDismissed")
+        self.untaggedPhotoNoticeDismissed = UserDefaults.standard.bool(forKey: "untaggedPhotoNoticeDismissed")
+#if DEBUG
+        self.forceUntaggedPhotoNotice = UserDefaults.standard.bool(forKey: "forceUntaggedPhotoNotice")
+#endif
         self.explorerRarity = UserDefaults.standard.integer(forKey: "explorerRarity")
         self.unlockedAchievementIDs = AchievementStore.load()
         // Skip the onboarding flash on relaunch: if the user already onboarded,
@@ -1159,6 +1238,7 @@ final class AppViewModel {
             let currentToken = await scanService.currentChangeToken()
             let lastToken = UserDefaults.standard.string(forKey: changeTokenKey)
             let storedCount = (try? await store.totalCount()) ?? 0
+            libraryImageCount = await scanService.totalImageCount()
 
             if storedCount == 0 || currentToken == nil || currentToken != lastToken {
                 let scanned = try await scanService.fetchGeotaggedPhotos { [weak self] progress, found in

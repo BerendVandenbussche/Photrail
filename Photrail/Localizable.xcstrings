@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Test notice on" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testmelding aan"
+          }
+        }
+      }
+    },
     "" : {
 
     },
@@ -1425,6 +1435,16 @@
         }
       }
     },
+    "Choose While Using the App, and turn on Precise Location." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies Bij gebruik van app en zet Exacte locatie aan."
+          }
+        }
+      }
+    },
     "Choose your home country" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2284,6 +2304,16 @@
         }
       }
     },
+    "Good to know" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goed om weten"
+          }
+        }
+      }
+    },
     "Got it" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2446,6 +2476,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Widgets voor beginscherm en toegangsscherm met je reisstatistieken."
+          }
+        }
+      }
+    },
+    "How do I fix this?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoe los ik dit op?"
           }
         }
       }
@@ -2786,6 +2826,16 @@
         }
       }
     },
+    "Most of your photos have no location" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De meeste van je foto's hebben geen locatie"
+          }
+        }
+      }
+    },
     "Most photographed" : {
       "localizations" : {
         "nl" : {
@@ -3111,6 +3161,26 @@
         }
       }
     },
+    "None of your photos carry a location, so there are no places to show. You can still add a trip you took by hand." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen van je foto's bevat een locatie, dus er zijn geen plaatsen om te tonen. Je kan wel nog een reis handmatig toevoegen."
+          }
+        }
+      }
+    },
+    "None of your photos have a location" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen van je foto's heeft een locatie"
+          }
+        }
+      }
+    },
     "North America" : {
       "localizations" : {
         "nl" : {
@@ -3349,6 +3419,16 @@
         }
       }
     },
+    "Open Settings on your iPhone." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Instellingen op je iPhone."
+          }
+        }
+      }
+    },
     "Open Trip" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3414,12 +3494,32 @@
         }
       }
     },
+    "Photos imported from a camera or AirDropped from another iPhone keep theirs." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's die je van een camera importeert of via AirDrop van een andere iPhone krijgt, behouden hun coördinaten."
+          }
+        }
+      }
+    },
     "Photos need location data enabled in your camera settings to appear here." : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Foto's moeten locatiegegevens hebben (in je camera-instellingen) om hier te verschijnen."
+          }
+        }
+      }
+    },
+    "Photos sent to you through most messaging apps and social networks arrive without coordinates — those apps strip the location before sending." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's die je via de meeste berichtenapps en sociale netwerken krijgt, komen zonder coördinaten binnen: die apps verwijderen de locatie voor het versturen."
           }
         }
       }
@@ -3523,6 +3623,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photrail heeft toegang tot je fotobibliotheek nodig om locatiegegevens te lezen. Je foto's blijven op je toestel."
+          }
+        }
+      }
+    },
+    "Photrail placed %@ of your photos on the map. The other %@ carry no coordinates, so any trips in them can't be detected." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail plaatste %1$@ van je foto's op de kaart. De andere %2$@ bevatten geen coördinaten, dus reizen daarin kunnen niet gedetecteerd worden."
+          }
+        }
+      }
+    },
+    "Photrail reads the coordinates your camera saves inside each photo. If your camera wasn't allowed to use your location, the photo has no coordinates and there's no way to tell where it was taken." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail leest de coördinaten die je camera in elke foto bewaart. Als je camera je locatie niet mocht gebruiken, bevat de foto geen coördinaten en valt niet te achterhalen waar ze genomen is."
+          }
+        }
+      }
+    },
+    "Photrail scanned %@ photos and none of them carry coordinates, so there's nothing to place on the map. This usually means your camera isn't allowed to use your location." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail scande %@ foto's en geen enkele bevat coördinaten, dus er valt niets op de kaart te zetten. Meestal betekent dit dat je camera je locatie niet mag gebruiken."
           }
         }
       }
@@ -3975,6 +4105,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je foto's worden gescand…"
+          }
+        }
+      }
+    },
+    "Screenshots and downloaded images never have coordinates." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schermafbeeldingen en gedownloade afbeeldingen hebben nooit coördinaten."
+          }
+        }
+      }
+    },
+    "Scroll down to Camera and tap it." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrol naar Camera en tik erop."
           }
         }
       }
@@ -4586,22 +4736,6 @@
         }
       }
     },
-    "Suggested on your device" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suggested on your device"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voorgesteld op je apparaat"
-          }
-        }
-      }
-    },
     "stroopwafels" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4632,6 +4766,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "stukken strudel"
+          }
+        }
+      }
+    },
+    "Suggested on your device" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggested on your device"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorgesteld op je apparaat"
           }
         }
       }
@@ -4727,6 +4877,16 @@
         }
       }
     },
+    "Tap Privacy & Security, then Location Services." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik op Privacy en beveiliging en daarna op Locatievoorzieningen."
+          }
+        }
+      }
+    },
     "Tap to see what you've earned" : {
       "localizations" : {
         "nl" : {
@@ -4784,6 +4944,9 @@
           }
         }
       }
+    },
+    "Test notice on" : {
+
     },
     "That place isn't in this country" : {
       "localizations" : {
@@ -4899,6 +5062,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ze tellen weer mee voor je statistieken, reizen en herinneringen."
+          }
+        }
+      }
+    },
+    "This only affects photos you take from now on. Coordinates can't be added to photos afterwards, because the information was never recorded." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit geldt enkel voor foto's die je vanaf nu neemt. Coördinaten kunnen er achteraf niet bij, omdat die informatie nooit is opgeslagen."
           }
         }
       }
@@ -5188,6 +5361,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Probeer opnieuw"
+          }
+        }
+      }
+    },
+    "Turn it on for the camera" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zet het aan voor de camera"
+          }
+        }
+      }
+    },
+    "Turn Location Services on if it's off." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zet Locatievoorzieningen aan als het uit staat."
           }
         }
       }
@@ -5493,6 +5686,46 @@
         }
       }
     },
+    "Why are my photos missing?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waarom ontbreken mijn foto's?"
+          }
+        }
+      }
+    },
+    "Why are photos missing?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waarom ontbreken er foto's?"
+          }
+        }
+      }
+    },
+    "Why is this empty?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waarom is dit leeg?"
+          }
+        }
+      }
+    },
+    "Why is this?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoe komt dat?"
+          }
+        }
+      }
+    },
     "Widgets" : {
       "localizations" : {
         "nl" : {
@@ -5763,6 +5996,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je verbrandde %lld kcal"
+          }
+        }
+      }
+    },
+    "You can add trips by hand in the meantime, from the Places tab." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ondertussen kan je reizen handmatig toevoegen via het tabblad Plaatsen."
           }
         }
       }
