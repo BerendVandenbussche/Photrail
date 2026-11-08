@@ -19,6 +19,19 @@ final class CompareLinkTests: XCTestCase {
         XCTAssertEqual(CompareLink.parse(url)?.countryCodes, ["BE"])
     }
 
+    func testAppSchemeLinkParses() {
+        let url = URL(string: "photrail://compare/#v=1&e=%F0%9F%A6%8A&n=Anne&c=BEFR")!
+        let parsed = CompareLink.parse(url)
+        XCTAssertEqual(parsed?.name, "Anne")
+        XCTAssertEqual(parsed?.countryCodes, ["BE", "FR"])
+    }
+
+    func testOtherAppSchemeHostIsRejected() {
+        XCTAssertNil(CompareLink.parse(URL(string: "photrail://trip/#v=1&e=x&c=BE")!))
+        XCTAssertNil(CompareLink.parse(URL(string: "http://\(CompareLink.host)/compare/#v=1&e=x&c=BE")!),
+                     "plain http isn't ours")
+    }
+
     func testNameWithReservedCharactersSurvives() {
         let payload = ComparePayload(name: "Anne & Tom = 2+1 ü", emoji: "👩‍👩‍👧", countryCodes: ["NL"])
         XCTAssertEqual(CompareLink.parse(CompareLink.url(for: payload)), payload)

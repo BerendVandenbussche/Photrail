@@ -53,13 +53,24 @@ enum CompareLink {
         return components.url ?? URL(string: "https://\(host)\(path)")!
     }
 
+    /// The app's own URL scheme. The compare page's "Open in Photrail" button uses
+    /// `photrail://compare/#…`: iOS doesn't always hand the https link to the app (Notes, the
+    /// Camera and a remembered "open in Safari" can all keep it in the browser), but a custom
+    /// scheme always opens the app.
+    static let scheme = "photrail"
+
     /// The payload in a compare link, or nil when `url` isn't one (or holds nothing usable).
+    /// Accepts the https link and `photrail://compare/#…`.
     static func parse(_ url: URL) -> ComparePayload? {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              components.host?.lowercased() == host,
-              components.path.hasPrefix("/compare"),
               let fragment = components.percentEncodedFragment
         else { return nil }
+        let isWebLink = components.scheme?.lowercased() == "https"
+            && components.host?.lowercased() == host
+            && components.path.hasPrefix("/compare")
+        let isAppLink = components.scheme?.lowercased() == scheme
+            && components.host?.lowercased() == "compare"
+        guard isWebLink || isAppLink else { return nil }
         return parse(fragment: fragment)
     }
 

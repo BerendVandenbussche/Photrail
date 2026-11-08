@@ -24,6 +24,19 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 
+	<!-- photrail://compare/#… — the compare page's "Open in Photrail" button -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>photrail</string>
+			</array>
+		</dict>
+	</array>
+
 	<!-- Background tasks -->
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
