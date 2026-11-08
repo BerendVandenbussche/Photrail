@@ -45,6 +45,9 @@ Optional capabilities (the app runs fine without either):
 
 - **Widgets** — the app and the `PhotrailWidgets` target both need the **App Group** `group.com.berend.photrail`. The shared stats snapshot is published there after each scan. Run the `Photrail` scheme, not `PhotrailWidgets` (running the widget scheme directly needs an `_XCWidgetKind` env var).
 - **Trip Insights (Apple Health)** — the app target needs the **HealthKit** capability. The entitlement is already in `Photrail/Photrail.entitlements`; confirm it shows in Signing & Capabilities and let automatic signing regenerate the profile. It's opt-in at runtime.
+- **Compare links** — **Associated Domains** (`applinks:photrail.berendvandenbussche.be`) opens `/compare` links in the app; the website serves the matching `apple-app-site-association`. Without it, test with `xcrun simctl openurl booted "<compare link>"`.
+- **Game Center** — the **Game Center** capability, plus the achievements and leaderboards (`photrail.achievement.*`, `photrail.leaderboard.*`) in App Store Connect. Opt-in at runtime.
+- **In-app purchase** — `Photrail.storekit` is a local StoreKit configuration for the Lifetime unlock; select it in the scheme to test purchases in the Simulator.
 
 <details>
 <summary>Testing background execution</summary>
@@ -164,7 +167,11 @@ Photrail/
 │   │                                   importing HealthKit), TravelInsightsEngine (pure),
 │   │                                   TripInsightsStore (cache), PhotoAuthorship (capture guard)
 │   ├── Recap/                          Year recap model, travel title + travel score
-│   └── Sharing/                        Share cards (templates, recap, collage, trip, calendar), renderer, presenter
+│   ├── Sharing/                        Share cards (templates, recap, collage, trip, calendar), renderer,
+│   │                                   presenter; Video/ renders trip and year films to .mp4
+│   ├── Store/                          StoreKit Lifetime unlock + the one free trip film
+│   ├── Compare/                        Compare-with-a-friend link (countries in the #fragment) + QR code
+│   └── GameCenterService.swift         Opt-in achievements + leaderboards (GameKit)
 ├── ViewModels/
 │   └── AppViewModel.swift              @Observable root state + scan pipeline
 ├── Localizable.xcstrings               String Catalog (English + Dutch)
@@ -183,8 +190,13 @@ Photrail/
 │   ├── Calendar/                       Travel calendar: month grid of trip-day flags + share
 │   ├── ContinentDetail/                Per-continent country list
 │   ├── Wonders/                        Wonders & landmarks list + mini map + photo grid
-│   ├── Recap/                          Multi-slide Year in Travel story + hero finale
-│   ├── Profile/                        Me tab: avatar, personality, home, reindex, recaps
+│   ├── Recap/                          Year in Travel, played like a story (tap / hold) + film finale
+│   ├── Planner/                        Planned trips: countries, dates, flights, plan page
+│   ├── Achievements/                   Achievement grid, unlock toast, shareable achievement video
+│   ├── Compare/                        QR share sheet + friend comparison
+│   ├── Store/                          Lifetime paywall
+│   ├── WhatsNew/                       Reusable one-time "What's new" sheet (WhatsNew.current)
+│   ├── Profile/                        Me tab: avatar, personality, home, reindex, recaps, toggles
 │   └── ShareCard/                      Share composer (templates + backgrounds)
 ├── Components/                         StatCard, SectionHeader, PhotoThumbnail, ScanBanner,
 │                                       LogoView (brand mark), MiniMapDots, JourneyMapView,
@@ -194,7 +206,7 @@ Photrail/
 └── Shared/
     └── WidgetSharedStats.swift         App Group snapshot (member of app + widget targets)
 
-PhotrailWidgets/                        Widget extension (Travel Stats + World Wonders)
+PhotrailWidgets/                        Widget extension (Travel Stats, World Wonders, Trip Countdown)
                                         + its own Localizable.xcstrings (separate target)
 
 Config/
@@ -244,6 +256,7 @@ Guiding principles, and why they hold:
 - **Trip detection** (`PhotrailTests/TripDetectorTests.swift`): same-trip probability, home-country boundary, GPS-spike rejection, airport-layover exclusion, border-town hops, and fast-trip-through-home splits.
 - **Travel personality** (`PhotrailTests/TravelPersonalityEngineTests.swift`): classification, home-radius exclusion, percentage normalization, confidence scaling.
 - **Trip Insights** (`PhotrailTests/TravelInsightsEngineTests.swift`): elevation-milestone selection, food-equivalent math, persona thresholds, heart-rate-to-photo matching, workout grouping, the photo-authorship filename heuristic, and the Health→personality direction vectors.
+- **Planned trips, sharing & compare** (`PlannedTripTests`, `DestinationRankerTests`, `FreeFilmAllowanceTests`, `CompareLinkTests`): plan dates and trip matching, destination suggestions, the free-film rule, and strict parsing of compare links.
 
 > Trip Insights' on-device UI can't be exercised in unit tests — it needs the HealthKit capability and a device (or a simulator seeded with Health data). The pure engine is fully covered.
 
@@ -267,6 +280,8 @@ Conventions:
 - **Nothing is geocoded online.** City names now come from the bundled GeoNames `cities1000` dataset, so no coordinates ever leave the device. (Setting your home uses Apple Maps search — a coordinate lookup you initiate, not photo data.)
 - **Apple Health** (Trip Insights) is **opt-in and read-only**, queried entirely on-device; nothing is written back and no health data leaves the phone. Revocable in the Health app / Settings.
 - Image data is only loaded when displaying thumbnails; all travel data lives in a local SwiftData database. Photo library access is **read-only** and revocable anytime.
+- **Compare links** carry your country list in the URL **fragment** (after `#`), which browsers never send to a server — the website only shows a download page. Nothing is uploaded; you choose who gets the link.
+- **Game Center** is **opt-in** (off by default). When on, your achievements and your number of countries, cities and kilometres go to Apple's Game Center so friends can compare. Turning it off stops reporting.
 - Ships an Apple **privacy manifest** (`PrivacyInfo.xcprivacy`, app + widget): no tracking, no data collected, `UserDefaults` declared with reason `CA92.1`. App Store label: **Data Not Collected**.
 
 ## Contributing
@@ -313,6 +328,10 @@ Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-tar
 - **Trip detail** — Vision-curated hero cover, MapKit route with a numbered pin per city, key stats (distance, duration, countries, cities, photos, highest point), an itinerary with per-stop flags, wonders seen, the trip's photos, and a live share-card preview.
 - **Manual countries** — deleted a trip's photos? Add a country by hand so the map/stats stay accurate (no photo-based cards).
 
+**Planning**
+- **Planned trips** — plan a trip across one or more countries, with dates and optional flights. Drives a countdown on Today, reminders, the calendar, and labels the trip while you're on it; afterwards its name and flights carry over to the photo trip.
+- **Trip Countdown widget** — home and lock screen.
+
 **Discovery**
 - **On This Day** — resurfaces photos from today's date in past years, away from home.
 - **Travel Calendar** — a month grid with a flag on every trip day; share a month as a card.
@@ -325,14 +344,19 @@ Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-tar
 - **Photo authorship guard** — the Excitement Meter only badges photos you likely took yourself (rules out screenshots, shared/synced, messaging files) — no fragile device-identity checks.
 
 **Recap & sharing**
-- **Year in Travel recap** — a paged, Wrapped-style story (distance, most-photographed country, route map, first-visited countries, personality, wonders, biggest trip, highest peak, superlatives, Vision best shots, hero finale). Every slide is individually shareable; the finale exports light/dark/transparent and shows a **Travel Score** tier.
+- **Year in Travel recap** — a Wrapped-style story you tap through like Instagram stories (tap right/left, hold to pause, auto-advance): distance, most-photographed country, route map, first-visited countries, personality, wonders, biggest trip, highest peak, Vision best shots. Every slide is shareable; the finale plays the year's **film** and shows a **Travel Score** tier.
+- **Trip films** — any trip becomes a short vertical video (maps, photos, stats) for Instagram, TikTok or WhatsApp, rendered on-device. The first film is free; unlimited with Lifetime.
+- **Compare with a friend** — a QR code / link with your countries; a friend opens it and sees where you've both been. No backend.
+- **Achievements & Game Center** — secret milestones with an unlock toast and a shareable video; optionally synced to Game Center achievements and leaderboards (countries, cities, kilometres).
 - **Vision-curated best shots** — on-device aesthetics + scene classification pick the year's most beautiful photos, matched to personality and time-spaced.
 - **Premium share system** — card templates (Personality, Summary, Wonders, Trip) + recap cards, map/transparent/photo backgrounds, 1080×1920 with branding.
 
 **Platform**
-- **Me tab** — emoji avatar, lifetime snapshot, personality, home location, Trip Insights toggle, reindex, Travel Calendar, Recaps archive.
+- **Me tab** — emoji avatar, lifetime snapshot, compare with a friend, personality, home location, Trip Insights / notifications / Game Center toggles, reindex, Travel Calendar, Recaps archive.
 - **New-country notifications** — a "Welcome to …" notification when a photo taken *today* is your first ever in a country (works in the background).
-- **Home-screen widgets** — travel-stats and world-wonders widgets (small / medium / lock-screen).
+- **Home-screen widgets** — travel-stats, world-wonders and trip-countdown widgets (small / medium / lock-screen).
+- **Photrail Lifetime** — a one-time in-app purchase unlocks the premium features (personality, insights, calendar, unlimited films, map layers). No subscription.
+- **What's new** — a one-time sheet per announcement, reused for each release (`WhatsNew.current`).
 - **Localization** — fully localized (English + Dutch).
 - **Durable, resumable processing** — every result persisted as it completes; closing the app never loses progress.
 
