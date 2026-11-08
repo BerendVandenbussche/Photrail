@@ -5218,6 +5218,16 @@
         }
       }
     },
+    "Slide %lld of %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide %lld van %lld"
+          }
+        }
+      }
+    },
     "Snow Sports" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5393,16 +5403,6 @@
         }
       }
     },
-    "Swipe to relive it →" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Veeg om het te herbeleven →"
-          }
-        }
-      }
-    },
     "tacos" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5456,6 +5456,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tik op Privacy en beveiliging en daarna op Locatievoorzieningen."
+          }
+        }
+      }
+    },
+    "Tap to relive it →" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik om het te herbeleven →"
           }
         }
       }

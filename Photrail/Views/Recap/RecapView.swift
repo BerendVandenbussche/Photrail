@@ -2,11 +2,14 @@ import SwiftUI
 import Photos
 import UIKit
 
-/// The "Year in Travel" recap: a paged story that culminates in the shareable finale.
-/// Each slide renders the *exact* card you can share, so the preview is WYSIWYG.
+/// The "Year in Travel" recap, played like a story: progress bars on top, slides advance
+/// on their own, tap right for next, tap left for back, hold to pause. It culminates in the
+/// shareable finale. Each slide renders the *exact* card you can share, so the preview is WYSIWYG.
 struct RecapView: View {
     let recap: RecapModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
 
     private enum Slide: Hashable {
         case intro, distance, mostPhotographed, route, newCountries,
@@ -14,6 +17,17 @@ struct RecapView: View {
     }
 
     @State private var page: Slide = .intro
+
+    // Story playback.
+    /// How far the current slide is through its time on screen, 0...1.
+    @State private var progress: Double = 0
+    /// Restarts the slide timer — also when the slide itself doesn't change (back on the intro).
+    @State private var runID = UUID()
+    @State private var holding = false
+    @State private var sharing = false
+    /// Mirrors app-in-background / VoiceOver into state: the timer loop runs on a copy of this
+    /// view, where state reads are live but environment values are not.
+    @State private var systemPaused = false
     @State private var collageImages: [UIImage] = []
     @State private var peakImage: UIImage?
 
@@ -53,22 +67,30 @@ struct RecapView: View {
         ZStack {
             gradient.ignoresSafeArea()
 
-            if recap.isEmpty {
-                emptyState
-            } else {
-                TabView(selection: $page) {
-                    ForEach(slides, id: \.self) { slide in
-                        view(for: slide).tag(slide)
+            // The tap zones sit *behind* the slide, which doesn't take touches itself, so the
+            // finale's buttons and the top bar still work while the rest of the screen navigates.
+            if !recap.isEmpty { tapZones }
+
+            VStack(spacing: 0) {
+                topBar
+                Group {
+                    if recap.isEmpty {
+                        emptyState
+                    } else {
+                        view(for: page)
+                            .id(page)
+                            .transition(.opacity)
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .always))
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-
-            topBar
         }
         .preferredColorScheme(.dark)
         .task { await preloadCollage(); await preloadPeak(); await preloadFilm() }
+        .task(id: runID) { await runSlideTimer() }
+        .onChange(of: scenePhase != .active || voiceOver, initial: true) { _, paused in
+            systemPaused = paused
+        }
         .overlay { if exporting { exportOverlay } }
         .interactiveDismissDisabled(exporting)
         .alert("Couldn't create the video", isPresented: videoErrorBinding) {
@@ -81,12 +103,102 @@ struct RecapView: View {
     @ViewBuilder
     private func view(for slide: Slide) -> some View {
         switch slide {
-        case .intro:            intro
-        case .mostPhotographed: collagePage
+        case .intro:            intro.allowsHitTesting(false)
+        case .mostPhotographed: collagePage.allowsHitTesting(false)
         case .highestPeak:      cardPage(RecapShareCardView(recap: recap, focus: .highestPeak, peakImage: peakImage))
+                                    .allowsHitTesting(false)
         case .finale:           finale
         default:                cardPage(RecapShareCardView(recap: recap, focus: focus(for: slide)))
+                                    .allowsHitTesting(false)
         }
+    }
+
+    // MARK: - Story playback
+
+    /// Seconds a slide stays up before advancing. The finale has none: it's where you share.
+    private func duration(for slide: Slide) -> Double? {
+        switch slide {
+        case .intro:  return 4
+        case .finale: return nil
+        default:      return 6
+        }
+    }
+
+    private var isPaused: Bool {
+        holding || sharing || exporting || systemPaused
+            // Don't burn the collage's time on a spinner.
+            || (page == .mostPhotographed && !recap.highlightPhotoIDs.isEmpty && collageImages.isEmpty)
+    }
+
+    private func runSlideTimer() async {
+        progress = 0
+        guard !recap.isEmpty, let duration = duration(for: page) else { return }
+        let tick = 0.05
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(tick))
+            guard !Task.isCancelled else { return }
+            if isPaused { continue }
+            progress = min(progress + tick / duration, 1)
+            if progress >= 1 { go(by: 1); return }
+        }
+    }
+
+    /// Moves `delta` slides. Back on the first slide restarts it; forward on the finale stays.
+    private func go(by delta: Int) {
+        let list = slides
+        guard let index = list.firstIndex(of: page) else { return }
+        let target = index + delta
+        if target >= list.count { return }
+        if target >= 0 {
+            withAnimation(.easeInOut(duration: 0.2)) { page = list[target] }
+        }
+        runID = UUID()
+    }
+
+    /// Left third goes back, the rest goes forward, holding pauses. Swipe down still closes
+    /// the sheet: neither gesture claims a drag.
+    private var tapZones: some View {
+        GeometryReader { geo in
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture { location in
+                    go(by: location.x < geo.size.width / 3 ? -1 : 1)
+                }
+                .onLongPressGesture(minimumDuration: 0.25, maximumDistance: 20,
+                                    perform: {}, onPressingChanged: { holding = $0 })
+        }
+        .ignoresSafeArea()
+        .accessibilityElement()
+        .accessibilityLabel(Text("Your Year in Travel"))
+        .accessibilityValue(Text("Slide \((slides.firstIndex(of: page) ?? 0) + 1) of \(slides.count)"))
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: go(by: 1)
+            case .decrement: go(by: -1)
+            @unknown default: break
+            }
+        }
+    }
+
+    private var progressBars: some View {
+        let list = slides
+        let current = list.firstIndex(of: page) ?? 0
+        return HStack(spacing: 4) {
+            ForEach(list.indices, id: \.self) { index in
+                let fill: Double = index < current ? 1
+                    : index > current ? 0
+                    : (duration(for: page) == nil ? 1 : progress)
+                GeometryReader { geo in
+                    Capsule().fill(.white.opacity(0.28))
+                        .overlay(alignment: .leading) {
+                            Capsule().fill(.white).frame(width: geo.size.width * fill)
+                        }
+                }
+                .frame(height: 3)
+            }
+        }
+        .animation(.linear(duration: 0.05), value: progress)
+        .accessibilityHidden(true)
     }
 
     /// Renders a share card scaled to fill the slide — this is exactly what gets shared.
@@ -94,7 +206,7 @@ struct RecapView: View {
                                       canvas: CGSize = RecapShareCardView.canvasSize) -> some View {
         GeometryReader { geo in
             let availableW = geo.size.width - 32
-            let availableH = geo.size.height - 96      // leave room for top bar + page dots
+            let availableH = geo.size.height - 32
             let scale = min(availableW / canvas.width, availableH / canvas.height)
             card
                 .frame(width: canvas.width, height: canvas.height)
@@ -133,7 +245,7 @@ struct RecapView: View {
             Text("Your Year in Travel")
                 .font(.system(size: 26, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.85))
-            Text("Swipe to relive it →")
+            Text("Tap to relive it →")
                 .font(.subheadline).foregroundStyle(.white.opacity(0.5))
                 .padding(.top, 4)
             Spacer(); Spacer()
@@ -144,22 +256,29 @@ struct RecapView: View {
 
     private var finale: some View {
         VStack(spacing: 14) {
-            Text("Your \(String(recap.year)) film")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .padding(.top, 6)
-
-            finaleCard
+            Group {
+                Text("Your \(String(recap.year)) film")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.75))
+                // The film takes all the room the title and buttons leave.
+                GeometryReader { geo in
+                    let canvas = RecapFilmView.canvasSize
+                    finaleCard(scale: min(geo.size.width / canvas.width,
+                                          geo.size.height / canvas.height))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .padding(.horizontal, 24)
+            }
+            .allowsHitTesting(false)   // taps here fall through to the tap zones
             finaleActions
         }
+        .padding(.top, 8)
     }
 
     /// The finale plays the very film it exports. `RecapFilmView` is a pure function of
     /// progress, so what loops here and what lands in the `.mp4` are identical by construction
     /// — the same guarantee the still slides get from rendering the real share card.
-    @ViewBuilder
-    private var finaleCard: some View {
-        let scale: CGFloat = 0.58
+    private func finaleCard(scale: CGFloat) -> some View {
         Group {
             if let film {
                 TimelineView(.animation) { timeline in
@@ -180,7 +299,7 @@ struct RecapView: View {
         .scaleEffect(scale)
         .frame(width: RecapFilmView.canvasSize.width * scale,
                height: RecapFilmView.canvasSize.height * scale)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 36 * scale, style: .continuous))
         .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
         .onAppear { loopStart = Date() }
     }
@@ -194,30 +313,30 @@ struct RecapView: View {
     }
 
     private var finaleActions: some View {
-        VStack(spacing: 12) {
+        // Same layout as a trip's share sheet: the film is the main action, the still card a
+        // small button beside it. No theme picker — every recap card is dark, matching the film.
+        HStack(spacing: 10) {
             Button { Task { await exportVideo() } } label: {
-                Label("Share video", systemImage: "square.and.arrow.up")
+                Label("Share film", systemImage: "square.and.arrow.up")
                     .font(.headline)
                     .frame(maxWidth: .infinity).padding(.vertical, 15)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 16))
-                    .foregroundStyle(.black)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(.white)
             }
             .disabled(exporting || film == nil)
 
-            // No theme picker. Once the finale plays a film, a light/transparent switch that
-            // silently applies to the *still* export and nothing you can see is a puzzle, not
-            // a choice — every recap card is dark, matching the film.
             Button { shareFinaleImage() } label: {
-                Text("Share image")
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity).padding(.vertical, 11)
-                    .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 14))
-                    .foregroundStyle(.white)
+                Image(systemName: "photo")
+                    .font(.headline)
+                    .frame(width: 54, height: 54)
+                    .background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(.tint)
             }
             .disabled(exporting)
+            .accessibilityLabel(Text("Share image"))
         }
-        .padding(.horizontal, 36)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 12)
     }
 
     private func shareFinaleImage() {
@@ -226,7 +345,17 @@ struct RecapView: View {
             baseSize: RecapShareCardView.canvasSize,
             opaque: true
         ) {
-            SharePresenter.present([image])
+            share([image])
+        }
+    }
+
+    /// Presents the share sheet with the story paused, so the slide you're sharing doesn't
+    /// advance behind it.
+    private func share(_ items: [Any], onComplete: (() -> Void)? = nil) {
+        sharing = true
+        SharePresenter.present(items) {
+            sharing = false
+            onComplete?()
         }
     }
 
@@ -259,7 +388,7 @@ struct RecapView: View {
             // Cleaned up only once the sheet is done: Instagram and TikTok read the file
             // lazily after their extension launches, so deleting any earlier ships a 0-byte
             // video. The handler fires on cancel too.
-            SharePresenter.present([output]) {
+            share([output]) {
                 ShareVideoFile.remove(output)
             }
         } catch is CancellationError {
@@ -297,10 +426,11 @@ struct RecapView: View {
         Binding(get: { videoError != nil }, set: { if !$0 { videoError = nil } })
     }
 
-    // MARK: - Top bar (share + close)
+    // MARK: - Top bar (progress, share, close)
 
     private var topBar: some View {
-        VStack {
+        VStack(spacing: 12) {
+            if !recap.isEmpty { progressBars }
             HStack {
                 if !recap.isEmpty && page != .finale {
                     Button { shareCurrentSlide() } label: {
@@ -308,6 +438,7 @@ struct RecapView: View {
                             .font(.headline).foregroundStyle(.white.opacity(0.85))
                             .padding(10).background(Circle().fill(.white.opacity(0.12)))
                     }
+                    .accessibilityLabel(Text("Share"))
                 }
                 Spacer()
                 Button { dismiss() } label: {
@@ -315,10 +446,11 @@ struct RecapView: View {
                         .font(.headline).foregroundStyle(.white.opacity(0.85))
                         .padding(10).background(Circle().fill(.white.opacity(0.12)))
                 }
+                .accessibilityLabel(Text("Close"))
             }
-            Spacer()
         }
-        .padding(20)
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
     }
 
     private func focus(for slide: Slide) -> RecapCardFocus {
@@ -347,7 +479,7 @@ struct RecapView: View {
             baseSize: RecapShareCardView.canvasSize,
             opaque: true
         ) {
-            SharePresenter.present([image])
+            share([image])
         }
     }
 
@@ -360,7 +492,7 @@ struct RecapView: View {
             RecapCollageCardView(recap: recap, images: images),
             baseSize: RecapCollageCardView.canvasSize, opaque: true
         ) {
-            SharePresenter.present([image])
+            share([image])
         }
     }
 
