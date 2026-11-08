@@ -11,6 +11,8 @@ struct NextTripSection: View {
     let locked: Bool
     var onUnlock: () -> Void
     var onAnother: () -> Void
+    /// Opens the trip planner with this destination filled in.
+    var onPlan: (String) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -64,6 +66,13 @@ struct NextTripSection: View {
                 .foregroundStyle(.tertiary)
 
                 Spacer()
+
+                Button { onPlan(suggestion.destination.countryCode) } label: {
+                    Text("Plan it")
+                        .font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
 
                 if suggestion.hasAlternatives {
                     Button(action: onAnother) {

@@ -22,6 +22,7 @@ struct TripDetailView: View {
     @State private var showPaywall = false
     @State private var customName: String?
     @State private var showRenameEditor = false
+    @State private var showFlightsEditor = false
     /// Per-photo heart-rate "vibe", filled by the insights section, used to badge the grid.
     @State private var excitement: [String: ExcitementSample] = [:]
     /// Cached Health insights for this trip — drives the activity "vibe" pill and the
@@ -57,8 +58,16 @@ struct TripDetailView: View {
                 notesSection
 
                 if !trip.stops.isEmpty {
-                    TripMapView(stops: trip.stops)
+                    // Flights from the plan are drawn too, but the map frames the stops only:
+                    // long flight arcs would zoom it out until the itinerary was lost.
+                    TripMapView(stops: trip.stops, flights: appVM.flights(for: trip))
                         .frame(height: 280)
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .padding(.horizontal, 20)
+                } else if !appVM.flights(for: trip).isEmpty {
+                    // No stops to show (a trip entered by hand): the flights are the map.
+                    FlightRouteMap(flights: appVM.flights(for: trip))
+                        .frame(height: 240)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                         .padding(.horizontal, 20)
                 } else if trip.coordinate.latitude != 0 || trip.coordinate.longitude != 0 {
@@ -67,6 +76,8 @@ struct TripDetailView: View {
                                     glyph: trip.flag, spanMeters: 400_000)
                         .padding(.horizontal, 20)
                 }
+
+                flightsRow
 
                 if !trip.stops.isEmpty { stopsSection }
 
@@ -108,6 +119,12 @@ struct TripDetailView: View {
             }
         }
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
+        .sheet(isPresented: $showFlightsEditor) {
+            FlightsEditorSheet(flights: appVM.flights(for: trip),
+                               segments: FlightSuggestions.segments(for: trip)) { flights in
+                appVM.setFlights(flights, for: trip)
+            }
+        }
         .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
         .task { await loadCover() }
         // Re-run when the trip gains photos or the app comes back to the foreground: a trip
@@ -259,6 +276,36 @@ struct TripDetailView: View {
     }
 
     // MARK: - Itinerary
+
+    /// Flights are drawn on the itinerary map above; this row adds or edits them.
+    private var flightsRow: some View {
+        let flights = appVM.flights(for: trip)
+        return Button { showFlightsEditor = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: flights.isEmpty ? "airplane.departure" : "airplane")
+                    .foregroundStyle(.tint)
+                    .frame(width: 24)
+                if flights.isEmpty {
+                    Text("Add flights").foregroundStyle(.primary)
+                } else {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(flights.count) flights").foregroundStyle(.primary)
+                        Text(verbatim: AppViewModel.routeCodes(flights).joined(separator: " → "))
+                            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                }
+                Spacer()
+                Image(systemName: flights.isEmpty ? "plus.circle.fill" : "chevron.right")
+                    .font(flights.isEmpty ? .body : .caption)
+                    .foregroundStyle(flights.isEmpty ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+            }
+            .padding(AppCard.padding)
+            .card()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
+    }
 
     private var stopsSection: some View {
         VStack(alignment: .leading, spacing: 10) {

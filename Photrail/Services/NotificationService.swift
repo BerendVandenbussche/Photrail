@@ -10,15 +10,28 @@ enum NotificationRoute {
     case trip(id: String)
     case yearRecap
     case map
+    /// A planned trip that hasn't started yet, by `PlannedTrip.id`.
+    case plannedTrip(id: String)
+    /// The photo trip taken between these days — the "welcome back" reminder. Carries the
+    /// dates rather than the plan's id because the plan is retired once its trip is found.
+    case tripDuring(start: Date, end: Date)
 
     private static let kind = "route"
     private static let tripID = "tripID"
+    private static let planID = "planID"
+    private static let start = "start"
+    private static let end = "end"
 
     var userInfo: [String: String] {
         switch self {
-        case .trip(let id): return [Self.kind: "trip", Self.tripID: id]
-        case .yearRecap:    return [Self.kind: "yearRecap"]
-        case .map:          return [Self.kind: "map"]
+        case .trip(let id):        return [Self.kind: "trip", Self.tripID: id]
+        case .yearRecap:           return [Self.kind: "yearRecap"]
+        case .map:                 return [Self.kind: "map"]
+        case .plannedTrip(let id): return [Self.kind: "plannedTrip", Self.planID: id]
+        case .tripDuring(let start, let end):
+            return [Self.kind: "tripDuring",
+                    Self.start: String(start.timeIntervalSince1970),
+                    Self.end: String(end.timeIntervalSince1970)]
         }
     }
 
@@ -29,6 +42,13 @@ enum NotificationRoute {
             self = .trip(id: id)
         case "yearRecap": self = .yearRecap
         case "map":       self = .map
+        case "plannedTrip":
+            guard let id = userInfo[Self.planID] as? String else { return nil }
+            self = .plannedTrip(id: id)
+        case "tripDuring":
+            guard let start = (userInfo[Self.start] as? String).flatMap(TimeInterval.init),
+                  let end = (userInfo[Self.end] as? String).flatMap(TimeInterval.init) else { return nil }
+            self = .tripDuring(start: Date(timeIntervalSince1970: start), end: Date(timeIntervalSince1970: end))
         default:          return nil
         }
     }
@@ -130,6 +150,66 @@ enum NotificationService {
         try? await UNUserNotificationCenter.current().add(request)
     }
 
+    // MARK: - Planned trips
+
+    /// The three reminders a plan sends, at 19:00 local time: a week before, the evening
+    /// before, and the day after it ends.
+    private enum PlanReminder: String, CaseIterable {
+        case week, eve, back
+
+        func id(for planID: String) -> String { "planned-\(planID)-\(rawValue)" }
+
+        func day(for plan: PlannedTrip, calendar: Calendar) -> Date? {
+            switch self {
+            case .week: return calendar.date(byAdding: .day, value: -7, to: plan.startDate)
+            case .eve:  return calendar.date(byAdding: .day, value: -1, to: plan.startDate)
+            case .back: return calendar.date(byAdding: .day, value: 1, to: plan.endDate)
+            }
+        }
+    }
+
+    /// (Re)schedule a plan's reminders. Always clears the old ones first, so an edit moves them
+    /// and a disabled switch removes them. A reminder whose moment has passed is skipped, and
+    /// so is the week-before one for a trip planned less than a week ahead (the evening-before
+    /// reminder already covers it).
+    static func schedulePlannedTrip(_ plan: PlannedTrip, enabled: Bool, now: Date = Date()) async {
+        await cancelPlannedTrip(id: plan.id)
+        guard enabled, await isAuthorized() else { return }
+        let calendar = Calendar.current
+        for reminder in PlanReminder.allCases {
+            guard let day = reminder.day(for: plan, calendar: calendar),
+                  let fire = calendar.date(bySettingHour: 19, minute: 0, second: 0, of: day),
+                  fire > now else { continue }
+
+            let content = UNMutableNotificationContent()
+            content.sound = .default
+            switch reminder {
+            case .week:
+                content.title = String(localized: "\(plan.flag) \(plan.displayName) in 7 days")
+                content.body = String(localized: "One week to go. Time to start packing?")
+                content.userInfo = NotificationRoute.plannedTrip(id: plan.id).userInfo
+            case .eve:
+                content.title = String(localized: "\(plan.flag) Tomorrow: \(plan.displayName)")
+                content.body = String(localized: "Have a great trip! Photrail will follow along as you take photos.")
+                content.userInfo = NotificationRoute.plannedTrip(id: plan.id).userInfo
+            case .back:
+                content.title = String(localized: "\(plan.flag) Welcome back!")
+                content.body = String(localized: "Relive \(plan.displayName) and share it.")
+                content.userInfo = NotificationRoute.tripDuring(start: plan.startDate, end: plan.endDate).userInfo
+            }
+            let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(identifier: reminder.id(for: plan.id),
+                                                content: content, trigger: trigger)
+            try? await UNUserNotificationCenter.current().add(request)
+        }
+    }
+
+    static func cancelPlannedTrip(id: String) async {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: PlanReminder.allCases.map { $0.id(for: id) })
+    }
+
     private static func isAuthorized() async -> Bool {
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         return status == .authorized || status == .provisional
@@ -155,6 +235,12 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             case .trip(let id):  router.pendingTripID = id
             case .yearRecap:     router.openYearRecap = true
             case .map:           router.pendingTab = .map
+            case .plannedTrip(let id):
+                router.pendingTab = .today
+                router.pendingPlannedTripID = id
+            case .tripDuring(let start, let end):
+                router.pendingTab = .today
+                router.pendingTripDuring = start...end
             }
         }
     }

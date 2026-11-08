@@ -5,6 +5,9 @@ import MapKit
 /// the cities were first visited. The line is indicative, not an exact route.
 struct TripMapView: View {
     let stops: [Trip.TripStop]
+    /// Flights from the trip's plan. Drawn, but left out of the framing: the map opens on the
+    /// itinerary and the user zooms out to see the flights.
+    var flights: [PlannedTrip.Flight] = []
 
     private var coordinates: [CLLocationCoordinate2D] {
         stops.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
@@ -12,6 +15,7 @@ struct TripMapView: View {
 
     var body: some View {
         Map(initialPosition: .region(region), interactionModes: [.pan, .zoom]) {
+            FlightPathsContent(flights: flights)
             if coordinates.count > 1 {
                 MapPolyline(coordinates: coordinates)
                     .stroke(Color.accentColor,

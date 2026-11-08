@@ -25,13 +25,29 @@ struct DashboardView: View {
                     }
 
                     // On a trip right now — lead with it, it's the thing they opened the app for.
-                    if let current = appVM.currentTrip {
-                        NavigationLink { TripDetailView(trip: current) } label: {
-                            CurrentTripCard(trip: current)
+                    // Otherwise count down to the next planned one.
+                    if let live = appVM.liveTrip {
+                        Group {
+                            if let trip = live.trip {
+                                NavigationLink { TripDetailView(trip: trip) } label: {
+                                    CurrentTripCard(live: live)
+                                }
+                            } else if let plan = live.plan {
+                                NavigationLink { PlannedTripDetailView(planID: plan.id) } label: {
+                                    CurrentTripCard(live: live)
+                                }
+                            }
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal, 20)
                         .transition(.opacity.combined(with: .move(edge: .top)))
+                    } else if let next = appVM.nextTripCountdown {
+                        NavigationLink { PlannedTripDetailView(planID: next.id) } label: {
+                            UpcomingTripCard(plan: next)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 20)
+                        .transition(.opacity)
                     }
 
                     // Most of the library has no coordinates — say so before they conclude
@@ -232,7 +248,8 @@ struct DashboardView: View {
             NextTripSection(suggestion: suggestion,
                             locked: !appVM.hasLifetime,
                             onUnlock: { showPaywall = true },
-                            onAnother: { appVM.nextTripSuggestion() })
+                            onAnother: { appVM.nextTripSuggestion() },
+                            onPlan: { appVM.planTrip(to: $0) })
                 .task(id: suggestion.destination.id) {
                     await appVM.generateTripPitchIfNeeded()
                 }

@@ -54,6 +54,26 @@ struct MainTabView: View {
         .onChange(of: router.pendingTab) { _, _ in applyPendingIntent() }
         .onChange(of: router.openYearRecap) { _, _ in applyPendingIntent() }
         .onChange(of: router.pendingTripID) { _, _ in applyPendingIntent() }
+        .onChange(of: router.pendingPlannedTripID) { _, _ in applyPendingIntent() }
+        .onChange(of: router.pendingTripDuring) { _, _ in applyPendingIntent() }
+        .sheet(item: $appVM.planEditor, onDismiss: {
+            if let id = appVM.planToShowAfterEditor {
+                appVM.planToShowAfterEditor = nil
+                appVM.showPlannedTrip(id: id)
+            }
+        }) { request in
+            PlannedTripEditorView(existing: request.existing, countryCode: request.countryCode)
+        }
+        .sheet(item: $appVM.presentedPlan) { request in
+            NavigationStack {
+                PlannedTripDetailView(planID: request.id)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Done") { appVM.presentedPlan = nil }
+                        }
+                    }
+            }
+        }
         // A cold launch applies the intent before the scan has produced any trips, so retry
         // once the trips actually arrive.
         .onChange(of: appVM.stats.trips.count) { _, _ in applyPendingTrip() }
@@ -69,6 +89,13 @@ struct MainTabView: View {
             router.openYearRecap = false
             Task { appVM.presentedRecap = await appVM.makeYearRecap() }
         }
+        if let id = router.pendingPlannedTripID {
+            router.pendingPlannedTripID = nil
+            // Gone when the user deleted it, or it was retired after the trip: nothing to open.
+            if appVM.plannedTrips.contains(where: { $0.id == id }) {
+                appVM.showPlannedTrip(id: id)
+            }
+        }
         applyPendingTrip()
     }
 
@@ -77,6 +104,13 @@ struct MainTabView: View {
     /// The id is only cleared once a trip is found — on a cold launch this runs before the scan
     /// has populated `stats.trips`, and dropping the request there would open nothing at all.
     private func applyPendingTrip() {
+        if let range = router.pendingTripDuring {
+            if let trip = PlannedTrip.matchingTrip(from: range.lowerBound, to: range.upperBound,
+                                                   in: appVM.stats.trips) {
+                router.pendingTripDuring = nil
+                appVM.presentedTrip = trip
+            }
+        }
         guard let id = router.pendingTripID, let trip = resolveTrip(id: id) else { return }
         router.pendingTripID = nil
         appVM.presentedTrip = trip

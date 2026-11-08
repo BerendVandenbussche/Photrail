@@ -6,6 +6,8 @@ import SwiftUI
 struct MiniMonthGrid: View {
     let month: Date
     let tripDays: Set<Int>
+    /// Planned (not yet taken) days, drawn as outlines.
+    var plannedDays: Set<Int> = []
     var accent: Color = .accentColor
     var idleColor: Color = Color.primary.opacity(0.12)
     var titleColor: Color = .primary
@@ -27,10 +29,15 @@ struct MiniMonthGrid: View {
                     Color.clear.frame(width: cellSize, height: cellSize)
                 }
                 ForEach(days, id: \.self) { day in
-                    Circle()
-                        .fill(tripDays.contains(day) ? accent : idleColor)
-                        .frame(width: cellSize * 0.66, height: cellSize * 0.66)
-                        .frame(width: cellSize, height: cellSize)
+                    Group {
+                        if plannedDays.contains(day) && !tripDays.contains(day) {
+                            Circle().strokeBorder(accent, lineWidth: 1.5)
+                        } else {
+                            Circle().fill(tripDays.contains(day) ? accent : idleColor)
+                        }
+                    }
+                    .frame(width: cellSize * 0.66, height: cellSize * 0.66)
+                    .frame(width: cellSize, height: cellSize)
                 }
             }
         }

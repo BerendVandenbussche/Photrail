@@ -127,10 +127,12 @@ struct ManualTripEditorView: View {
 
 /// A searchable country list; tapping one calls `onPick` and dismisses. Codes already on the
 /// trip are hidden.
-private struct CountryPickerSheet: View {
+struct CountryPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     let excluding: Set<String>
     let onPick: (CountryCatalog.Option) -> Void
+    /// Also used by the trip planner, which picks a single destination.
+    var title: LocalizedStringKey = "Add Country"
     @State private var search = ""
 
     private var filtered: [CountryCatalog.Option] {
@@ -159,7 +161,7 @@ private struct CountryPickerSheet: View {
             }
             .listStyle(.plain)
             .searchable(text: $search, prompt: "Search countries")
-            .navigationTitle("Add Country")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }

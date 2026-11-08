@@ -1,56 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Live" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live"
-          }
-        }
-      }
-    },
-    "You're traveling" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je bent op reis"
-          }
-        }
-      }
-    },
-    "Day %lld" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dag %lld"
-          }
-        }
-      }
-    },
-    "You're on this trip right now" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je bent nu op deze reis"
-          }
-        }
-      }
-    },
-    "Test notice on" : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testmelding aan"
-          }
-        }
-      }
-    },
     "" : {
 
     },
@@ -169,6 +119,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "%@ %@ in 7 days" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ over 7 dagen"
           }
         }
       }
@@ -392,6 +352,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ Dat is %2$@× de %3$@!"
+          }
+        }
+      }
+    },
+    "%@ Tomorrow: %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Morgen: %2$@"
+          }
+        }
+      }
+    },
+    "%@ Welcome back!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Welkom terug!"
           }
         }
       }
@@ -675,6 +655,46 @@
         }
       }
     },
+    "%lld flights" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld flight"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld flights"
+                }
+              }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld vlucht"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld vluchten"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld flights climbed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -917,6 +937,16 @@
         }
       }
     },
+    "%lld, planned: %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld, gepland: %2$@"
+          }
+        }
+      }
+    },
     "%lld%%" : {
 
     },
@@ -1132,6 +1162,16 @@
         }
       }
     },
+    "Add a flight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlucht toevoegen"
+          }
+        }
+      }
+    },
     "Add a note" : {
       "localizations" : {
         "nl" : {
@@ -1142,12 +1182,32 @@
         }
       }
     },
+    "Add a past trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg een eerdere reis toe"
+          }
+        }
+      }
+    },
     "Add a trip" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voeg een reis toe"
+          }
+        }
+      }
+    },
+    "Add another flight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog een vlucht toevoegen"
           }
         }
       }
@@ -1179,6 +1239,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Land toevoegen"
+          }
+        }
+      }
+    },
+    "Add each flight separately, so a transfer is two flights." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg elke vlucht apart toe, dus een overstap is twee vluchten."
+          }
+        }
+      }
+    },
+    "Add Flight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlucht toevoegen"
+          }
+        }
+      }
+    },
+    "Add flights" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vluchten toevoegen"
           }
         }
       }
@@ -1455,12 +1545,32 @@
         }
       }
     },
+    "Choose a country" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies een land"
+          }
+        }
+      }
+    },
     "Choose a trip" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kies een reis"
+          }
+        }
+      }
+    },
+    "Choose an airport" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kies een luchthaven"
           }
         }
       }
@@ -1557,6 +1667,16 @@
         }
       }
     },
+    "City, airport or code" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stad, luchthaven of code"
+          }
+        }
+      }
+    },
     "Clear" : {
       "localizations" : {
         "nl" : {
@@ -1611,6 +1731,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kustreiziger"
+          }
+        }
+      }
+    },
+    "Coming home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terugreis"
           }
         }
       }
@@ -1863,12 +1993,73 @@
         }
       }
     },
+    "Date" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datum"
+          }
+        }
+      }
+    },
+    "Dates" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datums"
+          }
+        }
+      }
+    },
+    "Day %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dag %lld"
+          }
+        }
+      }
+    },
+    "Day %lld of %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dag %1$lld van %2$lld"
+          }
+        }
+      }
+    },
     "Days you covered large distances — flights and long journeys between places." : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dagen waarop je grote afstanden aflegde — vluchten en lange reizen tussen plaatsen."
+          }
+        }
+      }
+    },
+    "Delete plan" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan verwijderen"
+          }
+        }
+      }
+    },
+    "Delete this plan?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dit plan verwijderen?"
           }
         }
       }
@@ -1889,6 +2080,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reis verwijderen"
+          }
+        }
+      }
+    },
+    "Destination" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestemming"
           }
         }
       }
@@ -1973,6 +2174,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Duur"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bewerken"
+          }
+        }
+      }
+    },
+    "Edit Flight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlucht bewerken"
+          }
+        }
+      }
+    },
+    "Edit Plan" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan bewerken"
           }
         }
       }
@@ -2233,6 +2464,26 @@
         }
       }
     },
+    "Flights" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vluchten"
+          }
+        }
+      }
+    },
+    "For a trip through several countries, add each one with its own dates. Flights are added on the trip's page." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reis je door meerdere landen? Voeg elk land toe met zijn eigen data. Vluchten voeg je toe op de pagina van de reis."
+          }
+        }
+      }
+    },
     "Frequent Flyer" : {
       "localizations" : {
         "nl" : {
@@ -2299,6 +2550,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Even voorbereiden…"
+          }
+        }
+      }
+    },
+    "Getting there" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heenreis"
+          }
+        }
+      }
+    },
+    "Getting there, between countries and coming home." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heenreis, tussen landen en terugreis."
           }
         }
       }
@@ -2394,6 +2665,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Halve wereld"
+          }
+        }
+      }
+    },
+    "Have a great trip! Photrail will follow along as you take photos." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goede reis! Photrail volgt mee terwijl je foto's neemt."
           }
         }
       }
@@ -2574,6 +2855,16 @@
         }
       }
     },
+    "in %lld days" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "over %lld dagen"
+          }
+        }
+      }
+    },
     "Include in stats" : {
       "localizations" : {
         "nl" : {
@@ -2606,6 +2897,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reisschema"
+          }
+        }
+      }
+    },
+    "Its reminders are cancelled too." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De herinneringen worden ook geannuleerd."
           }
         }
       }
@@ -2713,6 +3014,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Levenslang-lid"
+          }
+        }
+      }
+    },
+    "Live" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live"
           }
         }
       }
@@ -2987,6 +3298,16 @@
         }
       }
     },
+    "Next trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende reis"
+          }
+        }
+      }
+    },
     "No cities here yet." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3083,6 +3404,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Geen foto's beschikbaar"
+          }
+        }
+      }
+    },
+    "No photos yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen foto's"
           }
         }
       }
@@ -3394,6 +3725,16 @@
         }
       }
     },
+    "One week to go. Time to start packing?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog één week. Tijd om je koffer te pakken?"
+          }
+        }
+      }
+    },
     "One-time purchase · Family Sharing enabled" : {
       "localizations" : {
         "nl" : {
@@ -3476,6 +3817,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reis openen"
+          }
+        }
+      }
+    },
+    "Optional. Add each flight separately, so a transfer is two flights." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optioneel. Voeg elke vlucht apart toe, dus een overstap is twee vluchten."
+          }
+        }
+      }
+    },
+    "Other flight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere vlucht"
           }
         }
       }
@@ -3657,6 +4019,17 @@
         }
       }
     },
+    "Photrail counts down to your trip, reminds you a week and a day before, and follows along while you're there. Afterwards your photos take over, and the name moves to the trip they make." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail telt af naar je reis, herinnert je er een week en een dag vooraf aan en volgt mee terwijl je er bent. Daarna nemen je foto's het over en gaat de naam naar de reis die ze vormen."
+          }
+        }
+      }
+    },
     "Photrail needs access to your photo library to read location data. Your photos stay on your device." : {
       "localizations" : {
         "nl" : {
@@ -3741,6 +4114,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plekken worden opgezocht met Apple Maps. Ze verschijnen als steden op je kaart en in je statistieken."
+          }
+        }
+      }
+    },
+    "Plan a trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan een reis"
+          }
+        }
+      }
+    },
+    "Plan a Trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reis plannen"
+          }
+        }
+      }
+    },
+    "Plan it" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plannen"
           }
         }
       }
@@ -3930,6 +4333,16 @@
         }
       }
     },
+    "Relive %@ and share it." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herbeleef %@ en deel het."
+          }
+        }
+      }
+    },
     "Relive your journey and share it ✈️" : {
       "localizations" : {
         "nl" : {
@@ -3956,6 +4369,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afgelegen plekken, lange afstanden en ruige landschappen, gecombineerd."
+          }
+        }
+      }
+    },
+    "Remove country" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Land verwijderen"
+          }
+        }
+      }
+    },
+    "Remove flight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlucht verwijderen"
           }
         }
       }
@@ -4303,6 +4736,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bekijk je hartslag, beklimmingen, workouts en energie van deze reis. Alles wordt uit Apple Health gelezen en blijft op je toestel."
+          }
+        }
+      }
+    },
+    "See your photos" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk je foto's"
           }
         }
       }
@@ -4986,7 +5429,14 @@
       }
     },
     "Test notice on" : {
-
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testmelding aan"
+          }
+        }
+      }
     },
     "That place isn't in this country" : {
       "localizations" : {
@@ -5159,6 +5609,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vandaag"
+          }
+        }
+      }
+    },
+    "Tomorrow" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morgen"
           }
         }
       }
@@ -5472,6 +5932,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ontgrendel Photrail Levenslang"
+          }
+        }
+      }
+    },
+    "Upcoming" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gepland"
           }
         }
       }
@@ -6180,6 +6650,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je reisde in %1$lld van 12 maanden 🌍"
+          }
+        }
+      }
+    },
+    "You're on this trip right now" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je bent nu op deze reis"
+          }
+        }
+      }
+    },
+    "You're traveling" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je bent op reis"
           }
         }
       }

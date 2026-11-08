@@ -4,6 +4,7 @@ import SwiftUI
 /// opens that trip; the month can be shared as a branded card.
 struct CalendarView: View {
     let trips: [Trip]
+    @Environment(AppViewModel.self) private var appVM
 
     private enum Mode: String, CaseIterable, Identifiable { case month = "Month", year = "Year"; var id: String { rawValue } }
 
@@ -18,6 +19,17 @@ struct CalendarView: View {
     private var entries: [Int: TripCalendar.DayEntry] {
         TripCalendar.entries(for: month, trips: trips, calendar: calendar)
     }
+    /// Plans that haven't finished yet. Finished ones are either the photo trip by now or
+    /// about to be retired, and the calendar shows what happened rather than what was planned.
+    private var activePlans: [PlannedTrip] { appVM.plannedTrips.filter { !$0.isOver() } }
+    private var plannedEntries: [Int: TripCalendar.PlannedDayEntry] {
+        TripCalendar.plannedEntries(for: month, planned: activePlans,
+                                    excluding: Set(entries.keys), calendar: calendar)
+    }
+    /// The month of the last planned day: the arrows may go that far ahead.
+    private var lastPlannedMonth: Date? {
+        activePlans.map(\.endDate).max().map { calendar.startOfMonth(for: $0) }
+    }
     private var yearMonths: [(month: Date, entries: [Int: TripCalendar.DayEntry])] {
         TripCalendar.year(year, trips: trips, calendar: calendar)
     }
@@ -26,10 +38,11 @@ struct CalendarView: View {
     }
 
     private var canGoForward: Bool {
-        month < calendar.startOfMonth(for: Date())
+        month < max(calendar.startOfMonth(for: Date()), lastPlannedMonth ?? .distantPast)
     }
     private var canGoForwardYear: Bool {
-        year < calendar.component(.year, from: Date())
+        year < max(calendar.component(.year, from: Date()),
+                   lastPlannedMonth.map { calendar.component(.year, from: $0) } ?? 0)
     }
     private var shareDisabled: Bool {
         mode == .month ? entries.isEmpty : yearSummary.daysAway == 0
@@ -71,12 +84,37 @@ struct CalendarView: View {
         monthHeader
         weekdayRow
         grid
-        if entries.isEmpty {
+        if entries.isEmpty && plannedEntries.isEmpty {
             Text("No trips this month")
                 .font(.subheadline).foregroundStyle(.secondary)
                 .padding(.top, 8)
         } else {
-            monthSummary
+            if !entries.isEmpty { monthSummary }
+            plannedSummary
+        }
+    }
+
+    /// The plans that fall in this month, each tappable to edit.
+    @ViewBuilder
+    private var plannedSummary: some View {
+        let plans = Dictionary(grouping: plannedEntries.values, by: \.plan.id)
+            .compactMap { $0.value.first?.plan }
+            .sorted { $0.startDate < $1.startDate }
+        ForEach(plans) { plan in
+            NavigationLink { PlannedTripDetailView(planID: plan.id) } label: {
+                HStack(spacing: 12) {
+                    FlagCluster(flags: plan.countryCodes.map(CountryCatalog.flag(for:)), size: 36)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(plan.displayName).font(.subheadline.weight(.semibold)).lineLimit(1)
+                        Text(plan.dateRangeText).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text(plan.countdownText()).font(.caption.weight(.semibold)).foregroundStyle(.tint)
+                }
+                .padding(AppCard.padding)
+                .card()
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -105,7 +143,10 @@ struct CalendarView: View {
                     month = item.month
                     withAnimation { mode = .month }
                 } label: {
-                    MiniMonthGrid(month: item.month, tripDays: Set(item.entries.keys), cellSize: 12)
+                    MiniMonthGrid(month: item.month, tripDays: Set(item.entries.keys),
+                                  plannedDays: Set(TripCalendar.plannedEntries(
+                                      for: item.month, planned: activePlans, calendar: calendar).keys),
+                                  cellSize: 12)
                 }
                 .buttonStyle(.plain)
             }
@@ -179,6 +220,11 @@ struct CalendarView: View {
                 if let entry = entries[day] {
                     NavigationLink { TripDetailView(trip: entry.trip) } label: { dayCell(day: day, entry: entry) }
                         .buttonStyle(.plain)
+                } else if let planned = plannedEntries[day] {
+                    NavigationLink { PlannedTripDetailView(planID: planned.plan.id) } label: {
+                        plannedDayCell(day: day, entry: planned)
+                    }
+                    .buttonStyle(.plain)
                 } else {
                     dayCell(day: day, entry: nil)
                 }
@@ -243,6 +289,22 @@ struct CalendarView: View {
                 .fill(entry != nil ? Color.accentColor.opacity(0.12) : Color.clear)
         )
         .contentShape(Rectangle())
+    }
+
+    /// A planned day: the flag dimmed inside a dashed outline, so it reads as "not yet".
+    private func plannedDayCell(day: Int, entry: TripCalendar.PlannedDayEntry) -> some View {
+        let plan = entry.plan
+        return VStack(spacing: 2) {
+            Text(entry.flag).font(.system(size: 22)).opacity(0.45)
+            Text("\(day)").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 48)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color.accentColor.opacity(0.5), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+        )
+        .contentShape(Rectangle())
+        .accessibilityLabel(Text("\(day), planned: \(plan.displayName)"))
     }
 
     // MARK: - Helpers

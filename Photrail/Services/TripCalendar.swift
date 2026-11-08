@@ -31,6 +31,34 @@ enum TripCalendar {
         return result
     }
 
+    /// A day of a planned trip, for days the photos don't already cover.
+    struct PlannedDayEntry: Identifiable, Sendable {
+        let day: Int
+        let plan: PlannedTrip
+        /// The flag of the country planned for that day (multi-country plans change flag).
+        let flag: String
+        var id: Int { day }
+    }
+
+    /// Map of day-of-month → plan for every planned day in the month. Days in `taken` (days
+    /// already covered by a real trip) are skipped, so a plan underway never hides its photos.
+    static func plannedEntries(for month: Date, planned: [PlannedTrip], excluding taken: Set<Int> = [],
+                               calendar: Calendar = .current) -> [Int: PlannedDayEntry] {
+        guard !planned.isEmpty,
+              let range = calendar.range(of: .day, in: .month, for: month),
+              let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: month))
+        else { return [:] }
+        var result: [Int: PlannedDayEntry] = [:]
+        for dayNum in range where !taken.contains(dayNum) {
+            guard let date = calendar.date(byAdding: .day, value: dayNum - 1, to: monthStart),
+                  let plan = planned.first(where: { date >= $0.startDate && date <= $0.endDate })
+            else { continue }
+            result[dayNum] = PlannedDayEntry(day: dayNum, plan: plan,
+                                             flag: plan.stay(on: date, calendar: calendar)?.flag ?? plan.flag)
+        }
+        return result
+    }
+
     /// The 12 months of a year, each with its day → entry map.
     static func year(_ year: Int, trips: [Trip], calendar: Calendar = .current) -> [(month: Date, entries: [Int: DayEntry])] {
         (1...12).compactMap { m in

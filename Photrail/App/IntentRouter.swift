@@ -18,4 +18,9 @@ final class IntentRouter {
     /// pending intents before the scan has produced any trips, so it has to survive until
     /// `stats.trips` can actually resolve it.
     var pendingTripID: String?
+    /// A planned trip a reminder asked to open, by `PlannedTrip.id`.
+    var pendingPlannedTripID: String?
+    /// Open the photo trip taken during these days (the "welcome back" reminder). Survives
+    /// until the scan has produced trips, like `pendingTripID`.
+    var pendingTripDuring: ClosedRange<Date>?
 }

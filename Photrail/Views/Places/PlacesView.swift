@@ -28,7 +28,7 @@ struct PlacesView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if stats.totalGeotaggedPhotos == 0 && appVM.manualTrips.isEmpty {
+                if stats.totalGeotaggedPhotos == 0 && appVM.manualTrips.isEmpty && appVM.plannedTrips.isEmpty {
                     ContentUnavailableView {
                         Label("Nothing here yet", systemImage: "globe.europe.africa")
                     } description: {
@@ -55,7 +55,14 @@ struct PlacesView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { addTrip() } label: {
+                    Menu {
+                        Button { appVM.planTrip() } label: {
+                            Label("Plan a trip", systemImage: "calendar.badge.plus")
+                        }
+                        Button { addTrip() } label: {
+                            Label("Add a past trip", systemImage: "hand.draw")
+                        }
+                    } label: {
                         Image(systemName: "plus")
                     }
                     .accessibilityLabel(Text("Add a trip"))
@@ -176,6 +183,26 @@ struct PlacesView: View {
 
     @ViewBuilder
     private var tripsList: some View {
+        let upcoming = appVM.upcomingTrips
+        if !upcoming.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Upcoming")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20).padding(.bottom, 6)
+                ForEach(upcoming) { plan in
+                    NavigationLink { PlannedTripDetailView(planID: plan.id) } label: { PlannedTripRow(plan: plan) }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) { appVM.removePlannedTrip(id: plan.id) } label: {
+                                Label("Delete plan", systemImage: "trash")
+                            }
+                        }
+                    if plan.id != upcoming.last?.id { Divider().padding(.leading, 78) }
+                }
+            }
+            .padding(.bottom, 8)
+        }
         if tripsByYear.isEmpty {
             Text("No trips yet")
                 .foregroundStyle(.secondary)

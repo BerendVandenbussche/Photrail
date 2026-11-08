@@ -126,11 +126,28 @@ final class AppViewModel {
     /// change underneath them (a trip in progress, its workouts) key their reloads on it.
     private(set) var foregroundRevision = 0
 
+    /// The trip the user is on right now. At least one of the two is set.
+    struct LiveTrip {
+        /// The plan whose dates include today, when the user planned this trip.
+        let plan: PlannedTrip?
+        /// The photo trip, once photos from it exist.
+        let trip: Trip?
+    }
+
+    /// A plan whose dates include today wins: the user said where they'd be. Without one,
+    /// fall back to the photos (see `photoDetectedCurrentTrip`).
+    var liveTrip: LiveTrip? {
+        if let plan = plannedTripUnderway {
+            return LiveTrip(plan: plan, trip: plan.matchingTrip(in: stats.trips))
+        }
+        return photoDetectedCurrentTrip.map { LiveTrip(plan: nil, trip: $0) }
+    }
+
     /// The trip the user seems to be on right now: the latest photo trip, last photographed
     /// today or yesterday, with nothing photographed since. Home photos never join a trip, so
     /// a newer photo than the trip's last one means the user is back (or between trips).
     /// Manual trips are left out — they have no photos to say where the user is.
-    var currentTrip: Trip? {
+    private var photoDetectedCurrentTrip: Trip? {
         let calendar = Calendar.current
         guard let trip = stats.trips.filter({ !$0.isManual }).max(by: { $0.endDate < $1.endDate }),
               calendar.isDateInToday(trip.endDate) || calendar.isDateInYesterday(trip.endDate)
@@ -140,7 +157,163 @@ final class AppViewModel {
     }
 
     /// Whether `trip` is the one the user is on right now.
-    func isLive(_ trip: Trip) -> Bool { currentTrip?.id == trip.id }
+    func isLive(_ trip: Trip) -> Bool { liveTrip?.trip?.id == trip.id }
+
+    // MARK: - Planned trips
+
+    /// Trips the user planned ahead. Never part of the visited stats.
+    var plannedTrips: [PlannedTrip] = [] {
+        didSet {
+            if let data = try? JSONEncoder().encode(plannedTrips) {
+                UserDefaults.standard.set(data, forKey: "plannedTrips")
+            }
+            publishCountdownWidget()
+        }
+    }
+
+    /// "BRU → LIM → GRU → BRU": each airport once per visit, a new start where flights don't
+    /// connect (an overland stretch in between).
+    static func routeCodes(_ flights: [PlannedTrip.Flight]) -> [String] {
+        var codes: [String] = []
+        for flight in flights {
+            if codes.last != flight.from { codes.append(flight.from) }
+            codes.append(flight.to)
+        }
+        return codes
+    }
+
+    /// Hand the countdown widget the plan underway, else the next one.
+    private func publishCountdownWidget() {
+        let plan = plannedTripUnderway ?? upcomingTrips.first
+        let countdown = plan.map { plan in
+            WidgetCountdown(name: plan.displayName, flag: plan.flags,
+                            startDate: plan.startDate, endDate: plan.endDate,
+                            route: Self.routeCodes(plan.sortedFlights))
+        }
+        guard countdown != WidgetCountdownStore.load() else { return }
+        WidgetCountdownStore.save(countdown)
+        WidgetCenter.shared.reloadTimelines(ofKind: "PhotrailCountdownWidget")
+    }
+
+    /// Asks `MainTabView` to show the plan editor; `existing == nil` creates a new plan.
+    struct PlanEditorRequest: Identifiable {
+        let id = UUID()
+        let existing: PlannedTrip?
+        /// Pre-selected destination for a new plan (from the "Where next?" suggestion).
+        var countryCode: String? = nil
+    }
+    var planEditor: PlanEditorRequest?
+
+    func planTrip(to countryCode: String? = nil) {
+        planEditor = PlanEditorRequest(existing: nil, countryCode: countryCode)
+    }
+    func editPlannedTrip(_ plan: PlannedTrip) { planEditor = PlanEditorRequest(existing: plan) }
+
+    /// A plan's page shown as a sheet, for places with no navigation stack of their own to push
+    /// onto (a tapped reminder, a plan just created).
+    struct PlanPageRequest: Identifiable { let id: String }
+    var presentedPlan: PlanPageRequest?
+    func showPlannedTrip(id: String) { presentedPlan = PlanPageRequest(id: id) }
+
+    /// Set by the editor when it creates a plan; `MainTabView` opens that plan's page once the
+    /// editor sheet is gone.
+    var planToShowAfterEditor: String?
+
+    /// Plans that haven't started yet, soonest first.
+    var upcomingTrips: [PlannedTrip] {
+        plannedTrips.filter { !$0.hasStarted() }.sorted { $0.startDate < $1.startDate }
+    }
+
+    /// The plan whose dates include today (the earliest-started one if several overlap).
+    var plannedTripUnderway: PlannedTrip? {
+        plannedTrips.filter { $0.isUnderway() }.min { $0.startDate < $1.startDate }
+    }
+
+    /// The next plan, when it starts soon enough to count down to on the Today tab.
+    var nextTripCountdown: PlannedTrip? {
+        guard let next = upcomingTrips.first, next.daysUntilStart() <= 60 else { return nil }
+        return next
+    }
+
+    func savePlannedTrip(_ plan: PlannedTrip) {
+        if let index = plannedTrips.firstIndex(where: { $0.id == plan.id }) {
+            plannedTrips[index] = plan
+        } else {
+            plannedTrips.append(plan)
+        }
+        let enabled = travelNudgesEnabled
+        Task { await NotificationService.schedulePlannedTrip(plan, enabled: enabled) }
+    }
+
+    func removePlannedTrip(id: String) {
+        plannedTrips.removeAll { $0.id == id }
+        Task { await NotificationService.cancelPlannedTrip(id: id) }
+    }
+
+    /// Re-issue every plan's reminders: on launch (so they survive an app update) and when
+    /// the nudges switch changes.
+    private func reschedulePlannedTripReminders() async {
+        for plan in plannedTrips {
+            await NotificationService.schedulePlannedTrip(plan, enabled: travelNudgesEnabled)
+        }
+    }
+
+    /// Give each plan's name to its photo trip, and retire plans that are over.
+    ///
+    /// The name moves as soon as a matching photo trip exists, so the trip page reads the same
+    /// as the live card. It never overwrites a name the user gave the photo trip. A finished
+    /// plan is dropped once its photo trip is found, or three days after it ended without one.
+    /// Its "welcome back" reminder is left scheduled either way.
+    private func reconcilePlannedTrips() async {
+        let calendar = Calendar.current
+        let now = Date()
+        var renamed = false
+        var retired: Set<String> = []
+        for plan in plannedTrips where plan.hasStarted(now: now) {
+            let match = plan.matchingTrip(in: stats.trips)
+            if let match, let name = plan.name, !name.isEmpty, TripNameStore.name(for: match.id) == nil {
+                TripNameStore.setName(name, for: match.id)
+                renamed = true
+            }
+            guard plan.isOver(now: now) else { continue }
+            // The plan is about to go; its flights stay with the photo trip.
+            if let match, !plan.flights.isEmpty { TripFlightStore.setFlights(plan.flights, for: match.id) }
+            let staleSince = calendar.date(byAdding: .day, value: 3, to: plan.endDate) ?? plan.endDate
+            if match != nil || calendar.startOfDay(for: now) > staleSince { retired.insert(plan.id) }
+        }
+        if !retired.isEmpty { plannedTrips.removeAll { retired.contains($0.id) } }
+        if renamed { await refreshStatsWithManual() }
+    }
+
+    /// Bumped when a past trip's flights change, so views reading `flights(for:)` refresh
+    /// (`TripFlightStore` itself isn't observable).
+    private(set) var flightsRevision = 0
+
+    /// The plan a photo trip came from, while the plan still exists.
+    private func plan(for trip: Trip) -> PlannedTrip? {
+        guard !trip.isManual else { return nil }
+        return plannedTrips.first { $0.hasStarted() && $0.matchingTrip(in: stats.trips)?.id == trip.id }
+    }
+
+    /// The flights on a past trip, in travel order: from its plan while that still exists (so
+    /// edits to the plan show straight away), else the ones saved with the trip. They are drawn
+    /// on the itinerary map but never change the trip's stops.
+    func flights(for trip: Trip) -> [PlannedTrip.Flight] {
+        _ = flightsRevision
+        if let plan = plan(for: trip) { return plan.sortedFlights }
+        return PlannedTrip.sorted(TripFlightStore.flights(for: trip.id))
+    }
+
+    /// Save a past trip's flights: onto its plan while that exists, else with the trip.
+    func setFlights(_ flights: [PlannedTrip.Flight], for trip: Trip) {
+        if var plan = plan(for: trip) {
+            plan.flights = flights
+            savePlannedTrip(plan)
+        } else {
+            TripFlightStore.setFlights(flights, for: trip.id)
+            flightsRevision &+= 1
+        }
+    }
 
     /// The freshest version of a trip, by id. A view opened on a trip holds a copy; this lets
     /// it follow the trip as a rescan adds the day's photos. Falls back to the copy when the
@@ -260,6 +433,8 @@ final class AppViewModel {
         didSet {
             UserDefaults.standard.set(travelNudgesEnabled, forKey: "travelNudgesEnabled")
             if travelNudgesEnabled { Task { await NotificationService.requestAuthorization() } }
+            // Planned-trip reminders follow the same switch.
+            Task { await reschedulePlannedTripReminders() }
         }
     }
 
@@ -626,6 +801,10 @@ final class AppViewModel {
             self.manualTrips = decoded
         } else {
             self.manualTrips = Self.migrateLegacyManualCountries()
+        }
+        if let data = UserDefaults.standard.data(forKey: "plannedTrips"),
+           let decoded = try? JSONDecoder().decode([PlannedTrip].self, from: data) {
+            self.plannedTrips = decoded
         }
         self.excludedPhotoIDs = ExcludedPhotosStore.load()
         if let enabled = UserDefaults.standard.object(forKey: "travelNudgesEnabled") as? Bool {
@@ -1278,7 +1457,10 @@ final class AppViewModel {
         // Quietly authorize nudges so we can celebrate new countries while traveling. Deliberately
         // *provisional*: stacking a notification prompt behind the photo-library one is the fastest
         // way to get a reflexive "Don't Allow", and the user judges the first real nudge instead.
-        Task { await NotificationService.requestProvisionalAuthorization() }
+        Task {
+            await NotificationService.requestProvisionalAuthorization()
+            await reschedulePlannedTripReminders()
+        }
         // First-time users get the map-reveal celebration, which occupies the scan wait.
         // Everyone else drops straight into the dashboard.
         navState = hasSeenMapReveal ? .dashboard : .mapReveal
@@ -1575,6 +1757,8 @@ final class AppViewModel {
 
     /// Publish the current stats to the shared App Group container and refresh widgets.
     private func publishWidgetStats() {
+        // Also on every scan, so a plan that started or ended since the last change rolls over.
+        publishCountdownWidget()
         WidgetSharedStore.save(stats.widgetSnapshot(hasLifetime: hasLifetime))
         WidgetCenter.shared.reloadAllTimelines()
     }
@@ -1820,6 +2004,7 @@ final class AppViewModel {
     }
 
     private func completeScan() async {
+        await reconcilePlannedTrips()
         publishWidgetStats()
         indexTripsForSearch()
         await runNudges()

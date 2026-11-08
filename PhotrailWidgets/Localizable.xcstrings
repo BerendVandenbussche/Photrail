@@ -137,12 +137,92 @@
         }
       }
     },
+    "Counts down the days to your next planned trip." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telt de dagen af tot je volgende geplande reis."
+          }
+        }
+      }
+    },
+    "Day %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dag %lld"
+          }
+        }
+      }
+    },
+    "day to go" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dag te gaan"
+          }
+        }
+      }
+    },
+    "days to go" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dagen te gaan"
+          }
+        }
+      }
+    },
+    "Have a great trip!" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goede reis!"
+          }
+        }
+      }
+    },
     "How many of the 7 World Wonders and famous landmarks you've seen." : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hoeveel van de 7 wereldwonderen en beroemde bezienswaardigheden je hebt gezien."
+          }
+        }
+      }
+    },
+    "Next trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volgende reis"
+          }
+        }
+      }
+    },
+    "No trip planned" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geen reis gepland"
+          }
+        }
+      }
+    },
+    "of %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "van %lld"
           }
         }
       }
@@ -160,8 +240,28 @@
     "Photrail" : {
 
     },
+    "Plan one in Photrail to start the countdown." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan er een in Photrail om het aftellen te starten."
+          }
+        }
+      }
+    },
     "Tap to see your travel stats here" : {
 
+    },
+    "Today" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vandaag"
+          }
+        }
+      }
     },
     "Travel Stats" : {
       "localizations" : {
@@ -169,6 +269,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reisstatistieken"
+          }
+        }
+      }
+    },
+    "Trip Countdown" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aftellen naar je reis"
           }
         }
       }
