@@ -7,6 +7,56 @@
     "???" : {
 
     },
+    "Achievements & friends" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prestaties & vrienden"
+          }
+        }
+      }
+    },
+    "Game Center shares your achievements and your number of countries, cities and kilometres with your Game Center friends." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game Center deelt je prestaties en je aantal landen, steden en kilometers met je Game Center-vrienden."
+          }
+        }
+      }
+    },
+    "Notifications & insights" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meldingen & inzichten"
+          }
+        }
+      }
+    },
+    "Photo library" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotobibliotheek"
+          }
+        }
+      }
+    },
+    "Photrail Lifetime" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail Lifetime"
+          }
+        }
+      }
+    },
     "· travel history, automatically" : {
       "localizations" : {
         "nl" : {
@@ -5247,16 +5297,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deel de jouwe terug"
-          }
-        }
-      }
-    },
-    "Shares your achievements and your number of countries, cities and kilometres with your Game Center friends." : {
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deelt je prestaties en je aantal landen, steden en kilometers met je Game Center-vrienden."
           }
         }
       }

@@ -289,175 +289,188 @@ struct ProfileView: View {
         }
     }
 
+    /// The settings, grouped: purchase, friends, what the app may do, and the library.
     private var settingsCard: some View {
         @Bindable var appVM = appVM
-        return VStack(spacing: 0) {
-            if appVM.hasLifetime {
-                HStack(spacing: 14) {
-                    Image(systemName: "star.circle.fill")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.tint)
-                        .frame(width: 24)
-                    Text("Lifetime member").foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: "checkmark").font(.subheadline.weight(.bold)).foregroundStyle(.green)
-                }
-                .padding(14)
-            } else {
-                Button { showPaywall = true } label: {
-                    row(icon: "star.circle.fill", title: "Unlock Photrail Lifetime",
-                        detail: appVM.lifetimePrice)
-                }
-                .buttonStyle(.plain)
-            }
-            Divider().padding(.leading, 52)
-
-            Button { Task { await appVM.restorePurchases() } } label: {
-                row(icon: "arrow.clockwise.circle", title: "Restore Purchases", detail: nil)
-            }
-            .buttonStyle(.plain)
-            Divider().padding(.leading, 52)
-
-            NavigationLink { AchievementsView() } label: {
-                row(icon: "trophy.fill", title: "Achievements",
-                    detail: "\(appVM.unlockedAchievementIDs.count) of \(AchievementCatalog.count)")
-            }
-            .buttonStyle(.plain)
-            Divider().padding(.leading, 52)
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 14) {
-                    Image(systemName: "gamecontroller.fill")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.tint)
-                        .frame(width: 24)
-                    Text("Game Center").foregroundStyle(.primary)
-                    Spacer()
-                    Toggle("", isOn: $appVM.gameCenterEnabled).labelsHidden()
-                }
-                Text("Shares your achievements and your number of countries, cities and kilometres with your Game Center friends.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .padding(.leading, 38)
-            }
-            .padding(14)
-            Divider().padding(.leading, 52)
-
-            if appVM.gameCenterEnabled {
-                Button { GameCenterService.showDashboard() } label: {
-                    row(icon: "person.2.fill", title: "Leaderboards & achievements", detail: nil)
-                }
-                .buttonStyle(.plain)
-                Divider().padding(.leading, 52)
-            }
-
-            Button { showHomePicker = true } label: {
-                row(icon: "house.fill", title: "Home",
-                    detail: appVM.homeDisplayName ?? String(localized: "Not set"))
-            }
-            Divider().padding(.leading, 52)
-
-            if !appVM.excludedPhotoIDs.isEmpty {
-                NavigationLink { ExcludedPhotosView() } label: {
-                    row(icon: "eye.slash.fill", title: "Excluded Photos",
-                        detail: "\(appVM.excludedPhotoIDs.count)")
-                }
-                .buttonStyle(.plain)
-                Divider().padding(.leading, 52)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 14) {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.tint)
-                        .frame(width: 24)
-                    Text("Travel notifications").foregroundStyle(.primary)
-                    Spacer()
-                    Toggle("", isOn: $appVM.travelNudgesEnabled).labelsHidden()
-                }
-                // Nudges are rare by design, so "silent" reads as "working" whether permission
-                // was granted or declined once during onboarding. Say which it is.
-                if notificationsDenied {
-                    Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
-                        Label("Notifications are off in iOS Settings", systemImage: "exclamationmark.triangle.fill")
-                            .font(.footnote)
-                            .foregroundStyle(.orange)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.leading, 38)
-                }
-            }
-            .padding(14)
-            .contentShape(.rect)
-            // The real triggers need a trip that ended 2–14 days ago, a border crossing today,
-            // or New Year — none of which can be waited for while testing. Long-press sends the
-            // trip nudge for the most recent trip, exercising delivery and the tap-through.
-            .onLongPressGesture(minimumDuration: 1.5) { Task { await sendTestNudge() } }
-            .task { await refreshNotificationStatus() }
-            Divider().padding(.leading, 52)
-
-            if appVM.hasLifetime {
-                HStack(spacing: 14) {
-                    Image(systemName: "heart.text.square.fill")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.tint)
-                        .frame(width: 24)
-                    Text("Trip Insights").foregroundStyle(.primary)
-                    Spacer()
-                    Toggle("", isOn: $appVM.insightsEnabled).labelsHidden()
-                }
-                .padding(14)
-                .onChange(of: appVM.insightsEnabled) { _, on in
-                    if on { Task { _ = await appVM.enableInsights() } }
-                }
-            } else {
-                Button { showPaywall = true } label: {
+        return VStack(spacing: 24) {
+            settingsSection("Photrail Lifetime") {
+                if appVM.hasLifetime {
                     HStack(spacing: 14) {
-                        Image(systemName: "heart.text.square.fill")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.tint)
-                            .frame(width: 24)
-                        Text("Trip Insights").foregroundStyle(.primary)
+                        settingsIcon("star.circle.fill")
+                        Text("Lifetime member").foregroundStyle(.primary)
                         Spacer()
-                        Image(systemName: "lock.fill").font(.caption).foregroundStyle(.tertiary)
+                        Image(systemName: "checkmark").font(.subheadline.weight(.bold)).foregroundStyle(.green)
                     }
                     .padding(14)
-                    .contentShape(Rectangle())
+                } else {
+                    Button { showPaywall = true } label: {
+                        row(icon: "star.circle.fill", title: "Unlock Photrail Lifetime",
+                            detail: appVM.lifetimePrice)
+                    }
+                    .buttonStyle(.plain)
+                    rowDivider
+                    // Only useful without Lifetime: there's nothing to restore once you have it.
+                    Button { Task { await appVM.restorePurchases() } } label: {
+                        row(icon: "arrow.clockwise.circle", title: "Restore Purchases", detail: nil)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            settingsSection("Achievements & friends",
+                            footer: "Game Center shares your achievements and your number of countries, cities and kilometres with your Game Center friends.") {
+                NavigationLink { AchievementsView() } label: {
+                    row(icon: "trophy.fill", title: "Achievements",
+                        detail: "\(appVM.unlockedAchievementIDs.count) of \(AchievementCatalog.count)")
+                }
+                .buttonStyle(.plain)
+                rowDivider
+                toggleRow(icon: "gamecontroller.fill", title: "Game Center", isOn: $appVM.gameCenterEnabled)
+                if appVM.gameCenterEnabled {
+                    rowDivider
+                    Button { GameCenterService.showDashboard() } label: {
+                        row(icon: "person.2.fill", title: "Leaderboards & achievements", detail: nil)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            settingsSection("Notifications & insights") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 14) {
+                        settingsIcon("bell.fill")
+                        Text("Travel notifications").foregroundStyle(.primary)
+                        Spacer()
+                        Toggle("", isOn: $appVM.travelNudgesEnabled).labelsHidden()
+                    }
+                    // Nudges are rare by design, so "silent" reads as "working" whether permission
+                    // was granted or declined once during onboarding. Say which it is.
+                    if notificationsDenied {
+                        Button {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Label("Notifications are off in iOS Settings", systemImage: "exclamationmark.triangle.fill")
+                                .font(.footnote)
+                                .foregroundStyle(.orange)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.leading, 38)
+                    }
+                }
+                .padding(14)
+                .contentShape(.rect)
+                // The real triggers need a trip that ended 2–14 days ago, a border crossing today,
+                // or New Year — none of which can be waited for while testing. Long-press sends the
+                // trip nudge for the most recent trip, exercising delivery and the tap-through.
+                .onLongPressGesture(minimumDuration: 1.5) { Task { await sendTestNudge() } }
+                .task { await refreshNotificationStatus() }
+                rowDivider
+
+                if appVM.hasLifetime {
+                    toggleRow(icon: "heart.text.square.fill", title: "Trip Insights", isOn: $appVM.insightsEnabled)
+                        .onChange(of: appVM.insightsEnabled) { _, on in
+                            if on { Task { _ = await appVM.enableInsights() } }
+                        }
+                } else {
+                    Button { showPaywall = true } label: {
+                        HStack(spacing: 14) {
+                            settingsIcon("heart.text.square.fill")
+                            Text("Trip Insights").foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: "lock.fill").font(.caption).foregroundStyle(.tertiary)
+                        }
+                        .padding(14)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            settingsSection("Photo library") {
+                Button { showHomePicker = true } label: {
+                    row(icon: "house.fill", title: "Home",
+                        detail: appVM.homeDisplayName ?? String(localized: "Not set"))
+                }
+                .buttonStyle(.plain)
+
+                if !appVM.excludedPhotoIDs.isEmpty {
+                    rowDivider
+                    NavigationLink { ExcludedPhotosView() } label: {
+                        row(icon: "eye.slash.fill", title: "Excluded Photos",
+                            detail: "\(appVM.excludedPhotoIDs.count)")
+                    }
+                    .buttonStyle(.plain)
+                }
+                rowDivider
+
+                // The dashboard notice is dismissible for good, so the explanation needs a
+                // permanent home — otherwise dismissing it destroys the only way to find out why.
+                Button { showLocationGuide = true } label: {
+                    row(icon: "location.slash", title: "Why are photos missing?",
+                        detail: forcedNoticeDetail)
+                }
+                .buttonStyle(.plain)
+                // Debug only: long-press forces the dashboard's untagged-photos notice on, so it
+                // can be checked on a device whose own library would never trigger it. The detail
+                // text above reports the state, and dismissing the card turns it back off.
+                .debugForceUntaggedNotice {
+#if DEBUG
+                    withAnimation { appVM.forceUntaggedPhotoNotice.toggle() }
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+#endif
+                }
+                rowDivider
+
+                Button { showReindexConfirm = true } label: {
+                    row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
                 }
                 .buttonStyle(.plain)
             }
-            Divider().padding(.leading, 52)
+        }
+    }
 
-            Button { showReindexConfirm = true } label: {
-                row(icon: "arrow.clockwise", title: "Reindex photo library", detail: nil)
-            }
-            Divider().padding(.leading, 52)
-
-            // The dashboard notice is dismissible for good, so the explanation needs a
-            // permanent home — otherwise dismissing it destroys the only way to find out why.
-            Button { showLocationGuide = true } label: {
-                row(icon: "location.slash", title: "Why are photos missing?",
-                    detail: forcedNoticeDetail)
-            }
-            .buttonStyle(.plain)
-            // Debug only: long-press forces the dashboard's untagged-photos notice on, so it
-            // can be checked on a device whose own library would never trigger it. The detail
-            // text above reports the state, and dismissing the card turns it back off.
-            .debugForceUntaggedNotice {
-#if DEBUG
-                withAnimation { appVM.forceUntaggedPhotoNotice.toggle() }
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-#endif
+    /// A titled group of settings rows in one card, with an optional explanation under it.
+    private func settingsSection<Content: View>(_ title: LocalizedStringKey,
+                                                footer: LocalizedStringKey? = nil,
+                                                @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .padding(.leading, 16)
+            VStack(spacing: 0) { content() }
+                .card()
+            if let footer {
+                Text(footer)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 16)
             }
         }
-        .card()
         .padding(.horizontal, 20)
     }
+
+    private func settingsIcon(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(.tint)
+            .frame(width: 24)
+    }
+
+    private func toggleRow(icon: String, title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        HStack(spacing: 14) {
+            settingsIcon(icon)
+            Text(title).foregroundStyle(.primary)
+            Spacer()
+            Toggle("", isOn: isOn).labelsHidden()
+        }
+        .padding(14)
+    }
+
+    private var rowDivider: some View { Divider().padding(.leading, 52) }
 
     /// Reports the debug override's state in the row itself, so it can't be left on by
     /// accident. Always nil in Release.
