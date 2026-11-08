@@ -6,23 +6,21 @@ struct PostcardView: View {
     @Environment(AppViewModel.self) private var appVM
     @Environment(\.dismiss) private var dismiss
 
-    @State private var days: [Date] = []
-    @State private var day: Date
+    /// The trip's days in its own time zone; set when the view appears.
+    @State private var context: AppViewModel.PostcardContext?
+    @State private var day: Date?
     @State private var content: PostcardContent?
     @State private var loading = true
 
-    init(request: AppViewModel.PostcardRequest) {
-        self.request = request
-        _day = State(initialValue: Calendar.current.startOfDay(for: request.day))
-    }
-
-    private var index: Int? { days.firstIndex(of: day) }
+    private var days: [Date] { context?.days ?? [] }
+    private var tripID: String? { context?.tripID ?? request.tripID }
+    private var index: Int? { day.flatMap { days.firstIndex(of: $0) } }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 18) {
                 PostcardPreview(content: content, loading: loading,
-                                emptyDayNumber: appVM.postcardDayNumber(day: day, tripID: request.tripID))
+                                emptyDayNumber: day.map { appVM.postcardDayNumber(day: $0, tripID: tripID) } ?? 1)
                 dayPicker
                 shareButton
             }
@@ -34,8 +32,14 @@ struct PostcardView: View {
                 ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
             }
         }
-        .onAppear { days = appVM.postcardDays(for: request) }
+        .onAppear {
+            let context = appVM.postcardContext(for: request)
+            self.context = context
+            day = context.firstDay
+        }
         .task(id: day) { await load() }
+        // Dates read in the trip's own zone, like the card's postmark.
+        .environment(\.timeZone, context?.calendar.timeZone ?? .current)
     }
 
     private var dayPicker: some View {
@@ -44,8 +48,10 @@ struct PostcardView: View {
                 .disabled((index ?? 0) <= 0)
                 .accessibilityLabel(Text("Previous day"))
             Spacer()
-            Text(day, format: .dateTime.weekday(.wide).day().month(.wide))
-                .font(.subheadline.weight(.semibold))
+            if let day {
+                Text(day, format: .dateTime.weekday(.wide).day().month(.wide))
+                    .font(.subheadline.weight(.semibold))
+            }
             Spacer()
             Button { step(1) } label: { Image(systemName: "chevron.right") }
                 .disabled((index ?? days.count) >= days.count - 1)
@@ -72,9 +78,10 @@ struct PostcardView: View {
     }
 
     private func load() async {
+        guard let day else { return }
         loading = true
         content = nil
-        if let postcard = await appVM.makePostcard(day: day, tripID: request.tripID) {
+        if let postcard = await appVM.makePostcard(day: day, tripID: tripID) {
             let loaded = await PostcardContent.load(for: postcard)
             guard !Task.isCancelled else { return }
             content = loaded

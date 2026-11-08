@@ -34,6 +34,7 @@ struct PostcardCardView: View {
         .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
         .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
         .environment(\.locale, Locale(identifier: "en_US"))   // share cards stay English
+        .environment(\.timeZone, postcard.timeZone)            // the trip's date, not the phone's
     }
 
     // MARK: - Header

@@ -564,29 +564,55 @@ final class AppViewModel {
         }
     }
 
-    /// The plan whose dates include `day`.
-    func postcardPlan(for day: Date) -> PlannedTrip? {
-        let start = Calendar.current.startOfDay(for: day)
-        return plannedTrips.first { start >= $0.startDate && start <= $0.endDate }
+    /// The trip's own calendar: its days run in the trip's local time zone (`TripTimeZone`),
+    /// not the iPhone's current one, so a postcard looks the same during the trip and later
+    /// at home. The device's calendar without a trip.
+    func postcardCalendar(for trip: Trip?) -> Calendar {
+        guard let trip else { return .current }
+        return TripTimeZone.calendar(countryCode: trip.countryCode,
+                                     latitude: trip.coordinate.latitude,
+                                     longitude: trip.coordinate.longitude)
+    }
+
+    /// The plan whose dates include `day` (a day of `calendar`). Plans' dates are calendar
+    /// dates entered in the device's calendar, so they're compared as dates, not instants.
+    func postcardPlan(for day: Date, calendar: Calendar = .current) -> PlannedTrip? {
+        let today = DayPostcardBuilder.dayOrdinal(day, in: calendar)
+        return plannedTrips.first {
+            (DayPostcardBuilder.dayOrdinal($0.startDate, in: .current)
+                ... DayPostcardBuilder.dayOrdinal($0.endDate, in: .current)).contains(today)
+        }
     }
 
     /// The photo trip a postcard of `day` comes from.
     func postcardTrip(for day: Date, tripID: String? = nil) -> Trip? {
         if let tripID { return stats.trips.first { $0.id == tripID } }
         if let plan = postcardPlan(for: day), let trip = plan.matchingTrip(in: stats.trips) { return trip }
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: day)
-        return stats.trips.first {
-            !$0.isManual && start >= calendar.startOfDay(for: $0.startDate)
-                && start <= calendar.startOfDay(for: $0.endDate)
+        return stats.trips.first { trip in
+            guard !trip.isManual else { return false }
+            let calendar = postcardCalendar(for: trip)
+            let today = DayPostcardBuilder.dayOrdinal(day, in: calendar)
+            return (DayPostcardBuilder.dayOrdinal(trip.startDate, in: calendar)
+                ... DayPostcardBuilder.dayOrdinal(trip.endDate, in: calendar)).contains(today)
         }
     }
 
-    /// Every day of the postcard's trip, to browse with ‹ ›. Just `day` when there's no trip.
-    func postcardDays(for request: PostcardRequest) -> [Date] {
-        let calendar = Calendar.current
+    /// What the postcard screen needs up front: the trip's calendar, every day of the trip
+    /// (to browse with ‹ ›; just the one day without a trip) and the day to open on.
+    struct PostcardContext {
+        let tripID: String?
+        let calendar: Calendar
+        let days: [Date]
+        let firstDay: Date
+    }
+
+    func postcardContext(for request: PostcardRequest) -> PostcardContext {
+        let trip = postcardTrip(for: request.day, tripID: request.tripID)
+        let calendar = postcardCalendar(for: trip)
         let day = calendar.startOfDay(for: request.day)
-        guard let trip = postcardTrip(for: request.day, tripID: request.tripID) else { return [day] }
+        guard let trip else {
+            return PostcardContext(tripID: request.tripID, calendar: calendar, days: [day], firstDay: day)
+        }
         var days: [Date] = []
         var current = calendar.startOfDay(for: trip.startDate)
         let last = max(calendar.startOfDay(for: trip.endDate), day)
@@ -595,26 +621,30 @@ final class AppViewModel {
             guard let next = calendar.date(byAdding: .day, value: 1, to: current) else { break }
             current = next
         }
-        return days
+        return PostcardContext(tripID: trip.id, calendar: calendar, days: days, firstDay: day)
     }
 
     /// The postcard of `day`, or nil when nothing was photographed on that day of the trip.
     func makePostcard(day: Date, tripID: String? = nil) async -> DayPostcard? {
         guard let trip = postcardTrip(for: day, tripID: tripID) else { return nil }
+        let calendar = postcardCalendar(for: trip)
         let ids = Set(trip.photoIDs)
         let photos = ((try? await store.allPhotos()) ?? []).filter { ids.contains($0.id) }
         return DayPostcardBuilder.make(day: day, tripStart: trip.startDate,
-                                       plan: postcardPlan(for: day), photos: photos)
+                                       plan: postcardPlan(for: day, calendar: calendar),
+                                       photos: photos, calendar: calendar)
     }
 
     /// The day number a postcard of `day` would carry, for the empty state.
     func postcardDayNumber(day: Date, tripID: String? = nil) -> Int {
-        if let plan = postcardPlan(for: day), let number = plan.dayNumber(now: day) { return number }
-        let calendar = Calendar.current
-        guard let trip = postcardTrip(for: day, tripID: tripID) else { return 1 }
-        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: trip.startDate),
-                                           to: calendar.startOfDay(for: day)).day ?? 0
-        return max(1, days + 1)
+        let trip = postcardTrip(for: day, tripID: tripID)
+        let calendar = postcardCalendar(for: trip)
+        let today = DayPostcardBuilder.dayOrdinal(day, in: calendar)
+        if let plan = postcardPlan(for: day, calendar: calendar) {
+            return today - DayPostcardBuilder.dayOrdinal(plan.startDate, in: .current) + 1
+        }
+        guard let trip else { return 1 }
+        return max(1, today - DayPostcardBuilder.dayOrdinal(trip.startDate, in: calendar) + 1)
     }
 
     /// Whether today's postcard is worth offering on Today: on a trip, with photos from today.

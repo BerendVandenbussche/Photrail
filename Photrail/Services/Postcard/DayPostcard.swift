@@ -13,8 +13,10 @@ struct DayPostcard: Equatable, Sendable {
         }
     }
 
-    /// Start of the calendar day.
+    /// Start of the calendar day, in `timeZone`.
     let day: Date
+    /// The trip's local time zone: days are split, and the postmark dated, in it.
+    var timeZoneIdentifier: String = TimeZone.current.identifier
     /// 1-based day of the trip.
     let dayNumber: Int
     /// The trip's length, when a plan says so ("Day 3 of 8").
@@ -33,6 +35,7 @@ struct DayPostcard: Equatable, Sendable {
     let distanceKm: Double
 
     var photoCount: Int { photoIDs.count }
+    var timeZone: TimeZone { TimeZone(identifier: timeZoneIdentifier) ?? .current }
     var flag: String { CountryCatalog.flag(for: countryCode) }
 }
 
@@ -47,31 +50,43 @@ enum DayPostcardBuilder {
     /// - Parameters:
     ///   - tripStart: the trip's first day, for the day number when there's no plan.
     ///   - plan: the plan covering the day, if any; it supplies the day number and length.
+    ///   - calendar: in the trip's own time zone (`TripTimeZone`), so evening photos far from
+    ///     home stay on their day however the postcard is looked at later.
+    ///   - planCalendar: the calendar the plan's dates were entered in — the device's.
     static func make(day: Date,
                      tripStart: Date,
                      plan: PlannedTrip?,
                      photos: [GeoPhoto],
-                     calendar: Calendar = .current) -> DayPostcard? {
+                     calendar: Calendar = .current,
+                     planCalendar: Calendar = .current) -> DayPostcard? {
         let start = calendar.startOfDay(for: day)
         let dayPhotos = photos
             .filter { calendar.isDate($0.date, inSameDayAs: start) }
             .sorted { $0.date < $1.date }
         guard !dayPhotos.isEmpty else { return nil }
 
+        // Calendar dates, not hours: a plan's days and the trip's days can be in different
+        // zones, and counting hours between their midnights drifts by a day.
+        let today = dayOrdinal(start, in: calendar)
+        let planFirst = plan.map { dayOrdinal($0.startDate, in: planCalendar) }
+        let planLast = plan.map { dayOrdinal($0.endDate, in: planCalendar) }
         let dayNumber: Int
-        if let plan, let number = plan.dayNumber(now: start, calendar: calendar) {
-            dayNumber = number
+        if let planFirst, let planLast, (planFirst...planLast).contains(today) {
+            dayNumber = today - planFirst + 1
         } else {
-            let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: tripStart),
-                                               to: start).day ?? 0
-            dayNumber = max(1, days + 1)
+            dayNumber = max(1, today - dayOrdinal(tripStart, in: calendar) + 1)
+        }
+        // That day's stay in the plan (on a day two stays share, the later one).
+        let stay = plan?.stays.last {
+            (dayOrdinal($0.startDate, in: planCalendar)...dayOrdinal($0.endDate, in: planCalendar))
+                .contains(today)
         }
 
         // The country with the most photos that day; the plan's country when none resolved.
         var counts: [String: Int] = [:]
         for photo in dayPhotos { if let code = photo.countryCode { counts[code, default: 0] += 1 } }
         let code = counts.max { $0.value < $1.value || ($0.value == $1.value && $0.key > $1.key) }?.key
-            ?? plan?.stay(on: start, calendar: calendar)?.countryCode
+            ?? stay?.countryCode
             ?? ""
         let name = Locale(identifier: "en_US").localizedString(forRegionCode: code)
             ?? dayPhotos.first { $0.countryCode == code }?.country
@@ -94,13 +109,23 @@ enum DayPostcardBuilder {
         }
 
         return DayPostcard(day: start,
+                           timeZoneIdentifier: calendar.timeZone.identifier,
                            dayNumber: dayNumber,
-                           totalDays: plan?.length(calendar: calendar),
+                           totalDays: plan?.length(calendar: planCalendar),
                            countryCode: code,
                            countryName: name,
                            cities: cities,
                            photoIDs: dayPhotos.map(\.id),
                            route: route,
                            distanceKm: distance / 1000)
+    }
+
+    /// A calendar date as a day count (the same date gives the same number in any zone).
+    static func dayOrdinal(_ date: Date, in calendar: Calendar) -> Int {
+        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        let midnight = utc.date(from: parts) ?? date
+        return Int((midnight.timeIntervalSince1970 / 86_400).rounded(.down))
     }
 }
