@@ -4,10 +4,11 @@
 // and Apple's "extension version must match the app" check always passes.
 // Bump these two lines for a release.
 
-MARKETING_VERSION = 5.3.0
-CURRENT_PROJECT_VERSION = 20
+MARKETING_VERSION = 5.4.0
+CURRENT_PROJECT_VERSION = 21
 
 // Bump when any bundled geo dataset (countries.geojson, cities1000.tsv, …) or the
 // resolution logic changes, to force a one-time re-resolution of every photo's country
 // and city on the next scan. Surfaced to Swift via the DatasetVersion key in Info.plist.
 DATASET_VERSION = 5
+
