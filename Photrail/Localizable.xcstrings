@@ -7,6 +7,206 @@
     "???" : {
 
     },
+    "Been there together" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allebei geweest"
+          }
+        }
+      }
+    },
+    "Compare" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk"
+          }
+        }
+      }
+    },
+    "Compare our travels" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk onze reizen"
+          }
+        }
+      }
+    },
+    "Compare our travels in Photrail" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk onze reizen in Photrail"
+          }
+        }
+      }
+    },
+    "Compare with a friend" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk met een vriend"
+          }
+        }
+      }
+    },
+    "First name" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voornaam"
+          }
+        }
+      }
+    },
+    "Only %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen %@"
+          }
+        }
+      }
+    },
+    "Only you" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen jij"
+          }
+        }
+      }
+    },
+    "Only your countries are in the code. Nothing is uploaded." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alleen je landen zitten in de code. Er wordt niets geüpload."
+          }
+        }
+      }
+    },
+    "QR code" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR-code"
+          }
+        }
+      }
+    },
+    "See where you've both been" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk waar jullie allebei geweest zijn"
+          }
+        }
+      }
+    },
+    "Send link" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stuur link"
+          }
+        }
+      }
+    },
+    "Share yours back" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel de jouwe terug"
+          }
+        }
+      }
+    },
+    "Together" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Samen"
+          }
+        }
+      }
+    },
+    "You" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jij"
+          }
+        }
+      }
+    },
+    "Your friend" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vriend"
+          }
+        }
+      }
+    },
+    "Your friend scans this with their iPhone camera and sees where you've both been." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je vriend scant dit met de iPhone-camera en ziet waar jullie allebei geweest zijn."
+          }
+        }
+      }
+    },
+    "Your name (optional)" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je naam (optioneel)"
+          }
+        }
+      }
+    },
+    "countries" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "landen"
+          }
+        }
+      }
+    },
+    "vs" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vs"
+          }
+        }
+      }
+    },
     "· travel history, automatically" : {
       "localizations" : {
         "nl" : {
@@ -5529,6 +5729,7 @@
       }
     },
     "Test notice on" : {
+      "extractionState" : "stale",
       "localizations" : {
         "nl" : {
           "stringUnit" : {

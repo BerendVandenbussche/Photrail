@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var selectedCategory: TravelCategory?
     @State private var showPaywall = false
     @State private var notificationsDenied = false
+    @State private var showCompare = false
 
     private var stats: TravelStats { appVM.stats }
     private var profile: TravelPersonalityProfile? { appVM.personalityProfile }
@@ -56,6 +57,8 @@ struct ProfileView: View {
                     snapshot
 
                     if appVM.explorerRarity > 0 { rarityCard }
+
+                    if stats.countryCount > 0 { compareCard }
 
                     if !appVM.hasLifetime {
                         LockedFeaturePrompt(icon: "person.crop.circle.badge.checkmark",
@@ -118,6 +121,7 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
             .sheet(isPresented: $showLocationGuide) { LocationDataGuideView() }
+            .sheet(isPresented: $showCompare) { CompareShareView() }
             .confirmationDialog("Reindex photo library?",
                                 isPresented: $showReindexConfirm, titleVisibility: .visible) {
                 Button("Reindex", role: .destructive) { appVM.reindex() }
@@ -192,6 +196,30 @@ struct ProfileView: View {
         }
         .padding(14)
         .card()
+        .padding(.horizontal, 20)
+    }
+
+    /// Up here rather than among the settings: a way to share that nobody finds isn't one.
+    private var compareCard: some View {
+        Button { showCompare = true } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "qrcode")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .frame(width: 40, height: 40)
+                    .background(Circle().fill(Color.accentColor.opacity(0.15)))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Compare with a friend").font(.subheadline.weight(.semibold))
+                    Text("See where you've both been").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }
+            .padding(14)
+            .contentShape(Rectangle())
+            .card()
+        }
+        .buttonStyle(.plain)
         .padding(.horizontal, 20)
     }
 

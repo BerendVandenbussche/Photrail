@@ -23,4 +23,7 @@ final class IntentRouter {
     /// Open the photo trip taken during these days (the "welcome back" reminder). Survives
     /// until the scan has produced trips, like `pendingTripID`.
     var pendingTripDuring: ClosedRange<Date>?
+    /// A friend's compare link. Waits here until the dashboard is up: before onboarding there
+    /// are no countries of your own to compare with.
+    var pendingComparison: ComparePayload?
 }

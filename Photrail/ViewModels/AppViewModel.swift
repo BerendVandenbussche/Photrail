@@ -377,7 +377,7 @@ final class AppViewModel {
               !scanProgress.isActive,
               !stats.trips.isEmpty,
               presentedTrip == nil, presentedPlan == nil, planEditor == nil,
-              presentedRecap == nil, !presentedAchievements
+              presentedRecap == nil, !presentedAchievements, presentedComparison == nil
         else { return }
         presentedWhatsNew = announcement
     }
@@ -498,6 +498,34 @@ final class AppViewModel {
             // Planned-trip reminders follow the same switch.
             Task { await reschedulePlannedTripReminders() }
         }
+    }
+
+    // MARK: - Compare with a friend
+
+    /// A friend's compare link that was opened; `MainTabView` shows it.
+    var presentedComparison: ComparePayload?
+
+    /// Show a friend's comparison. Whatever root sheet is up gives way — the user just opened
+    /// this link on purpose — and the comparison follows once it's gone: one view can't swap
+    /// sheets within a single update.
+    func showComparison(_ payload: ComparePayload) {
+        let sheetOpen = presentedTrip != nil || presentedPlan != nil || planEditor != nil
+            || presentedRecap != nil || presentedAchievements || presentedWhatsNew != nil
+            || presentedComparison != nil
+        guard sheetOpen else { presentedComparison = payload; return }
+        presentedTrip = nil; presentedPlan = nil; planEditor = nil
+        presentedRecap = nil; presentedAchievements = false; presentedWhatsNew = nil
+        presentedComparison = nil
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(600))
+            presentedComparison = payload
+        }
+    }
+
+    /// The link behind your compare QR code: your countries, emoji and optional name.
+    func compareURL(name: String?) -> URL {
+        CompareLink.url(for: ComparePayload(name: name, emoji: profileEmoji,
+                                            countryCodes: Set(stats.countries.map(\.id))))
     }
 
     /// Emoji the user picked as their profile avatar.

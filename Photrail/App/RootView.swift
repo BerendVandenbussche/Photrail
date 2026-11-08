@@ -47,10 +47,21 @@ struct RootView: View {
         }
         // Tapping a Spotlight result does *not* run `OpenTripIntent` — indexed entities are
         // handed back as a user activity, and without this the tap just cold-opens the app.
+        // A compare link: tapped in Safari or a chat (a universal link), or scanned with the
+        // Camera app.
+        .onOpenURL { url in openCompareLink(url) }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            if let url = activity.webpageURL { openCompareLink(url) }
+        }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
             guard let id = tripID(from: activity) else { return }
             IntentRouter.shared.pendingTripID = id
         }
+    }
+
+    private func openCompareLink(_ url: URL) {
+        guard let payload = CompareLink.parse(url) else { return }
+        IntentRouter.shared.pendingComparison = payload
     }
 
     /// Recover the `Trip.id` from a tapped Spotlight result.
