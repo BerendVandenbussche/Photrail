@@ -346,6 +346,68 @@ final class AppViewModel {
     /// Set when the achievement banner is tapped. Drives a root sheet, like `presentedRecap`.
     var presentedAchievements = false
 
+    // MARK: - What's new
+
+    /// The "New in Photrail" announcement to show. Drives a root sheet in `MainTabView`.
+    var presentedWhatsNew: WhatsNewAnnouncement?
+    /// A trip page opening with this id opens its film straight away (What's new → "Make a
+    /// film of my last trip").
+    var openFilmForTripID: String?
+    /// Onboarding finished in this launch: hold What's new until the next one, so a new user
+    /// isn't handed it right after the map reveal.
+    private var onboardedThisLaunch = false
+
+    /// Holds the id of the last announcement shown (see `WhatsNew.current`).
+    private static let whatsNewKey = "whatsNewSeen"
+
+    /// The most recent finished trip with photos: the one worth a film.
+    var latestFilmableTrip: Trip? {
+        stats.trips
+            .filter { !$0.photoIDs.isEmpty && !$0.isManual && !isLive($0) }
+            .max { $0.endDate < $1.endDate }
+    }
+
+    /// Show `WhatsNew.current` if it hasn't been shown, and only when nothing else is in the way.
+    func checkWhatsNew() {
+        guard let announcement = WhatsNew.current,
+              UserDefaults.standard.string(forKey: Self.whatsNewKey) != announcement.id,
+              presentedWhatsNew == nil,
+              !onboardedThisLaunch,
+              navState == .dashboard,
+              !scanProgress.isActive,
+              !stats.trips.isEmpty,
+              presentedTrip == nil, presentedPlan == nil, planEditor == nil,
+              presentedRecap == nil, !presentedAchievements
+        else { return }
+        presentedWhatsNew = announcement
+    }
+
+    /// Called by the sheet once it's actually on screen. Marked here rather than when it's
+    /// requested, so a sheet that couldn't present (another one was up) is tried again later.
+    func markWhatsNewSeen(_ announcement: WhatsNewAnnouncement) {
+        UserDefaults.standard.set(announcement.id, forKey: Self.whatsNewKey)
+    }
+
+    /// Whether an announcement's button has something to act on; hidden otherwise.
+    func canPerform(_ kind: WhatsNewAnnouncement.Action.Kind) -> Bool {
+        switch kind {
+        case .filmOfLatestTrip: return latestFilmableTrip != nil
+        }
+    }
+
+    func perform(_ kind: WhatsNewAnnouncement.Action.Kind) {
+        switch kind {
+        case .filmOfLatestTrip: openFilmOfLatestTrip()
+        }
+    }
+
+    /// What's new → "Make a film of my last trip".
+    func openFilmOfLatestTrip() {
+        guard let trip = latestFilmableTrip else { return }
+        openFilmForTripID = trip.id
+        presentedTrip = trip
+    }
+
     /// "Explorer rarity" 0–100 — how off-the-beaten-path your photos are (distance to
     /// the nearest town), computed alongside the personality profile. 0 = not enough data.
     var explorerRarity: Int = 0
@@ -1176,6 +1238,7 @@ final class AppViewModel {
 
     func completeOnboarding() {
         hasSeenOnboarding = true
+        onboardedThisLaunch = true
         Task { await requestPermissionAndProceed() }
     }
 
@@ -2013,6 +2076,7 @@ final class AppViewModel {
         withAnimation { scanProgress = .complete }
         try? await Task.sleep(nanoseconds: 3_000_000_000)
         withAnimation(.easeOut(duration: 0.4)) { scanProgress = .idle }
+        checkWhatsNew()
     }
 }
 

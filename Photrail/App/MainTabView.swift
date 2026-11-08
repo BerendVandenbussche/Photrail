@@ -26,6 +26,9 @@ struct MainTabView: View {
                 .tag(AppViewModel.AppTab.me)
         }
         .sheet(item: $appVM.presentedRecap) { recap in RecapView(recap: recap) }
+        .sheet(item: $appVM.presentedWhatsNew) { announcement in
+            WhatsNewView(announcement: announcement)
+        }
         // `TripDetailView` sets its own navigation title, toolbar and pushes a stop detail,
         // so it needs a stack of its own when it isn't reached by a NavigationLink.
         .sheet(item: $appVM.presentedTrip) { trip in

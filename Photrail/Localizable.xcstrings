@@ -1025,6 +1025,16 @@
         }
       }
     },
+    "1 free" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 gratis"
+          }
+        }
+      }
+    },
     "1 trip" : {
       "localizations" : {
         "nl" : {
@@ -1056,12 +1066,32 @@
         }
       }
     },
+    "A film of your whole year." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een film van je hele jaar."
+          }
+        }
+      }
+    },
     "A new country for your map — enjoy your trip! ✈️" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Een nieuw land voor je kaart — geniet van je reis! ✈️"
+          }
+        }
+      }
+    },
+    "A short video of every trip, with maps, photos and stats." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een korte video van elke reis, met kaarten, foto's en cijfers."
           }
         }
       }
@@ -2981,6 +3011,16 @@
         }
       }
     },
+    "Later" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        }
+      }
+    },
     "Layers" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3050,6 +3090,16 @@
     },
     "Made with Photrail" : {
 
+    },
+    "Make a film of my last trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maak een film van mijn laatste reis"
+          }
+        }
+      }
     },
     "Map" : {
       "localizations" : {
@@ -3294,6 +3344,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nieuwe 7 wereldwonderen + meer"
+          }
+        }
+      }
+    },
+    "New in Photrail" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nieuw in Photrail"
           }
         }
       }
@@ -4832,6 +4892,16 @@
         }
       }
     },
+    "Share a trip, your year, your calendar or a memory as an image. Use the share button at the top." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel een reis, je jaar, je kalender of een herinnering als afbeelding. Gebruik de deelknop bovenaan."
+          }
+        }
+      }
+    },
     "Share achievement" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4862,6 +4932,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delen als video"
+          }
+        }
+      }
+    },
+    "Share cards" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deelkaarten"
           }
         }
       }
@@ -4987,6 +5067,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Jaar delen"
+          }
+        }
+      }
+    },
+    "Share your travels" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deel je reizen"
           }
         }
       }
@@ -5798,6 +5888,16 @@
         }
       }
     },
+    "Trip films" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisfilms"
+          }
+        }
+      }
+    },
     "Trip Insights" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5865,6 +5965,26 @@
         }
       }
     },
+    "Turn any trip into a short video, with maps, photos and stats." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maak van elke reis een korte video, met kaarten, foto's en cijfers."
+          }
+        }
+      }
+    },
+    "Turn any trip into a short video, with maps, photos and stats. Your first one is free." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maak van elke reis een korte video, met kaarten, foto's en cijfers. Je eerste is gratis."
+          }
+        }
+      }
+    },
     "Turn it on for the camera" : {
       "localizations" : {
         "nl" : {
@@ -5881,6 +6001,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zet Locatievoorzieningen aan als het uit staat."
+          }
+        }
+      }
+    },
+    "Unlimited films with Lifetime" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onbeperkt films met Lifetime"
+          }
+        }
+      }
+    },
+    "Unlimited trip films" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onbeperkt reisfilms"
           }
         }
       }
@@ -6107,6 +6247,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zwerver"
+          }
+        }
+      }
+    },
+    "Watch trip film" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk de reisfilm"
           }
         }
       }
@@ -6707,6 +6857,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Je geanimeerde jaaroverzicht, klaar om te delen."
+          }
+        }
+      }
+    },
+    "Your first film is free" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je eerste film is gratis"
+          }
+        }
+      }
+    },
+    "Your free film" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je gratis film"
           }
         }
       }

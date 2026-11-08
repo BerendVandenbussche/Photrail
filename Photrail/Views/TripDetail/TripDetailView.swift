@@ -23,6 +23,9 @@ struct TripDetailView: View {
     @State private var customName: String?
     @State private var showRenameEditor = false
     @State private var showFlightsEditor = false
+    /// Badge on the film button. Re-read when the share sheet closes: sharing may have used
+    /// the free film.
+    @State private var filmStatus: FreeFilmAllowance.Status = .unlimited
     /// Per-photo heart-rate "vibe", filled by the insights section, used to badge the grid.
     @State private var excitement: [String: ExcitementSample] = [:]
     /// Cached Health insights for this trip — drives the activity "vibe" pill and the
@@ -102,7 +105,7 @@ struct TripDetailView: View {
                 .accessibilityLabel(Text("Share"))
             }
         }
-        .sheet(isPresented: $showSharePreview) {
+        .sheet(isPresented: $showSharePreview, onDismiss: refreshFilmStatus) {
             TripSharePreview(trip: displayTrip, cover: coverImage, insights: insights)
         }
         .sheet(isPresented: $showNoteEditor) {
@@ -134,7 +137,18 @@ struct TripDetailView: View {
         .onAppear {
             note = TripNoteStore.note(for: trip.id)
             customName = trip.customName
+            refreshFilmStatus()
+            // "Make a film of my last trip" in What's new lands here with the film open.
+            if appVM.openFilmForTripID == trip.id {
+                appVM.openFilmForTripID = nil
+                showSharePreview = true
+            }
         }
+        .onChange(of: appVM.hasLifetime) { _, _ in refreshFilmStatus() }
+    }
+
+    private func refreshFilmStatus() {
+        filmStatus = FreeFilmAllowance.status(tripID: trip.id, hasLifetime: appVM.hasLifetime)
     }
 
     private var tripTypeBadge: some View {
@@ -228,6 +242,14 @@ struct TripDetailView: View {
                     }
                 }
                 .buttonStyle(.plain)
+
+                if !trip.photoIDs.isEmpty {
+                    Button { showSharePreview = true } label: {
+                        TripFilmButton(status: filmStatus)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 8)
+                }
             }
             .padding(20)
         }
@@ -527,6 +549,8 @@ private struct TripSharePreview: View {
     @State private var exportProgress: Double = 0
     @State private var videoError: String?
     @State private var showPaywall = false
+    /// Bumped when the free film is claimed, so the button and caption re-read it.
+    @State private var filmClaimRevision = 0
 
     /// The shot list, which depends on what actually loaded — a trip whose maps all timed out
     /// still has a film, it just falls back to the vector treatment.
@@ -601,30 +625,59 @@ private struct TripSharePreview: View {
     }
 
     private var actions: some View {
-        VStack(spacing: 12) {
-            Button {
-                guard appVM.hasLifetime else { showPaywall = true; return }
-                Task { await exportFilm() }
-            } label: {
-                Label("Share film", systemImage: appVM.hasLifetime ? "square.and.arrow.up" : "lock.fill")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity).padding(.vertical, 15)
-                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
-                    .foregroundStyle(.white)
-            }
-            // Only gated on the film being ready for people who can actually export it —
-            // otherwise the button that opens the paywall would sit disabled behind a spinner.
-            .disabled(exporting || (appVM.hasLifetime && film == nil))
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                Button {
+                    guard canExportFilm else { showPaywall = true; return }
+                    Task { await exportFilm() }
+                } label: {
+                    Label("Share film", systemImage: canExportFilm ? "square.and.arrow.up" : "lock.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity).padding(.vertical, 15)
+                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+                        .foregroundStyle(.white)
+                }
+                // Only gated on the film being ready for people who can actually export it —
+                // otherwise the button that opens the paywall would sit disabled behind a spinner.
+                .disabled(exporting || (canExportFilm && film == nil))
 
-            Button { share() } label: {
-                Label("Share image", systemImage: "photo")
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity).padding(.vertical, 12)
+                // The still card: secondary, so it sits beside the film rather than under it.
+                Button { share() } label: {
+                    Image(systemName: "photo")
+                        .font(.headline)
+                        .frame(width: 54, height: 54)
+                        .background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: 16))
+                        .foregroundStyle(.tint)
+                }
+                .disabled(exporting)
+                .accessibilityLabel(Text("Share image"))
             }
-            .disabled(exporting)
+
+            if let caption = filmCaption {
+                Text(caption)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 12)
+    }
+
+    /// Lifetime, or the free film is still unused, or it went to this trip.
+    private var canExportFilm: Bool {
+        _ = filmClaimRevision
+        return FreeFilmAllowance.canExport(tripID: trip.id, hasLifetime: appVM.hasLifetime)
+    }
+
+    /// For free users: what the film button will cost them.
+    private var filmCaption: LocalizedStringKey? {
+        _ = filmClaimRevision
+        switch FreeFilmAllowance.status(tripID: trip.id, hasLifetime: appVM.hasLifetime) {
+        case .unlimited:      return nil
+        case .freeLeft:       return "Your first film is free"
+        case .thisTripIsFree: return "Your free film"
+        case .locked:         return "Unlimited films with Lifetime"
+        }
     }
 
     // MARK: - Loading and export
@@ -656,6 +709,11 @@ private struct TripSharePreview: View {
             ) { progress in
                 TripFilmView(trip: trip, assets: assets, insights: resolved,
                              film: film, progress: progress)
+            }
+            // Rendered: this trip now has the free film (no-op for Lifetime or a re-share).
+            if !appVM.hasLifetime {
+                FreeFilmAllowance.claim(tripID: trip.id)
+                filmClaimRevision += 1
             }
             // Cleaned up only once the sheet is done: Instagram and TikTok read the file
             // lazily, and deleting it earlier ships them a 0-byte video.

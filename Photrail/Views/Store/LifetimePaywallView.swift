@@ -21,6 +21,7 @@ struct LifetimePaywallView: View {
     }
 
     private let benefits: [Benefit] = [
+        .init(emoji: "🎬", title: "Unlimited trip films", detail: "A short video of every trip, with maps, photos and stats."),
         .init(emoji: "📅", title: "Year in Travel", detail: "Your animated recap of the year, ready to share."),
         .init(emoji: "🧭", title: "Travel Personality", detail: "Discover the traveller you are, and how you've evolved."),
         .init(emoji: "🏛️", title: "World Wonders", detail: "Track the New 7 Wonders and famous landmarks you've seen."),
