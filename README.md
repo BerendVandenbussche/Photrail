@@ -330,6 +330,7 @@ Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-tar
 
 **Planning**
 - **Planned trips** — plan a trip across one or more countries, with dates and optional flights. Drives a countdown on Today, reminders, the calendar, and labels the trip while you're on it; afterwards its name and flights carry over to the photo trip.
+- **Country info** — the ⓘ next to each country of a planned trip opens a page with plug types and voltage (with whether your plugs from home fit), main languages, currency, time difference with home, driving side and calling code. Offline, from a 5 KB bundled table (`countryinfo.tsv`); currency and names come from iOS.
 - **Trip Countdown widget** — home and lock screen.
 
 **Discovery**

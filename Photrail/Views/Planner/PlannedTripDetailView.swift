@@ -12,6 +12,8 @@ struct PlannedTripDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showEditor = false
     @State private var showFlightsEditor = false
+    /// The country whose info page is open.
+    @State private var infoStay: PlannedTrip.Stay?
 
     private var plan: PlannedTrip? { appVM.plannedTrips.first { $0.id == planID } }
 
@@ -58,6 +60,12 @@ struct PlannedTripDetailView: View {
             }
         }
         .sheet(isPresented: $showEditor) { PlannedTripEditorView(existing: plan) }
+        .sheet(item: $infoStay) { stay in
+            if let tips = countryTips(stay) {
+                CountryInfoView(tips: tips)
+                    .presentationDetents([.medium, .large])
+            }
+        }
         .sheet(isPresented: $showFlightsEditor) {
             FlightsEditorSheet(flights: plan.flights,
                                segments: FlightSuggestions.segments(for: plan)) { flights in
@@ -127,6 +135,13 @@ struct PlannedTripDetailView: View {
                         }
                         Spacer()
                         Text(L.days(stay.length())).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        if CountryInfoDirectory.info(for: stay.countryCode) != nil {
+                            Button { infoStay = stay } label: {
+                                Image(systemName: "info.circle").font(.title3)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(Text("About \(stay.localizedCountry)"))
+                        }
                     }
                     .padding(.vertical, 10)
                     if stay.id != plan.stays.last?.id { Divider().padding(.leading, 44) }
@@ -136,6 +151,24 @@ struct PlannedTripDetailView: View {
             .card()
             .padding(.horizontal, 20)
         }
+    }
+
+    // MARK: - Country info
+
+    /// The tips for one country of the plan, for the dates the user is there.
+    private func countryTips(_ stay: PlannedTrip.Stay) -> CountryTips? {
+        CountryTips.make(destination: stay.countryCode, home: appVM.homeCountryCode,
+                         on: stay.startDate, homeZone: homeZone)
+    }
+
+    /// The time at home: the home country's zone nearest the home location, else the device's.
+    private var homeZone: TimeZone {
+        guard let code = appVM.homeCountryCode else { return .current }
+        if let home = appVM.homeCoordinate,
+           let zone = TripTimeZone.zone(countryCode: code, latitude: home.latitude, longitude: home.longitude) {
+            return zone
+        }
+        return TripTimeZone.zones(countryCode: code).first ?? .current
     }
 
     // MARK: - Flights
@@ -169,12 +202,32 @@ struct PlannedTripDetailView: View {
                     .frame(height: 220)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .padding(.horizontal, 20)
+                let groups = FlightSuggestions.grouped(plan.flights)
+                flightGroup("Getting there", groups.outbound)
+                flightGroup("During the trip", groups.during)
+                flightGroup("Coming home", groups.home)
+            }
+        }
+    }
+
+    /// One group of flights (worked out from the flights, so plans saved before the groups
+    /// existed show them too) as a small header and a card; nothing when empty.
+    @ViewBuilder
+    private func flightGroup(_ title: LocalizedStringKey, _ flights: [PlannedTrip.Flight]) -> some View {
+        if !flights.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                    .padding(.horizontal, 20 + AppCard.padding)
+                    .padding(.top, 4)
                 VStack(spacing: 0) {
-                    ForEach(plan.sortedFlights) { flight in
+                    ForEach(flights) { flight in
                         FlightLegLabel(flight: flight)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 10)
-                        if flight.id != plan.sortedFlights.last?.id { Divider() }
+                        if flight.id != flights.last?.id { Divider() }
                     }
                 }
                 .padding(.horizontal, AppCard.padding)

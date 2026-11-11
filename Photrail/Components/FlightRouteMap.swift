@@ -283,8 +283,12 @@ struct FlightLegEditor: View {
     @State private var from: String?
     @State private var to: String?
     @State private var date: Date
+    /// Set once the user picks a date; until then it follows the airports (see `guessDate`).
+    @State private var dateChosen = false
     private let fromSearch: String
     private let toSearch: String
+    /// The trip's countries and days, to date a new flight from its airports.
+    private var segments: [FlightSuggestions.Segment] = []
 
     /// Edit an existing flight.
     init(existing: PlannedTrip.Flight, defaultDate: Date,
@@ -300,9 +304,11 @@ struct FlightLegEditor: View {
     }
 
     /// Add a new flight, starting from a suggestion.
-    init(new request: NewFlightRequest, onSave: @escaping (PlannedTrip.Flight) -> Void) {
+    init(new request: NewFlightRequest, segments: [FlightSuggestions.Segment] = [],
+         onSave: @escaping (PlannedTrip.Flight) -> Void) {
         existing = nil
         self.onSave = onSave
+        self.segments = segments
         _from = State(initialValue: request.from)
         _to = State(initialValue: request.to)
         _date = State(initialValue: request.date)
@@ -313,9 +319,11 @@ struct FlightLegEditor: View {
     var body: some View {
         Form {
             Section {
-                DatePicker("Date", selection: $date, displayedComponents: .date)
-                airportRow(label: "From", code: from, search: fromSearch) { from = $0.iata }
-                airportRow(label: "To", code: to, search: toSearch) { to = $0.iata }
+                DatePicker("Date", selection: Binding(get: { date },
+                                                      set: { date = $0; dateChosen = true }),
+                           displayedComponents: .date)
+                airportRow(label: "From", code: from, search: fromSearch) { from = $0.iata; guessDate() }
+                airportRow(label: "To", code: to, search: toSearch) { to = $0.iata; guessDate() }
             }
             if existing != nil, let onDelete {
                 Section {
@@ -341,6 +349,14 @@ struct FlightLegEditor: View {
                 .disabled(from == nil || to == nil || from == to)
             }
         }
+    }
+
+    /// A new flight into the trip lands on its first day, one home on its last: follow the
+    /// airports until the user sets a date.
+    private func guessDate() {
+        guard existing == nil, !dateChosen, let from, let to,
+              let guess = FlightSuggestions.date(from: from, to: to, segments: segments) else { return }
+        date = guess
     }
 
     private func airportRow(label: LocalizedStringKey, code: String?, search: String,
@@ -390,6 +406,13 @@ struct FlightsEditorSheet: View {
 
     /// The trip's first day, for flights that have no date of their own.
     private var tripStart: Date { segments.first?.start ?? Calendar.current.startOfDay(for: Date()) }
+    /// The trip's last day, for the way back.
+    private var tripEnd: Date { segments.last?.end ?? tripStart }
+
+    /// The way out mirrored, when there is one to mirror and no flight home yet.
+    private var returnFlights: [PlannedTrip.Flight]? {
+        FlightSuggestions.returnFlights(for: flights, on: tripEnd)
+    }
 
     var body: some View {
         NavigationStack {
@@ -401,24 +424,11 @@ struct FlightsEditorSheet: View {
                             .listRowInsets(EdgeInsets())
                     }
                 }
+                let groups = FlightSuggestions.grouped(flights)
+                flightSection("Getting there", groups.outbound)
+                flightSection("During the trip", groups.during)
+                flightSection("Coming home", groups.home)
                 Section {
-                    ForEach(sorted) { flight in
-                        NavigationLink {
-                            FlightLegEditor(existing: flight, defaultDate: tripStart,
-                                            onSave: { updated in
-                                                if let i = flights.firstIndex(where: { $0.id == updated.id }) {
-                                                    flights[i] = updated
-                                                }
-                                            },
-                                            onDelete: { flights.removeAll { $0.id == flight.id } })
-                        } label: {
-                            FlightLegLabel(flight: flight)
-                        }
-                    }
-                    .onDelete { offsets in
-                        let ids = Set(offsets.map { sorted[$0].id })
-                        flights.removeAll { ids.contains($0.id) }
-                    }
                     addMenu
                 } footer: {
                     Text("Add each flight separately, so a transfer is two flights.")
@@ -427,7 +437,7 @@ struct FlightsEditorSheet: View {
             .navigationTitle("Flights")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $newFlight) { request in
-                FlightLegEditor(new: request) { flights.append($0) }
+                FlightLegEditor(new: request, segments: segments) { flights.append($0) }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -438,8 +448,42 @@ struct FlightsEditorSheet: View {
         }
     }
 
+    /// One group of flights under its own header; left out when empty.
+    @ViewBuilder
+    private func flightSection(_ title: LocalizedStringKey, _ group: [PlannedTrip.Flight]) -> some View {
+        if !group.isEmpty {
+            Section(title) {
+                ForEach(group) { flight in
+                    NavigationLink {
+                        FlightLegEditor(existing: flight, defaultDate: tripStart,
+                                        onSave: { updated in
+                                            if let i = flights.firstIndex(where: { $0.id == updated.id }) {
+                                                flights[i] = updated
+                                            }
+                                        },
+                                        onDelete: { flights.removeAll { $0.id == flight.id } })
+                    } label: {
+                        FlightLegLabel(flight: flight)
+                    }
+                }
+                .onDelete { offsets in
+                    let ids = Set(offsets.map { group[$0].id })
+                    flights.removeAll { ids.contains($0.id) }
+                }
+            }
+        }
+    }
+
     private var addMenu: some View {
         Menu {
+            if let returnFlights {
+                Button {
+                    flights.append(contentsOf: returnFlights)
+                } label: {
+                    Text("Same route back")
+                    Text(verbatim: AppViewModel.routeCodes(returnFlights).joined(separator: " → "))
+                }
+            }
             ForEach(suggestions) { suggestion in
                 Button(suggestion.title) {
                     newFlight = NewFlightRequest(from: suggestion.fromAirport, to: suggestion.toAirport,

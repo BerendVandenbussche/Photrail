@@ -22,6 +22,14 @@ enum TripTimeZone {
         return nearest.flatMap { TimeZone(identifier: $0.identifier) }
     }
 
+    /// Every zone of a country (one for most, several for the US or Russia). Empty when unknown.
+    static func zones(countryCode: String) -> [TimeZone] {
+        let code = countryCode.uppercased()
+        var seen = Set<String>()
+        return zones.filter { $0.country == code && seen.insert($0.identifier).inserted }
+            .compactMap { TimeZone(identifier: $0.identifier) }
+    }
+
     /// A Gregorian calendar in the trip's zone, or the device's calendar when unknown.
     static func calendar(countryCode: String, latitude: Double, longitude: Double) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)

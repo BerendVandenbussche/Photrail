@@ -4,8 +4,378 @@
     "" : {
 
     },
+    "%@ h ahead of home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ uur voor op thuis"
+          }
+        }
+      }
+    },
+    "%@ h behind home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ uur achter op thuis"
+          }
+        }
+      }
+    },
+    "%@, like at home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, zoals thuis"
+          }
+        }
+      }
+    },
     "???" : {
 
+    },
+    "About %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over %@"
+          }
+        }
+      }
+    },
+    "Calling code" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landcode"
+          }
+        }
+      }
+    },
+    "Currency" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Munt"
+          }
+        }
+      }
+    },
+    "Drives on the left" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links rijden"
+          }
+        }
+      }
+    },
+    "Drives on the left, like at home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links rijden, zoals thuis"
+          }
+        }
+      }
+    },
+    "Drives on the left, unlike at home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links rijden, anders dan thuis"
+          }
+        }
+      }
+    },
+    "Drives on the right" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechts rijden"
+          }
+        }
+      }
+    },
+    "Drives on the right, like at home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechts rijden, zoals thuis"
+          }
+        }
+      }
+    },
+    "Drives on the right, unlike at home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechts rijden, anders dan thuis"
+          }
+        }
+      }
+    },
+    "During the trip" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tijdens de reis"
+          }
+        }
+      }
+    },
+    "Fits" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past"
+          }
+        }
+      }
+    },
+    "Higher voltage than at home: check that your devices handle it" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hogere spanning dan thuis: kijk of je toestellen dat aankunnen"
+          }
+        }
+      }
+    },
+    "Languages" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talen"
+          }
+        }
+      }
+    },
+    "Lower voltage than at home: check that your chargers handle 100–240 V" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagere spanning dan thuis: kijk of je laders 100–240 V aankunnen"
+          }
+        }
+      }
+    },
+    "Needs an adapter" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adapter nodig"
+          }
+        }
+      }
+    },
+    "Plug" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stekker"
+          }
+        }
+      }
+    },
+    "Plugs" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stekkers"
+          }
+        }
+      }
+    },
+    "Same route back" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dezelfde route terug"
+          }
+        }
+      }
+    },
+    "Same time as home" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zelfde tijd als thuis"
+          }
+        }
+      }
+    },
+    "Thicker round plug with earth" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dikkere ronde stekker met aarding"
+          }
+        }
+      }
+    },
+    "Three large round pins in a triangle" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drie grote ronde pinnen in een driehoek"
+          }
+        }
+      }
+    },
+    "Three rectangular pins" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drie rechthoekige pinnen"
+          }
+        }
+      }
+    },
+    "Three round pins in a row" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drie ronde pinnen op een rij"
+          }
+        }
+      }
+    },
+    "Three round pins in a triangle" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drie ronde pinnen in een driehoek"
+          }
+        }
+      }
+    },
+    "Three round pins, Brazilian style" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drie ronde pinnen, Braziliaans model"
+          }
+        }
+      }
+    },
+    "Three round pins, Swiss style" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drie ronde pinnen, Zwitsers model"
+          }
+        }
+      }
+    },
+    "Time" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tijd"
+          }
+        }
+      }
+    },
+    "Traffic" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verkeer"
+          }
+        }
+      }
+    },
+    "Two angled flat pins and an earth pin" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twee schuine platte pinnen en een aardingspin"
+          }
+        }
+      }
+    },
+    "Two flat pins" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twee platte pinnen"
+          }
+        }
+      }
+    },
+    "Two flat pins and a round earth pin" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twee platte pinnen en een ronde aardingspin"
+          }
+        }
+      }
+    },
+    "Two round pins and an earth pin below" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twee ronde pinnen met een aardingspin eronder"
+          }
+        }
+      }
+    },
+    "Two thin pins, like most chargers" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twee dunne pinnen, zoals bij de meeste laders"
+          }
+        }
+      }
+    },
+    "Your plugs from %@:" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je stekkers uit %@:"
+          }
+        }
+      }
     },
     "· travel history, automatically" : {
       "localizations" : {
