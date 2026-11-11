@@ -14,6 +14,8 @@ struct TripEntity: AppEntity, IndexedEntity {
     let title: String
     let englishTitle: String
     let dateRangeText: String
+    let startDate: Date
+    let endDate: Date
     let photoCount: Int
     let keywords: [String]
     let thumbnailData: Data?
@@ -23,6 +25,8 @@ struct TripEntity: AppEntity, IndexedEntity {
         title = entry.title
         englishTitle = entry.englishTitle
         dateRangeText = entry.dateRangeText
+        startDate = entry.startDate
+        endDate = entry.endDate
         photoCount = entry.photoCount
         keywords = entry.keywords
         thumbnailData = entry.thumbnailData
@@ -47,6 +51,10 @@ struct TripEntity: AppEntity, IndexedEntity {
         set.displayName = title
         set.contentDescription = dateRangeText
         set.keywords = keywords
+        // Real dates as well, so Spotlight can match "trips from 2025" on the date itself.
+        set.startDate = startDate
+        set.endDate = endDate
+        set.contentCreationDate = startDate
         set.thumbnailData = thumbnailData
         return set
     }
@@ -62,14 +70,20 @@ struct TripEntityQuery: EntityQuery, EntityStringQuery {
     /// Free-text matching for Siri and the Shortcuts picker. Matches the title in either
     /// language plus every keyword, so a city name resolves the trip it belongs to.
     func entities(matching string: String) async throws -> [TripEntity] {
-        let needle = string.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        func fold(_ s: String) -> String {
+            s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        }
+        // Every meaningful word must match somewhere: "trips 2015" finds the 2015 trips,
+        // "Croatia 2023" only the Croatia trip of that year.
+        let words = fold(string).split(whereSeparator: { $0.isWhitespace }).map(String.init)
+        let needles = words.filter { !TripSearchIndexer.genericWords.contains($0) }
+        guard !needles.isEmpty else { return try await suggestedEntities() }
         return TripSearchStore.load()
             .filter { entry in
-                ([entry.title, entry.englishTitle] + entry.keywords).contains {
-                    $0.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-                        .contains(needle)
-                }
+                let haystack = ([entry.title, entry.englishTitle] + entry.keywords).map(fold)
+                return needles.allSatisfy { needle in haystack.contains { $0.contains(needle) } }
             }
+            .sorted { $0.startDate > $1.startDate }
             .map(TripEntity.init(entry:))
     }
 

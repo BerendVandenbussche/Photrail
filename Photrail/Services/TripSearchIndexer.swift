@@ -56,9 +56,45 @@ enum TripSearchIndexer {
         }
         words.append(contentsOf: trip.cities)
         if let custom = trip.customName, !custom.isEmpty { words.append(custom) }
+        words.append(contentsOf: dateKeywords(start: trip.startDate, end: trip.endDate))
         // Case-insensitively unique, order preserved.
         var seen = Set<String>()
         return words.filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
+    }
+
+    /// Words that are never what a search is about: "trips 2015" means "2015".
+    static let genericWords: Set<String> = ["trip", "trips", "reis", "reizen", "from", "in", "of",
+                                            "van", "uit", "photrail"]
+
+    /// So "2015", "trips 2015" or "July 2025" find the right trips: every year the trip spans,
+    /// every month in English and the app's language (alone and with the year), and the
+    /// words "trip" and "reis".
+    static func dateKeywords(start: Date, end: Date, calendar: Calendar = .current,
+                             locale: Locale = .current) -> [String] {
+        var words = ["trip", "trips", "reis", "reizen"]
+        let english = DateFormatter(), local = DateFormatter()
+        english.locale = Locale(identifier: "en_US_POSIX")
+        local.locale = locale
+        let months = [english.standaloneMonthSymbols ?? [], local.standaloneMonthSymbols ?? []]
+
+        let startYear = calendar.component(.year, from: start)
+        let endYear = max(startYear, calendar.component(.year, from: end))
+        words += (startYear...endYear).map(String.init)
+
+        // Month by month, from the start month to the end month (a trip lasts weeks, not years,
+        // but stop after 24 months so a bad date can't run away).
+        guard var month = calendar.dateInterval(of: .month, for: start)?.start else { return words }
+        for _ in 0..<24 where month <= end {
+            let index = calendar.component(.month, from: month) - 1
+            let year = calendar.component(.year, from: month)
+            for symbols in months where symbols.indices.contains(index) {
+                words.append(symbols[index])
+                words.append("\(symbols[index]) \(year)")
+            }
+            guard let next = calendar.date(byAdding: .month, value: 1, to: month) else { break }
+            month = next
+        }
+        return words
     }
 
     /// The trip's cover photo, small.
