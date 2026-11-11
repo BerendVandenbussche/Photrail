@@ -93,6 +93,52 @@ final class FlightReconstructorTests: XCTestCase {
         XCTAssertNil(hint(trip(at: amsterdam, from: 1, to: 3, code: "NL"), photos))
     }
 
+    // MARK: Same way back
+
+    private let crl = (lat: 50.4592, lon: 4.4538)
+    private let buenosAires = (lat: -34.6037, lon: -58.3816)
+
+    func testOneCountryTripFliesBackTheWayItCame() {
+        // Photos at BRU and the FRA layover on the way out, none on the way home.
+        let photos = [photo(bru, time(1, 8)), photo(fra, time(1, 11)), photo(lima, time(1, 22)), photo(lima, time(5))]
+        let result = hint(trip(at: lima, from: 1, to: 10, code: "PE"), photos)
+        XCTAssertEqual(route(result), ["BRU-FRA", "FRA-LIM", "LIM-FRA", "FRA-BRU"])
+        XCTAssertEqual(result?.legs.suffix(2).map(\.fromSeen), [false, false])
+        XCTAssertEqual(result?.legs.suffix(2).map(\.toSeen), [false, false])
+        XCTAssertEqual(result?.flights.last?.date, calendar.startOfDay(for: time(10)))
+    }
+
+    func testSameWayBackEndsAtTheHomeAirportAPhotoShows() {
+        let photos = [photo(bru, time(1, 8)), photo(fra, time(1, 11)), photo(lima, time(1, 22)),
+                      photo(crl, time(11, 9))]
+        let result = hint(trip(at: lima, from: 1, to: 10, code: "PE"), photos)
+        XCTAssertEqual(route(result), ["BRU-FRA", "FRA-LIM", "LIM-FRA", "FRA-CRL"])
+        XCTAssertEqual(result?.legs.last?.toSeen, true)
+    }
+
+    func testTripThatEndsElsewhereDoesntFlyBackTheSameWay() {
+        // Landed in Lima, ended in Buenos Aires: home from there, not via Lima and Frankfurt.
+        let photos = [photo(bru, time(1, 8)), photo(fra, time(1, 11)), photo(lima, time(1, 22)),
+                      photo(buenosAires, time(9))]
+        let start = time(1, 22), end = time(10, 10)
+        let trip = Trip(id: "t", countryCode: "PE", country: "PE", flag: "🏳️",
+                        countries: [.init(id: "PE", name: "PE", flag: "🏳️", photoCount: 1),
+                                    .init(id: "AR", name: "AR", flag: "🏳️", photoCount: 1)],
+                        startDate: start, endDate: end, photoCount: 2, cities: [],
+                        stops: [.init(id: "lima,PE", name: "Lima", countryCode: "PE", flag: "🏳️",
+                                      latitude: lima.lat, longitude: lima.lon, firstVisit: start, photoCount: 1),
+                                .init(id: "ba,AR", name: "Buenos Aires", countryCode: "AR", flag: "🏳️",
+                                      latitude: buenosAires.lat, longitude: buenosAires.lon,
+                                      firstVisit: time(9), photoCount: 1)],
+                        photoIDs: ["x", "y"], coordinate: .init(latitude: lima.lat, longitude: lima.lon),
+                        highestAltitude: nil, wonders: [])
+        let result = hint(trip, photos)
+        XCTAssertEqual(route(result).map { Array($0.prefix(2)) }, ["BRU-FRA", "FRA-LIM"])
+        XCTAssertEqual(result?.flights.count, 3)
+        XCTAssertNotEqual(result?.flights.last?.from, "LIM")
+        XCTAssertEqual(result?.flights.last?.to, "BRU")
+    }
+
     func testManyPhotosOnALayoverAreOneVisit() {
         let photos = (0..<30).map { photo(fra, time(1, 8).addingTimeInterval(Double($0) * 300)) }
         XCTAssertEqual(FlightReconstructor.visits(in: photos).map(\.iata), ["FRA"])

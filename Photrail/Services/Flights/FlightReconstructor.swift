@@ -67,6 +67,9 @@ enum FlightReconstructor {
     /// An airport further than this from the first (or last) stop was a layover, not where the
     /// trip landed (or left from).
     static let layoverKm: Double = 300
+    /// A one-country trip whose last stop is further than this from where it landed (a road
+    /// trip across the US) doesn't get the same way back: it most likely flew home from elsewhere.
+    static let sameCountryReturnKm: Double = 800
 
     /// Photos at the same airport within this long are one visit.
     private static let visitMerge: TimeInterval = 12 * 3600
@@ -187,7 +190,12 @@ enum FlightReconstructor {
         let lastDay = calendar.startOfDay(for: trip.endDate)
         let returnFrom = lastDay
         let returnCovered = legs.last.map { isHome($0.flight.to) && ($0.flight.date ?? .distantPast) >= returnFrom } ?? false
-        if !returnCovered {
+        // The same way back, when no photo shows another one and the trip ended where it landed.
+        let mirrored = returnCovered ? nil : sameWayBack(legs: legs, visits: visits, isHome: isHome,
+                                                         trip: trip, lastPlace: lastPlace,
+                                                         outboundUntil: outboundUntil, returnFrom: returnFrom)
+        if let mirrored { legs += mirrored }
+        if !returnCovered, mirrored == nil {
             var to: (code: String, seen: Bool)?
             if let visit = visits.last, isHome(visit.iata), visit.end >= returnFrom {
                 to = (visit.iata, true)
@@ -208,8 +216,9 @@ enum FlightReconstructor {
                 if !to.seen { usedHomeGuess = true }
             }
         }
-        // A way home that starts at a layover: from the airport nearest the last stop.
-        if let last = legs.last, (last.flight.date ?? .distantPast) >= returnFrom {
+        // A way home that starts at a layover: from the airport nearest the last stop. Not on
+        // the same way back: that leaves from where the trip landed, on purpose.
+        if mirrored == nil, let last = legs.last, (last.flight.date ?? .distantPast) >= returnFrom {
             var start = legs.count - 1
             // Only back past a layover: an airport near the last stop is where the trip left from.
             while start > 0, isFar(legs[start].flight.from, from: lastPlace),
@@ -229,6 +238,46 @@ enum FlightReconstructor {
         return FlightHint(legs: legs,
                           homeIsGuess: usedHomeGuess && learned == nil,
                           homeAirport: usedHomeGuess ? homeCode : nil)
+    }
+
+    /// The way out reversed, on the last day: BRU → FRA → LIM back as LIM → FRA → BRU.
+    ///
+    /// Only when the trip ended in the region it landed in: its last stop within `layoverKm` of
+    /// the airport it landed at, or anywhere up to `sameCountryReturnKm` on a one-country trip.
+    /// And only when nothing shows otherwise: no flight during the trip (that moved it
+    /// elsewhere), and no photo on the way home at an airport abroad other than that one.
+    /// Airports a photo on the way home shows count as seen; one at a home airport on arrival
+    /// is where the way back ends.
+    private static func sameWayBack(legs: [FlightHint.Leg], visits: [Visit], isHome: (String) -> Bool,
+                                    trip: Trip, lastPlace: CLLocationCoordinate2D,
+                                    outboundUntil: Date, returnFrom: Date) -> [FlightHint.Leg]? {
+        let outbound = legs.prefix { ($0.flight.date ?? .distantFuture) < outboundUntil }
+        guard !outbound.isEmpty, outbound.count == legs.count,
+              let first = outbound.first, isHome(first.flight.from),
+              zip(outbound, outbound.dropFirst()).allSatisfy({ $0.flight.to == $1.flight.from }),
+              let arrival = outbound.last?.flight.to,
+              let landed = AirportDirectory.airport(arrival) else { return nil }
+
+        let km = CLLocation(latitude: landed.latitude, longitude: landed.longitude)
+            .distance(from: CLLocation(latitude: lastPlace.latitude, longitude: lastPlace.longitude)) / 1000
+        let sameRegion = km <= layoverKm || (trip.countries.count == 1 && km <= sameCountryReturnKm)
+        guard sameRegion else { return nil }
+
+        let homeward = visits.filter { $0.end >= returnFrom }
+        guard !homeward.contains(where: { !isHome($0.iata) && $0.iata != arrival }) else { return nil }
+        let seen = Set(homeward.map(\.iata))
+
+        var back = outbound.reversed().map { leg in
+            FlightHint.Leg(flight: PlannedTrip.Flight(from: leg.flight.to, to: leg.flight.from, date: returnFrom),
+                           fromSeen: seen.contains(leg.flight.to), toSeen: seen.contains(leg.flight.from))
+        }
+        // Landed home at another home airport than the one left from (out from BRU, back into CRL).
+        if let home = homeward.last(where: { isHome($0.iata) }), let last = back.last,
+           last.flight.to != home.iata, isFlight(last.flight.from, home.iata) {
+            back[back.count - 1].flight.to = home.iata
+            back[back.count - 1].toSeen = true
+        }
+        return back
     }
 
     /// Photos at airports, in time order, with photos at the same airport merged.
