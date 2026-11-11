@@ -187,6 +187,26 @@
         }
       }
     },
+    "Guessed" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingeschat"
+          }
+        }
+      }
+    },
+    "Guessed airports don't appear in any of your photos. Check them before you add the flights." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingeschatte luchthavens staan op geen enkele foto van jou. Kijk ze na voor je de vluchten toevoegt."
+          }
+        }
+      }
+    },
     "Hide suggestion" : {
       "localizations" : {
         "nl" : {
@@ -203,6 +223,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hogere spanning dan thuis: kijk of je toestellen dat aankunnen"
+          }
+        }
+      }
+    },
+    "In your photos" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Op je foto's"
           }
         }
       }
@@ -273,6 +303,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zelfde tijd als thuis"
+          }
+        }
+      }
+    },
+    "Shows the flights on a map" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toont de vluchten op een kaart"
+          }
+        }
+      }
+    },
+    "Suggested flights" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorgestelde vluchten"
           }
         }
       }
@@ -6279,6 +6329,7 @@
       }
     },
     "Test notice on" : {
+      "extractionState" : "stale",
       "localizations" : {
         "nl" : {
           "stringUnit" : {

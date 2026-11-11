@@ -20,16 +20,25 @@ struct FlightHint: Equatable {
 
     var flights: [PlannedTrip.Flight] { legs.map(\.flight) }
 
-    /// The route for display, inferred airports marked: "BRU? → FRA → LIM?".
-    var routeText: String {
-        var parts: [String] = []
-        var lastCode: String?
+    /// Every airport along the route once per visit, in order, with whether a photo shows it.
+    var stops: [(code: String, seen: Bool)] {
+        var result: [(code: String, seen: Bool)] = []
         for leg in legs {
-            if leg.flight.from != lastCode { parts.append(leg.flight.from + (leg.fromSeen ? "" : "?")) }
-            parts.append(leg.flight.to + (leg.toSeen ? "" : "?"))
-            lastCode = leg.flight.to
+            if leg.flight.from != result.last?.code { result.append((leg.flight.from, leg.fromSeen)) }
+            result.append((leg.flight.to, leg.toSeen))
         }
-        return parts.joined(separator: " → ")
+        return result
+    }
+
+    /// The route in codes, inferred airports marked: "BRU? → FRA → LIM?".
+    var routeText: String {
+        stops.map { $0.code + ($0.seen ? "" : "?") }.joined(separator: " → ")
+    }
+
+    /// The route in place names, for people who don't know airport codes:
+    /// "Brussels → Frankfurt → Lima".
+    var placesText: String {
+        stops.map { AirportDirectory.airport($0.code)?.placeName ?? $0.code }.joined(separator: " → ")
     }
 
     /// The same hint with another inferred home airport.

@@ -31,6 +31,10 @@ struct TripDetailView: View {
     @State private var routeGuess: [PlannedTrip.Flight]?
     /// The hint's flights, when the editor was opened from it to adjust them before saving.
     @State private var editorStartFlights: [PlannedTrip.Flight]?
+    /// The hint's flights one by one on a map.
+    @State private var showFlightHintDetail = false
+    /// Edit was tapped in the hint's sheet: open the editor once that sheet is gone.
+    @State private var editAfterHintDetail = false
     /// Badge on the film button. Re-read when the share sheet closes: sharing may have used
     /// the free film.
     @State private var filmStatus: FreeFilmAllowance.Status = .unlimited
@@ -132,6 +136,26 @@ struct TripDetailView: View {
             }
         }
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
+        .sheet(isPresented: $showFlightHintDetail, onDismiss: {
+            // One sheet at a time: the editor opens only once the hint's sheet has closed.
+            if editAfterHintDetail {
+                editAfterHintDetail = false
+                showFlightsEditor = true
+            }
+        }) {
+            if let flightHint {
+                FlightHintDetailSheet(
+                    hint: flightHint,
+                    homeChoices: homeAirportChoices,
+                    onPickHome: { self.flightHint = flightHint.replacingHomeAirport(with: $0) },
+                    onAdd: { addHintFlights(flightHint) },
+                    onEdit: {
+                        editorStartFlights = flightHint.flights
+                        editAfterHintDetail = true
+                        showFlightHintDetail = false
+                    })
+            }
+        }
         .sheet(isPresented: $showFlightsEditor, onDismiss: { editorStartFlights = nil }) {
             FlightsEditorSheet(flights: editorStartFlights ?? appVM.flights(for: trip),
                                segments: FlightSuggestions.segments(for: trip),
@@ -340,16 +364,10 @@ struct TripDetailView: View {
         if let flightHint, appVM.flights(for: trip).isEmpty {
             FlightHintCard(
                 hint: flightHint,
-                homeChoices: appVM.homeCoordinate.map {
-                    HomeAirports.candidates(home: CLLocationCoordinate2D(latitude: $0.latitude,
-                                                                         longitude: $0.longitude),
-                                            homeCountryCode: appVM.homeCountryCode)
-                } ?? [],
+                homeChoices: homeAirportChoices,
                 onPickHome: { self.flightHint = flightHint.replacingHomeAirport(with: $0) },
-                onAdd: {
-                    appVM.setFlights(flightHint.flights, for: trip)
-                    self.flightHint = nil
-                },
+                onShowDetails: { showFlightHintDetail = true },
+                onAdd: { addHintFlights(flightHint) },
                 onEdit: {
                     editorStartFlights = flightHint.flights
                     showFlightsEditor = true
@@ -362,6 +380,19 @@ struct TripDetailView: View {
         } else {
             addFlightsRow
         }
+    }
+
+    /// Airports near home to pick from when the hint's home airport is only a guess.
+    private var homeAirportChoices: [AirportDirectory.Airport] {
+        appVM.homeCoordinate.map {
+            HomeAirports.candidates(home: CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude),
+                                    homeCountryCode: appVM.homeCountryCode)
+        } ?? []
+    }
+
+    private func addHintFlights(_ hint: FlightHint) {
+        appVM.setFlights(hint.flights, for: trip)
+        flightHint = nil
     }
 
     private var addFlightsRow: some View {
