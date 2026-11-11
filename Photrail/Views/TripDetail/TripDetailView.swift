@@ -1,5 +1,6 @@
 import SwiftUI
 import Photos
+import CoreLocation
 
 /// Detail for a single trip: a hero photo, key stats, a map of the cities visited
 /// (joined in visit order), the itinerary, wonders seen, and the trip's photos.
@@ -24,6 +25,12 @@ struct TripDetailView: View {
     @State private var customName: String?
     @State private var showRenameEditor = false
     @State private var showFlightsEditor = false
+    /// How the trip was probably flown, while it has no flights (see `FlightReconstructor`).
+    @State private var flightHint: FlightHint?
+    /// The best guess even without evidence, offered in the editor's add menu only.
+    @State private var routeGuess: [PlannedTrip.Flight]?
+    /// The hint's flights, when the editor was opened from it to adjust them before saving.
+    @State private var editorStartFlights: [PlannedTrip.Flight]?
     /// Badge on the film button. Re-read when the share sheet closes: sharing may have used
     /// the free film.
     @State private var filmStatus: FreeFilmAllowance.Status = .unlimited
@@ -125,11 +132,19 @@ struct TripDetailView: View {
             }
         }
         .sheet(item: $selectedWonder) { WonderDetailView(stat: $0) }
-        .sheet(isPresented: $showFlightsEditor) {
-            FlightsEditorSheet(flights: appVM.flights(for: trip),
-                               segments: FlightSuggestions.segments(for: trip)) { flights in
+        .sheet(isPresented: $showFlightsEditor, onDismiss: { editorStartFlights = nil }) {
+            FlightsEditorSheet(flights: editorStartFlights ?? appVM.flights(for: trip),
+                               segments: FlightSuggestions.segments(for: trip),
+                               suggestedRoute: routeGuess) { flights in
                 appVM.setFlights(flights, for: trip)
+                if !flights.isEmpty { flightHint = nil }
             }
+        }
+        // Again when the flights change: removing them all may bring the hint back.
+        .task(id: "\(trip.id)-\(appVM.flights(for: trip).count)") {
+            let guess = await appVM.flightGuess(for: trip)
+            flightHint = guess.hint
+            routeGuess = guess.prefill?.flights
         }
         .sheet(isPresented: $showPaywall) { LifetimePaywallView() }
         .task { await loadCover() }
@@ -318,8 +333,38 @@ struct TripDetailView: View {
 
     // MARK: - Itinerary
 
-    /// Flights are drawn on the itinerary map above; this row adds or edits them.
+    /// Flights are drawn on the itinerary map above; this row adds or edits them. Without
+    /// flights, a guess from the photos at airports takes its place when there is one.
+    @ViewBuilder
     private var flightsRow: some View {
+        if let flightHint, appVM.flights(for: trip).isEmpty {
+            FlightHintCard(
+                hint: flightHint,
+                homeChoices: appVM.homeCoordinate.map {
+                    HomeAirports.candidates(home: CLLocationCoordinate2D(latitude: $0.latitude,
+                                                                         longitude: $0.longitude),
+                                            homeCountryCode: appVM.homeCountryCode)
+                } ?? [],
+                onPickHome: { self.flightHint = flightHint.replacingHomeAirport(with: $0) },
+                onAdd: {
+                    appVM.setFlights(flightHint.flights, for: trip)
+                    self.flightHint = nil
+                },
+                onEdit: {
+                    editorStartFlights = flightHint.flights
+                    showFlightsEditor = true
+                },
+                onDismiss: {
+                    appVM.dismissFlightHint(for: trip)
+                    withAnimation { self.flightHint = nil }
+                })
+            .padding(.horizontal, 20)
+        } else {
+            addFlightsRow
+        }
+    }
+
+    private var addFlightsRow: some View {
         let flights = appVM.flights(for: trip)
         return Button { showFlightsEditor = true } label: {
             HStack(spacing: 12) {

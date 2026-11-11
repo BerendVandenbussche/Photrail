@@ -152,7 +152,7 @@ final class PlannedTripTests: XCTestCase {
 
     func testSuggestionsCoverGettingThereEachBorderAndHome() {
         let suggestions = FlightSuggestions.make(segments: FlightSuggestions.segments(for: twoCountryPlan()),
-                                                 home: nil)
+                                                 homeAirport: nil)
         XCTAssertEqual(suggestions.map(\.kind), [.outbound, .between(from: "PE", to: "BR"), .home])
         XCTAssertEqual(suggestions.map { calendar.startOfDay(for: $0.date) },
                        [date(2026, 11, 29), date(2026, 12, 6), date(2026, 12, 14)].map(calendar.startOfDay(for:)))

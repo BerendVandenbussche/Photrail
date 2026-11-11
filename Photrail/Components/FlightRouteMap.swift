@@ -383,6 +383,8 @@ struct FlightLegEditor: View {
 /// coming home). Saves all at once, so Cancel really cancels.
 struct FlightsEditorSheet: View {
     let segments: [FlightSuggestions.Segment]
+    /// A whole route to add in one go while there are no flights yet (a past trip's best guess).
+    let suggestedRoute: [PlannedTrip.Flight]?
     let onSave: ([PlannedTrip.Flight]) -> Void
 
     @Environment(AppViewModel.self) private var appVM
@@ -391,8 +393,10 @@ struct FlightsEditorSheet: View {
     @State private var newFlight: NewFlightRequest?
 
     init(flights: [PlannedTrip.Flight], segments: [FlightSuggestions.Segment],
+         suggestedRoute: [PlannedTrip.Flight]? = nil,
          onSave: @escaping ([PlannedTrip.Flight]) -> Void) {
         self.segments = segments
+        self.suggestedRoute = suggestedRoute
         self.onSave = onSave
         _flights = State(initialValue: flights)
     }
@@ -400,8 +404,7 @@ struct FlightsEditorSheet: View {
     private var sorted: [PlannedTrip.Flight] { PlannedTrip.sorted(flights) }
 
     private var suggestions: [FlightSuggestion] {
-        let home = appVM.homeCoordinate.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
-        return FlightSuggestions.make(segments: segments, home: home)
+        FlightSuggestions.make(segments: segments, homeAirport: appVM.suggestedHomeAirport)
     }
 
     /// The trip's first day, for flights that have no date of their own.
@@ -476,6 +479,14 @@ struct FlightsEditorSheet: View {
 
     private var addMenu: some View {
         Menu {
+            if flights.isEmpty, let suggestedRoute, !suggestedRoute.isEmpty {
+                Button {
+                    flights = suggestedRoute
+                } label: {
+                    Text("Suggested route")
+                    Text(verbatim: AppViewModel.routeCodes(suggestedRoute).joined(separator: " → "))
+                }
+            }
             if let returnFlights {
                 Button {
                     flights.append(contentsOf: returnFlights)

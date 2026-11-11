@@ -20,6 +20,11 @@ enum TripFlightStore {
         all()[tripID] ?? []
     }
 
+    /// Every past trip's flights, for learning which airports you fly from.
+    static func allFlights() -> [PlannedTrip.Flight] {
+        all().values.flatMap { $0 }
+    }
+
     /// An empty list removes the entry.
     static func setFlights(_ flights: [PlannedTrip.Flight], for tripID: String) {
         var dict = all()

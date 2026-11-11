@@ -326,6 +326,7 @@ Both targets inherit `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (no per-tar
 - **Trips** — continuous journeys away from home that can span countries (see [Trip detection](#trip-detection)). A country's "trip count" is how many trips included it.
 - **Custom trip names** — rename any trip; the name replaces the country list everywhere and can be reset.
 - **Trip detail** — Vision-curated hero cover, MapKit route with a numbered pin per city, key stats (distance, duration, countries, cities, photos, highest point), an itinerary with per-stop flags, wonders seen, the trip's photos, and a live share-card preview.
+- **Flight hints** — a past trip without flights suggests how you probably flew when you were photographed at an airport, e.g. "BRU → FRA → LIM?" ("?" = inferred). Add, edit or dismiss; never saved on its own, and no hint without such a photo. When you add flights yourself, "Suggested route" in the add menu offers the best guess anyway. Your home airports are learned from photos at airports near home and the flights you entered, so a Brussels flyer isn't sent to the nearest airport (`HomeAirports`, `FlightReconstructor`).
 - **Manual countries** — deleted a trip's photos? Add a country by hand so the map/stats stay accurate (no photo-based cards).
 
 **Planning**

@@ -37,12 +37,32 @@
     "???" : {
 
     },
+    "A guess from your photos at airports." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Een gok op basis van je foto's op luchthavens."
+          }
+        }
+      }
+    },
     "About %@" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Over %@"
+          }
+        }
+      }
+    },
+    "Add these flights" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg deze vluchten toe"
           }
         }
       }
@@ -63,6 +83,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Munt"
+          }
+        }
+      }
+    },
+    "Did you fly like this?" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ben je zo gevlogen?"
           }
         }
       }
@@ -147,6 +177,26 @@
         }
       }
     },
+    "From %@" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Van %@"
+          }
+        }
+      }
+    },
+    "Hide suggestion" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggestie verbergen"
+          }
+        }
+      }
+    },
     "Higher voltage than at home: check that your devices handle it" : {
       "localizations" : {
         "nl" : {
@@ -223,6 +273,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zelfde tijd als thuis"
+          }
+        }
+      }
+    },
+    "Suggested route" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voorgestelde route"
           }
         }
       }

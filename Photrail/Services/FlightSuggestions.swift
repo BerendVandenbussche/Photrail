@@ -4,7 +4,7 @@ import CoreLocation
 /// The flights a trip most likely had, as starting points for adding them: getting there, one
 /// per change of country, and coming home. Shared by plans and past trips.
 ///
-/// Only the home side gets an airport filled in (the one nearest home). The country side is
+/// Only the home side gets an airport filled in (the one you usually fly from). The country side is
 /// left open, with the airport search pre-filled with the country's name, because guessing
 /// which of a country's airports someone flew to is wrong too often to be helpful.
 struct FlightSuggestion: Identifiable, Hashable {
@@ -45,9 +45,10 @@ enum FlightSuggestions {
         let end: Date
     }
 
-    static func make(segments: [Segment], home: CLLocationCoordinate2D?) -> [FlightSuggestion] {
+    /// - Parameter homeAirport: the airport to fill in on the home side (see
+    ///   `AppViewModel.suggestedHomeAirport`), nil to leave it open.
+    static func make(segments: [Segment], homeAirport: String?) -> [FlightSuggestion] {
         guard let first = segments.first, let last = segments.last else { return [] }
-        let homeAirport = home.flatMap { AirportDirectory.nearest(to: $0)?.iata }
 
         var result = [FlightSuggestion(kind: .outbound, date: first.start,
                                        fromAirport: homeAirport, toAirport: nil,

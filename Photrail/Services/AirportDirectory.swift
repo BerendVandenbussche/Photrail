@@ -71,6 +71,50 @@ enum AirportDirectory {
         return best
     }
 
+    /// The airport a photo at `coordinate` was taken at: the closest one within 3 km (2 km for
+    /// small airports, which often sit right next to town). Nil when there's none that close.
+    static func airport(at coordinate: CLLocationCoordinate2D) -> Airport? {
+        let here = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        var best: (airport: Airport, meters: Double)?
+        let lat = Int(coordinate.latitude.rounded(.down)), lon = Int(coordinate.longitude.rounded(.down))
+        for dLat in -1...1 {
+            for dLon in -1...1 {
+                for airport in grid[GridKey(lat: lat + dLat, lon: lon + dLon)] ?? [] {
+                    let meters = CLLocation(latitude: airport.latitude, longitude: airport.longitude)
+                        .distance(from: here)
+                    let limit: Double = airport.size == .small ? 2_000 : 3_000
+                    if meters <= limit, meters < (best?.meters ?? .infinity) { best = (airport, meters) }
+                }
+            }
+        }
+        return best?.airport
+    }
+
+    /// Large and medium airports within `maxKm`, nearest first.
+    static func airports(near coordinate: CLLocationCoordinate2D, maxKm: Double = 150,
+                         includeSmall: Bool = false) -> [Airport] {
+        let here = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        return all
+            .filter { includeSmall || $0.size != .small }
+            .map { ($0, CLLocation(latitude: $0.latitude, longitude: $0.longitude).distance(from: here)) }
+            .filter { $0.1 <= maxKm * 1000 }
+            .sorted { $0.1 < $1.1 }
+            .map { $0.0 }
+    }
+
+    /// The large airport nearest `coordinate` (any distance up to `maxKm`), for guessing where
+    /// a trip landed when no photo was taken at the airport.
+    static func nearestLarge(to coordinate: CLLocationCoordinate2D, maxKm: Double = 400) -> Airport? {
+        airports(near: coordinate, maxKm: maxKm).first { $0.size == .large }
+    }
+
+    /// Airports per whole degree of latitude and longitude, so `airport(at:)` only measures
+    /// the handful nearby instead of all 4,000.
+    private struct GridKey: Hashable { let lat: Int; let lon: Int }
+    private static let grid: [GridKey: [Airport]] = Dictionary(grouping: all) {
+        GridKey(lat: Int($0.latitude.rounded(.down)), lon: Int($0.longitude.rounded(.down)))
+    }
+
     private static func fold(_ s: String) -> String {
         s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
     }

@@ -243,6 +243,7 @@ final class AppViewModel {
         }
         let enabled = travelNudgesEnabled
         Task { await NotificationService.schedulePlannedTrip(plan, enabled: enabled) }
+        Task { await refreshHomeAirports() }
     }
 
     func removePlannedTrip(id: String) {
@@ -312,7 +313,66 @@ final class AppViewModel {
         } else {
             TripFlightStore.setFlights(flights, for: trip.id)
             flightsRevision &+= 1
+            Task { await refreshHomeAirports() }
         }
+    }
+
+    // MARK: - Home airports & flight hints
+
+    /// The airports you fly from, most used first (`HomeAirports.rank`): learned from photos
+    /// at airports near home and the flights you entered. Empty without any history.
+    private(set) var homeAirportRanking: [String] = []
+    private var homeAirportsComputed = false
+
+    /// The airport to fill in for flights from and to home: the one you use most, else the
+    /// one nearest home.
+    var suggestedHomeAirport: String? {
+        if let first = homeAirportRanking.first { return first }
+        guard let home = homeCoordinate else { return nil }
+        return AirportDirectory.nearest(to: CLLocationCoordinate2D(latitude: home.latitude,
+                                                                   longitude: home.longitude))?.iata
+    }
+
+    /// Re-learns the home airports, off the main thread. After a scan and whenever flights
+    /// are saved, so a choice in the editor teaches the ranking.
+    func refreshHomeAirports() async {
+        guard let home = homeCoordinate else {
+            homeAirportRanking = []
+            homeAirportsComputed = true
+            return
+        }
+        let photos = (try? await store.allPhotos()) ?? []
+        let flights = plannedTrips.flatMap(\.flights) + TripFlightStore.allFlights()
+        let coordinate = CLLocationCoordinate2D(latitude: home.latitude, longitude: home.longitude)
+        let country = homeCountryCode
+        homeAirportRanking = await Task.detached(priority: .utility) {
+            HomeAirports.rank(photos: photos, flights: flights, home: coordinate, homeCountryCode: country)
+        }.value
+        homeAirportsComputed = true
+    }
+
+    /// How a trip without flights was probably flown:
+    /// - `hint`: shown unasked on the trip page, only with a photo taken at an airport and
+    ///   while not dismissed;
+    /// - `prefill`: the best guess even without such a photo, offered only when the user adds
+    ///   flights themselves.
+    func flightGuess(for trip: Trip) async -> (hint: FlightHint?, prefill: FlightHint?) {
+        guard !trip.isManual, flights(for: trip).isEmpty else { return (nil, nil) }
+        if !homeAirportsComputed { await refreshHomeAirports() }
+        let window = FlightReconstructor.window(for: trip)
+        let photos = ((try? await store.allPhotos()) ?? []).filter { window.contains($0.date) }
+        let home = homeCoordinate.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        func make(requireEvidence: Bool) -> FlightHint? {
+            FlightReconstructor.make(trip: trip, photos: photos, homeAirports: homeAirportRanking,
+                                     home: home, homeCountryCode: homeCountryCode,
+                                     requireEvidence: requireEvidence)
+        }
+        let hint = TripFlightHintStore.isDismissed(trip.id) ? nil : make(requireEvidence: true)
+        return (hint, make(requireEvidence: false))
+    }
+
+    func dismissFlightHint(for trip: Trip) {
+        TripFlightHintStore.dismiss(trip.id)
     }
 
     /// The freshest version of a trip, by id. A view opened on a trip holds a copy; this lets
@@ -1769,6 +1829,7 @@ final class AppViewModel {
                                                      homeCountryCode: homeCountryCode,
                                                      excludedPhotoIDs: excludedPhotoIDs)
                 publishWidgetStats()
+                await refreshHomeAirports()
             }
         }
         // Quietly authorize nudges so we can celebrate new countries while traveling. Deliberately
@@ -2322,6 +2383,7 @@ final class AppViewModel {
 
     private func completeScan() async {
         await reconcilePlannedTrips()
+        await refreshHomeAirports()
         publishWidgetStats()
         indexTripsForSearch()
         await runNudges()
