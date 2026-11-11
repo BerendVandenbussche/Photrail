@@ -3,7 +3,7 @@ import Foundation
 /// Stores a user's free-text note per trip, keyed by the stable trip id.
 /// (Trips are recomputed from photos each scan, so notes live here, not on the model.)
 enum TripNoteStore {
-    private static let key = "tripNotes"
+    static let key = "tripNotes"
 
     static func note(for tripID: String) -> String {
         (UserDefaults.standard.dictionary(forKey: key) as? [String: String])?[tripID] ?? ""

@@ -1537,8 +1537,30 @@ final class AppViewModel {
         let photos = (try? await store.allPhotos()) ?? []
         stats = statsEngine.compute(from: photos, homeCountryCode: homeCountryCode,
                                     homeCoordinate: homeCoordinate, manualTrips: manualTrips, excludedPhotoIDs: excludedPhotoIDs)
+        // Excluding a photo can move a trip's first day, and with it the trip's id. Only once a
+        // scan has finished: before that the stored photos can be half a reindex.
+        if hasFinishedScan && !scanProgress.isActive { relinkTripData() }
         publishWidgetStats()
         indexTripsForSearch()
+    }
+
+    /// Set once a scan has run to the end this session, so the stored photos are complete.
+    @ObservationIgnored private var hasFinishedScan = false
+
+    /// Moves names, notes, flights and the rest to trips whose id changed (see `TripIdentity`),
+    /// and shows a moved name right away: `TripDetector` read the names before they moved.
+    private func relinkTripData() {
+        guard TripIdentity.relink(stats.trips) else { return }
+        var trips = stats.trips
+        var changed = false
+        for i in trips.indices where trips[i].id.hasPrefix("trip-") {
+            let name = TripNameStore.name(for: trips[i].id)
+            if name != trips[i].customName {
+                trips[i].customName = name
+                changed = true
+            }
+        }
+        if changed { stats.trips = trips }
     }
 
     func startOnboarding() {
@@ -2038,7 +2060,7 @@ final class AppViewModel {
     // MARK: - Travel nudges
 
     private let lastNudgeDateKey = "lastNudgeDate"
-    private let notifiedTripIDsKey = "notifiedTripIDs"
+    private let notifiedTripIDsKey = TripUserData.notifiedTripsKey
     private let notifiedRecapYearsKey = "notifiedRecapYears"
 
     /// Decide, after a scan, whether to send a (single) tasteful nudge. Conservative:
@@ -2382,6 +2404,8 @@ final class AppViewModel {
     }
 
     private func completeScan() async {
+        hasFinishedScan = true
+        relinkTripData()
         await reconcilePlannedTrips()
         await refreshHomeAirports()
         publishWidgetStats()

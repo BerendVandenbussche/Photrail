@@ -5,7 +5,7 @@ import Foundation
 /// which is stable across rescans as long as the trip's primary country + start
 /// date don't change.
 enum TripCoverStore {
-    private static let key = "tripCoverPhotoIDs"
+    static let key = "tripCoverPhotoIDs"
 
     static func coverID(for tripID: String) -> String? {
         (UserDefaults.standard.dictionary(forKey: key) as? [String: String])?[tripID]

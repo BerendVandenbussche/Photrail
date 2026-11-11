@@ -6,7 +6,7 @@ import Foundation
 /// to another app) stays free. It's claimed only once a film has actually rendered, so a
 /// failed or cancelled export doesn't use it up. Kept on the device: a reinstall resets it.
 enum FreeFilmAllowance {
-    private static let key = "freeFilmTripID"
+    static let key = "freeFilmTripID"
 
     /// The trip that used the free film, if any.
     static func claimedTripID(in defaults: UserDefaults = .standard) -> String? {

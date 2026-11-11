@@ -7,7 +7,7 @@ import Foundation
 /// purpose. The flights are shown in their own section and never feed the itinerary, whose map
 /// and stops come from the photos alone.
 enum TripFlightStore {
-    private static let key = "tripFlights"
+    static let key = "tripFlights"
 
     private static func all() -> [String: [PlannedTrip.Flight]] {
         guard let data = UserDefaults.standard.data(forKey: key),

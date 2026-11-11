@@ -2,7 +2,7 @@ import Foundation
 
 /// The trips whose flight hint the user dismissed, so it doesn't come back.
 enum TripFlightHintStore {
-    private static let key = "dismissedFlightHints"
+    static let key = "dismissedFlightHints"
 
     static func isDismissed(_ tripID: String) -> Bool {
         (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(tripID)

@@ -5,7 +5,7 @@ import Foundation
 /// model — it's read back in when trips are rebuilt.) A custom name is the same in
 /// every language, so it's used on both the localized UI and the English share cards.
 enum TripNameStore {
-    private static let key = "tripNames"
+    static let key = "tripNames"
 
     static func name(for tripID: String) -> String? {
         (UserDefaults.standard.dictionary(forKey: key) as? [String: String])?[tripID]
