@@ -53,10 +53,8 @@ struct ContinentDetailView: View {
                 .padding(.horizontal, 20)
 
             if countries.isEmpty {
-                Text("No countries visited on this continent yet.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 20)
+                ContentUnavailableView("No countries visited on this continent yet.",
+                                       systemImage: "globe.europe.africa")
                     .padding(.vertical, 8)
             } else {
                 ForEach(countries) { country in

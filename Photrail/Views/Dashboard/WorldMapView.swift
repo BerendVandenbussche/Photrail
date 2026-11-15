@@ -20,7 +20,14 @@ struct WorldMapView: View {
 
     @State private var position: MapCameraPosition = .automatic
     @State private var selectedCountry: CountryStat? = nil
+    /// The pin that was just tapped, which sends out one ring. A fresh token per tap replays it.
+    @State private var pulse: Pulse?
     @Namespace private var mapScope
+
+    private struct Pulse: Equatable {
+        let countryCode: String
+        let token = UUID()
+    }
 
     /// Regions big enough to carry a flag badge. Below roughly half a degree the shape is
     /// a sliver and the badge would cover it entirely.
@@ -53,8 +60,14 @@ struct WorldMapView: View {
     /// and zoom in place, which is what the standalone map does.
     private func selectCountry(code: String, at coordinate: CLLocationCoordinate2D) {
         guard let country = countries.first(where: { $0.id == code }) else { return }
+        Haptics.selection()
+        pulse = Pulse(countryCode: code)
         if let onSelect {
-            onSelect(country)
+            // Long enough for the ring to start before the country's page covers the map.
+            Task {
+                try? await Task.sleep(for: .milliseconds(220))
+                onSelect(country)
+            }
             return
         }
         withAnimation(.spring()) {
@@ -99,7 +112,8 @@ struct WorldMapView: View {
             if showCountries {
                 ForEach(annotations) { annotation in
                     Annotation(annotation.name, coordinate: annotation.coordinate) {
-                        CountryPin(annotation: annotation, isSelected: selectedCountry?.id == annotation.id)
+                        CountryPin(annotation: annotation, isSelected: selectedCountry?.id == annotation.id,
+                                   pulseToken: pulse?.countryCode == annotation.id ? pulse?.token : nil)
                             .onTapGesture {
                                 selectCountry(code: annotation.id, at: annotation.coordinate)
                             }
@@ -156,10 +170,15 @@ struct CountryAnnotation: Identifiable {
 private struct CountryPin: View {
     let annotation: CountryAnnotation
     var isSelected: Bool
+    /// Set right after a tap: one ring spreads out from the pin.
+    var pulseToken: UUID? = nil
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
+                if let pulseToken {
+                    PulseRing(diameter: isSelected ? 44 : 34).id(pulseToken)
+                }
                 Circle()
                     .fill(isSelected ? Color.accentColor : .white)
                     .frame(width: isSelected ? 44 : 34, height: isSelected ? 44 : 34)
@@ -179,6 +198,26 @@ private struct CountryPin: View {
             }
         }
         .animation(.spring(response: 0.3), value: isSelected)
+    }
+}
+
+/// One ring spreading out and fading, like a drop in water. Nothing under Reduce Motion.
+private struct PulseRing: View {
+    let diameter: CGFloat
+    @State private var spread = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Circle()
+            .stroke(Color.accentColor, lineWidth: 2)
+            .frame(width: diameter, height: diameter)
+            .scaleEffect(spread ? 2.2 : 1)
+            .opacity(spread || reduceMotion ? 0 : 0.8)
+            .allowsHitTesting(false)
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.easeOut(duration: 0.6)) { spread = true }
+            }
     }
 }
 

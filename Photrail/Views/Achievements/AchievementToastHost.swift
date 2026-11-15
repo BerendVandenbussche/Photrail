@@ -48,6 +48,8 @@ struct AchievementToastHost: View {
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: pending.count)
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: pending.first?.id)
+        // One success tap per banner that appears, none when one leaves.
+        .sensoryFeedback(trigger: pending.first?.id) { _, new in new == nil ? nil : .success }
     }
 }
 
@@ -59,10 +61,21 @@ private struct AchievementBanner: View {
     let onTap: () -> Void
     let onDismiss: () -> Void
 
+    /// The emoji pops in just after the banner slides down.
+    @State private var popped = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack {
             HStack(spacing: 14) {
                 Text(emoji).font(.system(size: 40))
+                    .scaleEffect(popped || reduceMotion ? 1 : 0.3)
+                    .rotationEffect(.degrees(popped || reduceMotion ? 0 : -25))
+                    .onAppear {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.55).delay(0.2)) {
+                            popped = true
+                        }
+                    }
                 VStack(alignment: .leading, spacing: 3) {
                     Text(kicker)
                         .font(.caption2.weight(.semibold))

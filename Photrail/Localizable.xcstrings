@@ -4,6 +4,16 @@
     "" : {
 
     },
+    "#%lld of %lld" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "#%lld van %lld"
+          }
+        }
+      }
+    },
     "%@ h ahead of home" : {
       "localizations" : {
         "nl" : {
@@ -57,12 +67,42 @@
         }
       }
     },
+    "Add friends in Game Center to compare your travels." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voeg vrienden toe in Game Center om je reizen te vergelijken."
+          }
+        }
+      }
+    },
     "Add these flights" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voeg deze vluchten toe"
+          }
+        }
+      }
+    },
+    "Altitude" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoogte"
+          }
+        }
+      }
+    },
+    "Before you go" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voor je vertrekt"
           }
         }
       }
@@ -77,12 +117,32 @@
         }
       }
     },
+    "Compare with friends" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergelijk met vrienden"
+          }
+        }
+      }
+    },
     "Currency" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Munt"
+          }
+        }
+      }
+    },
+    "Daily postcards" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dagelijkse postkaarten"
           }
         }
       }
@@ -167,12 +227,52 @@
         }
       }
     },
+    "Find trips in Spotlight" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vind reizen in Spotlight"
+          }
+        }
+      }
+    },
     "Fits" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Past"
+          }
+        }
+      }
+    },
+    "Flight suggestions" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vluchtsuggesties"
+          }
+        }
+      }
+    },
+    "Friends" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vrienden"
+          }
+        }
+      }
+    },
+    "Friends, flights and more" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vrienden, vluchten en meer"
           }
         }
       }
@@ -237,12 +337,42 @@
         }
       }
     },
+    "Invite a friend" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nodig een vriend uit"
+          }
+        }
+      }
+    },
     "Languages" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Talen"
+          }
+        }
+      }
+    },
+    "Leaderboard" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassement"
+          }
+        }
+      }
+    },
+    "Loading" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezig met laden"
           }
         }
       }
@@ -267,6 +397,66 @@
         }
       }
     },
+    "No friends on Game Center yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen vrienden op Game Center"
+          }
+        }
+      }
+    },
+    "No scores yet" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nog geen scores"
+          }
+        }
+      }
+    },
+    "Not signed in to Game Center" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niet aangemeld bij Game Center"
+          }
+        }
+      }
+    },
+    "On travel days, an evening postcard of the day's photos, ready to share." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Op reisdagen 's avonds een postkaart met de foto's van de dag, klaar om te delen."
+          }
+        }
+      }
+    },
+    "Photos zoom open, maps fly to each stop and your numbers count up." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto's zoomen open, kaarten vliegen naar elke stop en je cijfers tellen op."
+          }
+        }
+      }
+    },
+    "Photrail suggests the flights of past trips from photos taken at airports." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photrail stelt de vluchten van vroegere reizen voor op basis van foto's op luchthavens."
+          }
+        }
+      }
+    },
     "Plug" : {
       "localizations" : {
         "nl" : {
@@ -283,6 +473,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stekkers"
+          }
+        }
+      }
+    },
+    "Plugs, languages, currency, time difference and driving side for each country of a planned trip, compared with home." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stekkers, talen, munt, tijdsverschil en rijrichting voor elk land van een geplande reis, vergeleken met thuis."
           }
         }
       }
@@ -307,12 +507,62 @@
         }
       }
     },
+    "Search for a year or a month, like “June 2025”, to find your trips." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoek op een jaar of maand, zoals “juni 2025”, om je reizen te vinden."
+          }
+        }
+      }
+    },
+    "See in Game Center" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bekijk in Game Center"
+          }
+        }
+      }
+    },
+    "See where you rank among your Game Center friends, right on the Dashboard." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zie waar je staat tussen je Game Center-vrienden, gewoon op het Dashboard."
+          }
+        }
+      }
+    },
     "Shows the flights on a map" : {
       "localizations" : {
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toont de vluchten op een kaart"
+          }
+        }
+      }
+    },
+    "Sign in to Game Center in Settings to compare with your friends." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meld je aan bij Game Center in Instellingen om met je vrienden te vergelijken."
+          }
+        }
+      }
+    },
+    "Smoother all round" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overal vlotter"
           }
         }
       }
@@ -423,6 +673,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Verkeer"
+          }
+        }
+      }
+    },
+    "Try again" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probeer opnieuw"
+          }
+        }
+      }
+    },
+    "Turn on Game Center" : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zet Game Center aan"
+          }
+        }
+      }
+    },
+    "Turn on Game Center to see how your countries, cities and kilometres rank among your friends." : {
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zet Game Center aan om te zien hoe je landen, steden en kilometers scoren tegenover die van je vrienden."
           }
         }
       }
@@ -3659,6 +3939,7 @@
       }
     },
     "Leaderboards & achievements" : {
+      "extractionState" : "stale",
       "localizations" : {
         "nl" : {
           "stringUnit" : {
@@ -6329,7 +6610,6 @@
       }
     },
     "Test notice on" : {
-      "extractionState" : "stale",
       "localizations" : {
         "nl" : {
           "stringUnit" : {

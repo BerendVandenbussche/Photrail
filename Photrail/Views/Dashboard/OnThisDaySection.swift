@@ -5,6 +5,7 @@ import Photos
 struct OnThisDaySection: View {
     let memories: [Memory]
     @State private var selected: Memory?
+    @Namespace private var zoom
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -12,24 +13,32 @@ struct OnThisDaySection: View {
                 .padding(.horizontal, 20)
 
             if memories.count == 1, let memory = memories.first {
-                Button { selected = memory } label: { MemoryCard(memory: memory) }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 20)
+                Button { selected = memory } label: {
+                    MemoryCard(memory: memory).zoomSource(id: memory.id, in: zoom)
+                }
+                .buttonStyle(.pressable)
+                .padding(.horizontal, 20)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
                         ForEach(memories) { memory in
                             Button { selected = memory } label: {
                                 MemoryCard(memory: memory).frame(width: 300)
+                                    .zoomSource(id: memory.id, in: zoom)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
+                            .carouselItem()
                         }
                     }
+                    .scrollTargetLayout()
                     .padding(.horizontal, 20)
                 }
+                .scrollTargetBehavior(.viewAligned)
             }
         }
-        .sheet(item: $selected) { memory in MemoryDetailView(memory: memory) }
+        .sheet(item: $selected) { memory in
+            MemoryDetailView(memory: memory).zoomTransition(sourceID: memory.id, in: zoom)
+        }
     }
 }
 
@@ -115,6 +124,7 @@ private struct MemoryDetailView: View {
 
     @State private var selected: IdentifiedPhoto?
     @State private var showShare = false
+    @Namespace private var zoom
     private struct IdentifiedPhoto: Identifiable { let id: String }
 
     /// The trip these memory photos belong to (the one sharing the most photo IDs).
@@ -168,6 +178,7 @@ private struct MemoryDetailView: View {
                     ForEach(memory.photoIDs, id: \.self) { id in
                         Button { selected = IdentifiedPhoto(id: id) } label: {
                             PhotoThumbnail(assetID: id, size: tileSize, cornerRadius: 4)
+                                .zoomSource(id: id, in: zoom)
                         }
                         .buttonStyle(.plain)
                     }
@@ -188,7 +199,7 @@ private struct MemoryDetailView: View {
                 ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() } }
             }
             .fullScreenCover(item: $selected) {
-                FullScreenPhotoView(assetIDs: memory.photoIDs, startID: $0.id)
+                FullScreenPhotoView(assetIDs: memory.photoIDs, startID: $0.id, zoomNamespace: zoom)
             }
             .sheet(isPresented: $showShare) { MemoryShareView(memory: memory) }
         }

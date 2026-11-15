@@ -21,6 +21,9 @@ struct PlacesView: View {
     @State private var showTripEditor = false
     @State private var showLocationGuide = false
     @State private var editingTrip: ManualTrip?
+    /// Trip rows and country cards zoom open into their page. Ids can't clash: trips are
+    /// `trip-…`/`manual:…`, countries two-letter codes.
+    @Namespace private var tripZoom
 
     private var stats: TravelStats { appVM.stats }
     private var segment: PlacesSegment { appVM.placesSegment }
@@ -76,6 +79,7 @@ struct PlacesView: View {
                 CountryDetailView(country: country,
                                   trips: stats.trips.filter { $0.countryCodes.contains(country.id) },
                                   wonders: stats.wonders)
+                    .zoomTransition(sourceID: country.id, in: tripZoom)
             }
             .sheet(item: $selectedContinent) { ContinentDetailView(stat: $0) }
             .sheet(item: $selectedWonder) { wonder in
@@ -94,12 +98,15 @@ struct PlacesView: View {
 
                 Section {
                     segmentBody
+                        .id(segment)
+                        .transition(.opacity.combined(with: .offset(y: 6)))
                 } header: {
                     @Bindable var appVM = appVM
                     Picker("", selection: $appVM.placesSegment) {
                         ForEach(PlacesSegment.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                     }
                     .pickerStyle(.segmented)
+                    .sensoryFeedback(.selection, trigger: appVM.placesSegment)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .background(.bar)
@@ -117,6 +124,7 @@ struct PlacesView: View {
 
                 Spacer(minLength: 30)
             }
+            .animation(Motion.smooth, value: segment)
         }
     }
 
@@ -151,8 +159,9 @@ struct PlacesView: View {
                     CountryGridCard(country: country,
                                     manual: manual,
                                     coverage: manual ? nil : appVM.coverage(for: country))
+                        .zoomSource(id: country.id, in: tripZoom)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
         .padding(.horizontal, 20)
@@ -192,7 +201,7 @@ struct PlacesView: View {
                     .padding(.horizontal, 20).padding(.bottom, 6)
                 ForEach(upcoming) { plan in
                     NavigationLink { PlannedTripDetailView(planID: plan.id) } label: { PlannedTripRow(plan: plan) }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .contextMenu {
                             Button(role: .destructive) { appVM.removePlannedTrip(id: plan.id) } label: {
                                 Label("Delete plan", systemImage: "trash")
@@ -204,10 +213,8 @@ struct PlacesView: View {
             .padding(.bottom, 8)
         }
         if tripsByYear.isEmpty {
-            Text("No trips yet")
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
+            ContentUnavailableView("No trips yet", systemImage: "suitcase")
+                .padding(.vertical, 8)
         } else {
             LazyVStack(alignment: .leading, spacing: 16) {
                 ForEach(tripsByYear, id: \.year) { group in
@@ -217,10 +224,12 @@ struct PlacesView: View {
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 20).padding(.bottom, 6)
                         ForEach(group.trips) { trip in
-                            NavigationLink { TripDetailView(trip: trip) } label: {
-                                TripRow(trip: trip)
+                            NavigationLink {
+                                TripDetailView(trip: trip).zoomTransition(sourceID: trip.id, in: tripZoom)
+                            } label: {
+                                TripRow(trip: trip).zoomSource(id: trip.id, in: tripZoom)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                             .contextMenu {
                                 if trip.isManual {
                                     Button { editTrip(trip) } label: {
@@ -250,7 +259,7 @@ struct PlacesView: View {
                 Button { selectedContinent = stat } label: {
                     ContinentCard(stat: stat)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
         .padding(.horizontal, 20)
@@ -298,7 +307,7 @@ struct PlacesView: View {
                         Button { if stat.seen { selectedWonder = stat } } label: {
                             WonderGridCard(stat: stat)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .disabled(!stat.seen)
                     }
                 }
@@ -322,7 +331,10 @@ private struct WorldExploredHero: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(String(format: "%.1f", percentage))
+                    RevealedProgress(value: percentage) { shown in
+                        Text(String(format: "%.1f", shown))
+                            .contentTransition(.numericText(value: shown))
+                    }
                         .font(.system(size: 44, weight: .heavy, design: .rounded))
                         .foregroundStyle(.white)
                     Text("%")
@@ -334,15 +346,17 @@ private struct WorldExploredHero: View {
                     .foregroundStyle(.white.opacity(0.85))
             }
 
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.18))
-                    Capsule().fill(
-                        LinearGradient(colors: [Color(red: 0.55, green: 0.45, blue: 1.0),
-                                                Color(red: 0.4, green: 0.3, blue: 0.95)],
-                                       startPoint: .leading, endPoint: .trailing)
-                    )
-                    .frame(width: max(8, geo.size.width * fraction))
+            RevealedProgress(value: Double(fraction)) { shown in
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.18))
+                        Capsule().fill(
+                            LinearGradient(colors: [Color(red: 0.55, green: 0.45, blue: 1.0),
+                                                    Color(red: 0.4, green: 0.3, blue: 0.95)],
+                                           startPoint: .leading, endPoint: .trailing)
+                        )
+                        .frame(width: max(8, geo.size.width * shown))
+                    }
                 }
             }
             .frame(height: 8)
@@ -460,11 +474,13 @@ private struct ContinentCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(stat.continent.displayName)
                     .font(.headline).foregroundStyle(.primary)
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(Color.primary.opacity(0.1))
-                        Capsule().fill(Color.accentColor)
-                            .frame(width: max(fraction > 0 ? 6 : 0, geo.size.width * fraction))
+                RevealedProgress(value: Double(fraction)) { shown in
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.primary.opacity(0.1))
+                            Capsule().fill(Color.accentColor)
+                                .frame(width: max(fraction > 0 ? 6 : 0, geo.size.width * shown))
+                        }
                     }
                 }
                 .frame(height: 6)
@@ -495,15 +511,17 @@ private struct WonderHunterHero: View {
         HStack(spacing: 20) {
             ZStack {
                 Circle().stroke(Color.white.opacity(0.18), lineWidth: 6)
-                Circle()
-                    .trim(from: 0, to: fraction)
-                    .stroke(
-                        LinearGradient(colors: [Color(red: 0.6, green: 0.5, blue: 1.0),
-                                                Color(red: 0.75, green: 0.7, blue: 1.0)],
-                                       startPoint: .top, endPoint: .bottom),
-                        style: StrokeStyle(lineWidth: 6, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
+                RevealedProgress(value: Double(fraction)) { shown in
+                    Circle()
+                        .trim(from: 0, to: shown)
+                        .stroke(
+                            LinearGradient(colors: [Color(red: 0.6, green: 0.5, blue: 1.0),
+                                                    Color(red: 0.75, green: 0.7, blue: 1.0)],
+                                           startPoint: .top, endPoint: .bottom),
+                            style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                }
                 VStack(spacing: 0) {
                     Text("\(seen)")
                         .font(.system(size: 24, weight: .heavy, design: .rounded))

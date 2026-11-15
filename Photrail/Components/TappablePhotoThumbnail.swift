@@ -9,14 +9,16 @@ struct TappablePhotoThumbnail: View {
     var cornerRadius: CGFloat = 10
 
     @State private var showFullScreen = false
+    @Namespace private var zoom
 
     var body: some View {
         Button { showFullScreen = true } label: {
             PhotoThumbnail(assetID: assetID, size: size, cornerRadius: cornerRadius)
+                .zoomSource(id: assetID, in: zoom)
         }
         .buttonStyle(.plain)
         .fullScreenCover(isPresented: $showFullScreen) {
-            FullScreenPhotoView(assetID: assetID)
+            FullScreenPhotoView(assetID: assetID, zoomNamespace: zoom)
         }
     }
 }

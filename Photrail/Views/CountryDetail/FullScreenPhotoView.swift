@@ -8,6 +8,9 @@ struct FullScreenPhotoView: View {
     let assetIDs: [String]
     /// Optional heart-rate "vibe" per photo, from the Trip Insights module.
     var excitementByPhotoID: [String: ExcitementSample] = [:]
+    /// The grid's namespace, so the viewer zooms out of the tapped tile and shrinks back into
+    /// the tile of whichever photo it's on when closed (swipe down or ×).
+    var zoomNamespace: Namespace.ID?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(AppViewModel.self) private var appVM
@@ -15,17 +18,19 @@ struct FullScreenPhotoView: View {
     @State private var currentID: String
 
     /// A single photo, as opened from a standalone thumbnail.
-    init(assetID: String, excitement: ExcitementSample? = nil) {
+    init(assetID: String, excitement: ExcitementSample? = nil, zoomNamespace: Namespace.ID? = nil) {
         self.assetIDs = [assetID]
         self.excitementByPhotoID = excitement.map { [assetID: $0] } ?? [:]
+        self.zoomNamespace = zoomNamespace
         _currentID = State(initialValue: assetID)
     }
 
     /// A photo within a set, opened at `startID` and swipeable through the rest.
     init(assetIDs: [String], startID: String,
-         excitementByPhotoID: [String: ExcitementSample] = [:]) {
+         excitementByPhotoID: [String: ExcitementSample] = [:], zoomNamespace: Namespace.ID? = nil) {
         self.assetIDs = assetIDs.isEmpty ? [startID] : assetIDs
         self.excitementByPhotoID = excitementByPhotoID
+        self.zoomNamespace = zoomNamespace
         _currentID = State(initialValue: startID)
     }
 
@@ -54,6 +59,7 @@ struct FullScreenPhotoView: View {
             controls
         }
         .statusBarHidden()
+        .zoomTransition(sourceID: currentID, in: zoomNamespace)
     }
 
     // MARK: - Chrome
@@ -90,6 +96,7 @@ struct FullScreenPhotoView: View {
                 Menu {
                     Button(role: isExcluded ? nil : .destructive) {
                         appVM.togglePhotoExcluded(currentID)
+                        Haptics.soft()
                     } label: {
                         Label(isExcluded ? "Include in stats" : "Exclude from stats",
                               systemImage: isExcluded ? "eye" : "eye.slash")
@@ -163,14 +170,27 @@ private struct ZoomablePhoto: View {
                         }
                 } else {
                     ProgressView().tint(.white)
+                        .transition(.opacity)
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
+        .animation(.easeOut(duration: 0.2), value: image == nil)
         .task(id: assetID) {
             image = nil
-            let loaded = await loadFullImage()
-            guard !Task.isCancelled else { return }
+            // A quick, screen-sized version first so the photo is there at once (and the zoom
+            // transition has something to grow into), then the full one swapped in under it.
+            let screen = UIScreen.main.bounds.size
+            let scale = UIScreen.main.scale
+            if let preview = await loadImage(targetSize: CGSize(width: screen.width * scale,
+                                                                height: screen.height * scale),
+                                             deliveryMode: .fastFormat),
+               !Task.isCancelled {
+                image = preview
+            }
+            let loaded = await loadImage(targetSize: PHImageManagerMaximumSize,
+                                         deliveryMode: .highQualityFormat)
+            guard !Task.isCancelled, let loaded else { return }
             image = loaded
         }
     }
@@ -199,6 +219,7 @@ private struct ZoomablePhoto: View {
     }
 
     private func handleDoubleTap(at location: CGPoint, in viewSize: CGSize, image: UIImage) {
+        Haptics.selection()
         withAnimation(.spring(response: 0.3)) {
             if scale > 1 {
                 scale = 1
@@ -267,23 +288,26 @@ private struct ZoomablePhoto: View {
         return CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
     }
 
-    private func loadFullImage() async -> UIImage? {
+    private func loadImage(targetSize: CGSize,
+                           deliveryMode: PHImageRequestOptionsDeliveryMode) async -> UIImage? {
         await withCheckedContinuation { continuation in
             guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [assetID], options: nil).firstObject
             else { continuation.resume(returning: nil); return }
             let options = PHImageRequestOptions()
-            options.deliveryMode = .highQualityFormat
-            options.isNetworkAccessAllowed = true
+            options.deliveryMode = deliveryMode
+            // The preview comes from what's on the device; only the full photo may wait on iCloud.
+            options.isNetworkAccessAllowed = deliveryMode == .highQualityFormat
             options.isSynchronous = false
             options.resizeMode = .fast
             var resumed = false
             PHImageManager.default().requestImage(
-                for: asset, targetSize: PHImageManagerMaximumSize,
+                for: asset, targetSize: targetSize,
                 contentMode: .aspectFit, options: options
             ) { img, info in
                 // Can deliver a low-res placeholder first; resume once on the final image.
+                // The preview takes whatever comes first.
                 let isDegraded = (info?[PHImageResultIsDegradedKey] as? Bool) ?? false
-                guard !isDegraded, !resumed else { return }
+                guard !isDegraded || deliveryMode == .fastFormat, !resumed else { return }
                 resumed = true
                 continuation.resume(returning: img)
             }

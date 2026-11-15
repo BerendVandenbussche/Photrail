@@ -7,6 +7,7 @@ struct ExcludedPhotosView: View {
 
     @State private var selected: IdentifiedPhoto?
     @State private var showRestoreAllConfirm = false
+    @Namespace private var zoom
     /// Carries the list to swipe through as it was when the photo was tapped. Restoring a
     /// photo from inside the viewer removes it from `ids`, and paging over a list that
     /// shrinks underneath you lands on a blank page.
@@ -41,6 +42,7 @@ struct ExcludedPhotosView: View {
                                 PhotoThumbnail(assetID: id,
                                                size: (UIScreen.main.bounds.width - 4) / 3,
                                                cornerRadius: 0)
+                                    .zoomSource(id: id, in: zoom)
                             }
                             .buttonStyle(.plain)
                         }
@@ -65,7 +67,7 @@ struct ExcludedPhotosView: View {
             Text("They'll count toward your stats, trips and memories again.")
         }
         .fullScreenCover(item: $selected) {
-            FullScreenPhotoView(assetIDs: $0.siblings, startID: $0.id)
+            FullScreenPhotoView(assetIDs: $0.siblings, startID: $0.id, zoomNamespace: zoom)
         }
     }
 

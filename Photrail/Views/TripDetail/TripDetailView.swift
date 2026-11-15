@@ -46,6 +46,8 @@ struct TripDetailView: View {
     /// Vision-picked photo per wonder, so the row shows the monument rather than whatever was
     /// shot last inside its radius. Resolved once per wonder and cached in `WonderCoverStore`.
     @State private var wonderCovers: [String: String] = [:]
+    /// How far the page has scrolled, for the hero's parallax and title fade.
+    @State private var heroScroll = ScrollOffset()
 
     /// The trip's "vibe" pill: the workout-derived activity when there's a strong signal,
     /// otherwise the location-inferred type.
@@ -75,8 +77,9 @@ struct TripDetailView: View {
                 if !trip.stops.isEmpty {
                     // Flights from the plan are drawn too, but the map frames the stops only:
                     // long flight arcs would zoom it out until the itinerary was lost.
-                    TripMapView(stops: trip.stops, flights: appVM.flights(for: trip))
-                        .frame(height: 280)
+                    TripMapView(stops: trip.stops, flights: appVM.flights(for: trip),
+                                multiCountry: trip.isMultiCountry)
+                        .frame(height: 320)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                         .padding(.horizontal, 20)
                 } else if !appVM.flights(for: trip).isEmpty {
@@ -107,6 +110,7 @@ struct TripDetailView: View {
             }
             .padding(.bottom, 8)
         }
+        .trackScrollOffset(heroScroll)
         .navigationTitle(displayTrip.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -161,7 +165,10 @@ struct TripDetailView: View {
                                segments: FlightSuggestions.segments(for: trip),
                                suggestedRoute: routeGuess) { flights in
                 appVM.setFlights(flights, for: trip)
-                if !flights.isEmpty { flightHint = nil }
+                if !flights.isEmpty {
+                    Haptics.success()
+                    flightHint = nil
+                }
             }
         }
         // Again when the flights change: removing them all may bring the hint back.
@@ -239,31 +246,40 @@ struct TripDetailView: View {
 
     // MARK: - Header (hero cover)
 
+    private static let heroHeight: CGFloat = 280
+
     private var header: some View {
         ZStack(alignment: .bottomLeading) {
-            // Placeholder that stays put while the cover loads, so the photo can
-            // simply cross-fade in over it instead of swapping layouts.
-            LinearGradient(colors: [Color(red: 0.20, green: 0.18, blue: 0.45),
-                                    Color(red: 0.33, green: 0.20, blue: 0.52)],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-            if coverImage == nil {
-                Text(trip.isMultiCountry ? trip.flagsLine : trip.flag)
-                    .font(.system(size: trip.isMultiCountry ? 52 : 84))
-                    .opacity(0.35)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
+            ZStack(alignment: .bottomLeading) {
+                // Placeholder that stays put while the cover loads, so the photo can
+                // simply cross-fade in over it instead of swapping layouts.
+                LinearGradient(colors: [Color(red: 0.20, green: 0.18, blue: 0.45),
+                                        Color(red: 0.33, green: 0.20, blue: 0.52)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                if coverImage == nil {
+                    Text(trip.isMultiCountry ? trip.flagsLine : trip.flag)
+                        .font(.system(size: trip.isMultiCountry ? 52 : 84))
+                        .opacity(0.35)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
 
-            if let coverImage {
-                Image(uiImage: coverImage)
-                    .resizable().scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 280)
-                    .clipped()
-                    .transition(.opacity)
-            }
+                if let coverImage {
+                    Image(uiImage: coverImage)
+                        .resizable().scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                        .clipped()
+                        .transition(.opacity)
+                }
 
-            LinearGradient(colors: [.clear, .black.opacity(0.7)],
-                           startPoint: .center, endPoint: .bottom)
+                LinearGradient(colors: [.clear, .black.opacity(0.7)],
+                               startPoint: .center, endPoint: .bottom)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: Self.heroHeight)
+            .clipped()
+            // Scrolls away slower than the page; stretches into the gap when pulled down.
+            .parallaxHero(heroScroll, height: Self.heroHeight)
 
             VStack(alignment: .leading, spacing: 4) {
                 if isLive { LiveTripPill().padding(.bottom, 4) }
@@ -290,7 +306,7 @@ struct TripDetailView: View {
                         Button { showSharePreview = true } label: {
                             TripFilmButton(status: filmStatus)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
 
                         // A postcard per day, starting on the last one.
                         Button {
@@ -304,16 +320,18 @@ struct TripDetailView: View {
                                 .environment(\.colorScheme, .dark)
                                 .contentShape(Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                     }
                     .padding(.top, 8)
                 }
             }
             .padding(20)
+            .scrollFade(heroScroll, distance: 220)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 280)
-        .clipped()
+        .frame(height: Self.heroHeight)
+        // Clipped at the sides and bottom only, so the stretch can spill upward.
+        .mask(Rectangle().padding(.top, -1000))
         .animation(.easeInOut(duration: 0.45), value: coverImage != nil)
     }
 
@@ -374,7 +392,8 @@ struct TripDetailView: View {
                 },
                 onDismiss: {
                     appVM.dismissFlightHint(for: trip)
-                    withAnimation { self.flightHint = nil }
+                    Haptics.soft()
+                    withAnimation(Motion.smooth) { self.flightHint = nil }
                 })
             .padding(.horizontal, 20)
         } else {
@@ -392,7 +411,8 @@ struct TripDetailView: View {
 
     private func addHintFlights(_ hint: FlightHint) {
         appVM.setFlights(hint.flights, for: trip)
-        flightHint = nil
+        Haptics.success()
+        withAnimation(Motion.smooth) { flightHint = nil }
     }
 
     private var addFlightsRow: some View {

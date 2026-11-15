@@ -7,6 +7,8 @@ struct DashboardView: View {
     @State private var yearRecap: RecapModel?
     @State private var buildingRecap = false
     @State private var showPaywall = false
+    /// Trip cards zoom open into the trip page.
+    @Namespace private var tripZoom
 
     private var stats: TravelStats { appVM.stats }
     private var scanProgress: AppViewModel.ScanProgress { appVM.scanProgress }
@@ -29,8 +31,10 @@ struct DashboardView: View {
                     if let live = appVM.liveTrip {
                         Group {
                             if let trip = live.trip {
-                                NavigationLink { TripDetailView(trip: trip) } label: {
-                                    CurrentTripCard(live: live)
+                                NavigationLink {
+                                    TripDetailView(trip: trip).zoomTransition(sourceID: trip.id, in: tripZoom)
+                                } label: {
+                                    CurrentTripCard(live: live).zoomSource(id: trip.id, in: tripZoom)
                                 }
                             } else if let plan = live.plan {
                                 NavigationLink { PlannedTripDetailView(planID: plan.id) } label: {
@@ -38,7 +42,7 @@ struct DashboardView: View {
                                 }
                             }
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 20)
                         .transition(.opacity.combined(with: .move(edge: .top)))
 
@@ -61,7 +65,7 @@ struct DashboardView: View {
                         NavigationLink { PlannedTripDetailView(planID: next.id) } label: {
                             UpcomingTripCard(plan: next)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 20)
                         .transition(.opacity)
                     }
@@ -97,7 +101,7 @@ struct DashboardView: View {
                             .padding(12)
                         }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 20)
 
                     if stats.totalGeotaggedPhotos > 0 {
@@ -123,12 +127,14 @@ struct DashboardView: View {
                                            loading: buildingRecap,
                                            locked: !appVM.hasLifetime)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
                         .padding(.horizontal, 20)
 
                         wondersCard
 
                         highlightsSection
+
+                        FriendsSection()
 
                         nextTripSection
 
@@ -157,6 +163,7 @@ struct DashboardView: View {
                         showShareCard = true
                     } label: {
                         Image(systemName: "square.and.arrow.up")
+                            .symbolEffect(.bounce, value: showShareCard)
                     }
                     .disabled(stats.totalGeotaggedPhotos == 0)
                 }
@@ -218,7 +225,7 @@ struct DashboardView: View {
                     WondersBucketCard(seen: seen, total: total,
                                       emojis: officialWonders.filter { !$0.seen }.map { $0.wonder.emoji })
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .padding(.horizontal, 20)
             }
         }
@@ -230,21 +237,23 @@ struct DashboardView: View {
     /// Cities have no list of their own, so they open Countries — the level above them.
     private var statStrip: some View {
         HStack(spacing: 0) {
-            statItem("\(stats.countryCount)", "Countries", segment: .countries)
-            statItem("\(stats.cityCount)", "Cities", segment: .countries)
-            statItem("\(stats.visitedContinentCount)", "Continents", segment: .continents)
-            statItem("\(stats.trips.count)", "Trips", segment: .trips)
+            statItem(stats.countryCount, "Countries", key: "countries", segment: .countries)
+            statItem(stats.cityCount, "Cities", key: "cities", segment: .countries)
+            statItem(stats.visitedContinentCount, "Continents", key: "continents", segment: .continents)
+            statItem(stats.trips.count, "Trips", key: "trips", segment: .trips)
         }
         .padding(.vertical, 14)
         .card()
         .padding(.horizontal, 20)
     }
 
-    private func statItem(_ value: String, _ label: LocalizedStringKey,
+    private func statItem(_ value: Int, _ label: LocalizedStringKey, key: String,
                           segment: PlacesSegment) -> some View {
         Button { appVM.openPlaces(segment) } label: {
             VStack(spacing: 3) {
-                Text(value).font(.system(size: 20, weight: .bold, design: .rounded))
+                // Rolls up from zero the first time the Dashboard shows it.
+                CountUpText(value: value, key: "dashboard.\(key)")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
                 Text(label).font(.caption2).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity)
@@ -299,7 +308,7 @@ struct DashboardView: View {
                                               title: top.localizedName,
                                               subtitle: "\(top.photoCount) photos · \(top.cityCount) cities")
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         }
 
                         if let furthest {
@@ -309,7 +318,7 @@ struct DashboardView: View {
                                               title: furthest.trip.cities.first.map { "\($0), \(furthest.trip.localizedCountry)" } ?? furthest.trip.localizedCountry,
                                               subtitle: "\(Int(furthest.distanceKm).formatted()) km away")
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         } else if appVM.homeName == nil {
                             Button { appVM.selectedTab = .me } label: {
                                 HighlightCard(emoji: "🏠",
@@ -318,7 +327,7 @@ struct DashboardView: View {
                                               subtitle: "See which trip took you the furthest",
                                               highlighted: true)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         }
 
                         // Only exists once Health insights are on and at least two trips have
@@ -330,7 +339,7 @@ struct DashboardView: View {
                                               title: active.trip.displayName,
                                               subtitle: "\(active.summary)")
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         }
 
                         if let climbed {
@@ -340,7 +349,7 @@ struct DashboardView: View {
                                               title: climbed.trip.displayName,
                                               subtitle: "\(climbed.floors.formatted()) floors")
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         }
                     }
                     .scrollTargetLayout()
@@ -379,10 +388,12 @@ struct DashboardView: View {
                 .padding(.horizontal, 20)
 
                 ForEach(recentTrips) { trip in
-                    NavigationLink { TripDetailView(trip: trip) } label: {
-                        RecentTripRow(trip: trip)
+                    NavigationLink {
+                        TripDetailView(trip: trip).zoomTransition(sourceID: trip.id, in: tripZoom)
+                    } label: {
+                        RecentTripRow(trip: trip).zoomSource(id: trip.id, in: tripZoom)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .padding(.horizontal, 20)
                 }
             }
@@ -459,6 +470,10 @@ private struct WondersBucketCard: View {
     let total: Int
     let emojis: [String]
 
+    /// The segments fill one after another the first time the card appears.
+    @State private var filled: Int?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
@@ -468,7 +483,7 @@ private struct WondersBucketCard: View {
                         .textCase(.uppercase)
                         .foregroundStyle(.white.opacity(0.7))
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("\(seen)")
+                        CountUpText(value: seen, key: "dashboard.wonders")
                             .font(.system(size: 34, weight: .heavy, design: .rounded))
                             .foregroundStyle(.white)
                         Text("/ \(total) seen")
@@ -487,10 +502,20 @@ private struct WondersBucketCard: View {
             HStack(spacing: 5) {
                 ForEach(0..<max(total, 1), id: \.self) { index in
                     Capsule()
-                        .fill(index < seen ? Color.white : Color.white.opacity(0.18))
+                        .fill(index < (filled ?? seen) ? Color.white : Color.white.opacity(0.18))
                         .frame(height: 6)
+                        // One after another, left to right.
+                        .animation(.easeOut(duration: 0.35).delay(Double(index) * 0.08), value: filled)
                 }
             }
+            .task {
+                guard filled == nil else { return }
+                guard !reduceMotion else { filled = seen; return }
+                filled = 0
+                try? await Task.sleep(for: .milliseconds(250))
+                filled = seen
+            }
+            .onChange(of: seen) { _, new in filled = new }
         }
         .padding(AppCard.padding)
         .background(
@@ -548,6 +573,7 @@ private struct HighlightCard: View {
         // tile is what gets the width — and so all four call sites stay unchanged.
         .containerRelativeFrame(.horizontal, count: 2, spacing: 12)
         .contentShape(Rectangle())
+        .carouselItem()
     }
 }
 

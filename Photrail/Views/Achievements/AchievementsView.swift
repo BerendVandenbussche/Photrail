@@ -27,7 +27,7 @@ struct AchievementsView: View {
                             Button { sharing = achievement } label: {
                                 AchievementTile(achievement: achievement, unlocked: true)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         } else {
                             AchievementTile(achievement: achievement, unlocked: false)
                         }
@@ -64,11 +64,13 @@ struct AchievementsView: View {
                 }
                 Spacer()
             }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color(.systemGray5))
-                    Capsule().fill(Color.accentColor)
-                        .frame(width: max(6, geo.size.width * fraction))
+            RevealedProgress(value: fraction) { shown in
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color(.systemGray5))
+                        Capsule().fill(Color.accentColor)
+                            .frame(width: max(6, geo.size.width * shown))
+                    }
                 }
             }
             .frame(height: 8)

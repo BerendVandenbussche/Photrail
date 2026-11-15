@@ -11,21 +11,20 @@ struct PhotoThumbnail: View {
     @State private var image: UIImage?
 
     var body: some View {
-        Group {
+        ZStack {
+            // A softly shimmering tile while the photo loads, which it then fades in over.
+            Rectangle().fill(.quaternary)
+            if image == nil {
+                Color.clear.shimmering()
+            }
             if let image {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-            } else {
-                Rectangle()
-                    .fill(.quaternary)
-                    .overlay {
-                        Image(systemName: "photo")
-                            .font(.title2)
-                            .foregroundStyle(.tertiary)
-                    }
+                    .transition(.opacity)
             }
         }
+        .animation(.easeOut(duration: 0.25), value: image != nil)
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .task(id: assetID) {

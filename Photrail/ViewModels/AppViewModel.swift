@@ -775,6 +775,10 @@ final class AppViewModel {
             if gameCenterEnabled && !oldValue {
                 Task { await connectGameCenter(interactive: true) }
             }
+            if !gameCenterEnabled {
+                friendRankings = [:]
+                friendRankingsLoadedAt = nil
+            }
         }
     }
 
@@ -782,11 +786,65 @@ final class AppViewModel {
     /// launch and after a scan it's silent.
     func connectGameCenter(interactive: Bool) async {
         guard gameCenterEnabled else { return }
-        guard await GameCenterService.authenticate(interactive: interactive) else {
+        let signedIn = await GameCenterService.authenticate(interactive: interactive)
+        gameCenterSignedIn = signedIn
+        guard signedIn else {
             if interactive { gameCenterEnabled = false }
             return
         }
         await reportToGameCenter(force: interactive)
+        await refreshFriendRankings(force: true)
+    }
+
+    /// Whether the player is signed in to Game Center: nil until the first sign-in attempt
+    /// since launch has answered, so screens can wait instead of flashing "not signed in".
+    /// False when Game Center is on in Photrail but this iPhone isn't signed in (or the
+    /// sign-in was cancelled) — the friends leaderboards can't load then.
+    private(set) var gameCenterSignedIn: Bool?
+
+    /// "Try again" on the Friends screen: asks Game Center once more, showing Apple's sheet
+    /// if it still can. Unlike turning the toggle on, a failure leaves the toggle on.
+    func retryGameCenterSignIn() async {
+        guard gameCenterEnabled else { return }
+        gameCenterSignedIn = nil
+        let signedIn = await GameCenterService.authenticate(interactive: true)
+        gameCenterSignedIn = signedIn
+        guard signedIn else { return }
+        await reportToGameCenter(force: true)
+        await refreshFriendRankings(force: true)
+    }
+
+    /// The player and their friends per leaderboard, best first (`GameCenterService.friendsRanking`).
+    /// Empty until loaded, and while Game Center is off or signed out.
+    private(set) var friendRankings: [GameCenterService.Board: [GameCenterService.FriendEntry]] = [:]
+    private var friendRankingsLoadedAt: Date?
+
+    /// Whether `friendRankings` has been loaded at least once since Game Center was turned on.
+    var friendRankingsLoaded: Bool { friendRankingsLoadedAt != nil }
+
+    /// Reloads the friends leaderboards. Without `force`, at most every five minutes: the
+    /// Dashboard asks every time it appears.
+    func refreshFriendRankings(force: Bool = false) async {
+        guard gameCenterEnabled else { return }
+        guard GameCenterService.isAuthenticated else {
+            // Signed out since (in Settings): say so instead of waiting forever. Before the
+            // first answer, leave it to `connectGameCenter`.
+            if gameCenterSignedIn == true { gameCenterSignedIn = false }
+            return
+        }
+        gameCenterSignedIn = true
+        if !force, let loaded = friendRankingsLoadedAt, Date().timeIntervalSince(loaded) < 300 { return }
+        var result: [GameCenterService.Board: [GameCenterService.FriendEntry]] = [:]
+        for board in GameCenterService.Board.allCases {
+            if let entries = try? await GameCenterService.friendsRanking(board) {
+                result[board] = entries
+            } else if let previous = friendRankings[board] {
+                // Offline or a hiccup: keep what was shown rather than blank it.
+                result[board] = previous
+            }
+        }
+        friendRankings = result
+        friendRankingsLoadedAt = Date()
     }
 
     /// Sends achievements and leaderboard numbers, but only when they changed since the last

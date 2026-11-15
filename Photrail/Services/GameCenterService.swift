@@ -77,6 +77,111 @@ enum GameCenterService {
         }
     }
 
+    // MARK: - Friends
+
+    /// The leaderboards friends can compare on, in the order the Friends screen shows them.
+    enum Board: String, CaseIterable, Identifiable {
+        case countries, cities, distance, altitude
+
+        var id: String { rawValue }
+
+        var leaderboardID: String {
+            switch self {
+            case .countries: Leaderboard.countries
+            case .cities: Leaderboard.cities
+            case .distance: Leaderboard.distance
+            case .altitude: Leaderboard.altitude
+            }
+        }
+
+        var title: LocalizedStringResource {
+            switch self {
+            case .countries: "Countries"
+            case .cities: "Cities"
+            case .distance: "Distance"
+            case .altitude: "Altitude"
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .countries: "flag.fill"
+            case .cities: "building.2.fill"
+            case .distance: "airplane"
+            case .altitude: "mountain.2.fill"
+            }
+        }
+
+        /// A score as the user reads it: kilometres and metres with their unit.
+        func formatted(_ score: Int) -> String {
+            switch self {
+            case .countries, .cities:
+                return score.formatted()
+            case .distance:
+                return Measurement(value: Double(score), unit: UnitLength.kilometers)
+                    .formatted(.measurement(width: .abbreviated, usage: .road,
+                                            numberFormatStyle: .number.precision(.fractionLength(0))))
+            case .altitude:
+                return Measurement(value: Double(score), unit: UnitLength.meters)
+                    .formatted(.measurement(width: .abbreviated, usage: .asProvided,
+                                            numberFormatStyle: .number.precision(.fractionLength(0))))
+            }
+        }
+    }
+
+    /// One person on a friends leaderboard: a friend, or the player themself.
+    struct FriendEntry: Identifiable, Equatable {
+        let player: GKPlayer
+        /// 1 is the best, counted among friends only.
+        let rank: Int
+        let score: Int
+        let isMe: Bool
+
+        var id: String { player.gamePlayerID }
+        var name: String { player.displayName }
+    }
+
+    /// The player and their Game Center friends on `board`, best first. Only the player
+    /// themself when they have no friends on it yet; empty when nobody has a score.
+    static func friendsRanking(_ board: Board) async throws -> [FriendEntry] {
+        guard isAuthenticated,
+              let leaderboard = try await GKLeaderboard.loadLeaderboards(IDs: [board.leaderboardID]).first
+        else { return [] }
+        let (local, entries, _) = try await leaderboard.loadEntries(
+            for: .friendsOnly, timeScope: .allTime, range: NSRange(location: 1, length: 100))
+        // Typed explicitly so this reads the same whether the SDK marks them optional or not.
+        let listed: [GKLeaderboard.Entry]? = entries
+        let localEntry: GKLeaderboard.Entry? = local
+        var all = listed ?? []
+        if let local = localEntry, !all.contains(where: { $0.player.gamePlayerID == local.player.gamePlayerID }) {
+            all.append(local)
+        }
+        let me = GKLocalPlayer.local.gamePlayerID
+        // Ranked here rather than trusting `rank`, so ties and the added local entry line up.
+        return all
+            .sorted { $0.score != $1.score ? $0.score > $1.score : $0.player.displayName < $1.player.displayName }
+            .enumerated()
+            .map { index, entry in
+                FriendEntry(player: entry.player, rank: index + 1, score: entry.score,
+                            isMe: entry.player.gamePlayerID == me)
+            }
+    }
+
+    /// Apple's sheet to send a friend request (by message or link).
+    static func inviteFriend() {
+        guard isAuthenticated, let top = SharePresenter.topViewController() else { return }
+        try? GKLocalPlayer.local.presentFriendRequestCreator(from: top)
+    }
+
+    /// Apple's sheet on one leaderboard, filtered to friends.
+    static func showLeaderboard(_ board: Board) {
+        guard isAuthenticated, let top = SharePresenter.topViewController() else { return }
+        let controller = GKGameCenterViewController(leaderboardID: board.leaderboardID,
+                                                    playerScope: .friendsOnly, timeScope: .allTime)
+        controller.gameCenterDelegate = DashboardDelegate.shared
+        top.present(controller, animated: true)
+    }
+
     /// Apple's Game Center dashboard: leaderboards with a friends filter, and achievements.
     static func showDashboard() {
         guard isAuthenticated, let top = SharePresenter.topViewController() else { return }

@@ -332,8 +332,8 @@ struct ProfileView: View {
                 toggleRow(icon: "gamecontroller.fill", title: "Game Center", isOn: $appVM.gameCenterEnabled)
                 if appVM.gameCenterEnabled {
                     rowDivider
-                    Button { GameCenterService.showDashboard() } label: {
-                        row(icon: "person.2.fill", title: "Leaderboards & achievements", detail: nil)
+                    NavigationLink { FriendsLeaderboardView() } label: {
+                        row(icon: "person.2.fill", title: "Friends", detail: nil)
                     }
                     .buttonStyle(.plain)
                 }
@@ -445,7 +445,7 @@ struct ProfileView: View {
                 .debugForceUntaggedNotice {
 #if DEBUG
                     withAnimation { appVM.forceUntaggedPhotoNotice.toggle() }
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    Haptics.soft()
 #endif
                 }
                 rowDivider

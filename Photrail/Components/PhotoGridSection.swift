@@ -12,6 +12,7 @@ struct PhotoGridSection: View {
     var excitementByPhotoID: [String: ExcitementSample] = [:]
 
     @State private var selected: IdentifiedPhoto?
+    @Namespace private var zoom
     private struct IdentifiedPhoto: Identifiable { let id: String }
 
     private let columns = [
@@ -26,9 +27,8 @@ struct PhotoGridSection: View {
                 .padding(.horizontal, 20)
 
             if photoIDs.isEmpty {
-                Text("No photos available")
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 20)
+                ContentUnavailableView("No photos available", systemImage: "photo.on.rectangle.angled")
+                    .padding(.vertical, 8)
             } else {
                 LazyVGrid(columns: columns, spacing: 2) {
                     ForEach(photoIDs.prefix(limit), id: \.self) { id in
@@ -45,6 +45,7 @@ struct PhotoGridSection: View {
                                             .padding(4)
                                     }
                                 }
+                                .zoomSource(id: id, in: zoom)
                         }
                         .buttonStyle(.plain)
                     }
@@ -56,7 +57,8 @@ struct PhotoGridSection: View {
             // can't page to a photo the grid never offered.
             FullScreenPhotoView(assetIDs: Array(photoIDs.prefix(limit)),
                                 startID: $0.id,
-                                excitementByPhotoID: excitementByPhotoID)
+                                excitementByPhotoID: excitementByPhotoID,
+                                zoomNamespace: zoom)
         }
     }
 }

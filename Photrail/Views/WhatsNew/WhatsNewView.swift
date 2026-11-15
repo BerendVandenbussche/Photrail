@@ -73,9 +73,19 @@ struct WhatsNewView: View {
                         .foregroundStyle(.white)
                 }
             }
-            Button("Later") { dismiss() }
-                .font(.subheadline.weight(.semibold))
-                .padding(.vertical, 8)
+            if let action = announcement.action, appVM.canPerform(action.kind) {
+                Button("Later") { dismiss() }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.vertical, 8)
+            } else {
+                Button { dismiss() } label: {
+                    Text("Continue")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity).padding(.vertical, 15)
+                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+                        .foregroundStyle(.white)
+                }
+            }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 12)
